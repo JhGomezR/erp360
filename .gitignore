@@ -1,0 +1,18 @@
+# Claude Code (configuración local del agente)
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.suo
+*.user
+
+# Backups de storage (no subir dumps de BD locales)
+atlas-backend/storage/app/backups/
+
+# Logs raíz
+*.log
