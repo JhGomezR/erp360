@@ -13,6 +13,8 @@ class AccessToken extends PersonalAccessToken
     protected $table = 'personal_access_tokens';
 
     protected $fillable = [
+        'tokenable_type',
+        'tokenable_id',
         'name',
         'tenant_slug',
         'token',
