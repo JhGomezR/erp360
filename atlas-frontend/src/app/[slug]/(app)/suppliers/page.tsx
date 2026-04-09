@@ -366,179 +366,149 @@ export default function SuppliersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Proveedores</h1>
-        <Button onClick={handleNew}>
-          <Plus className="mr-2 size-4" />
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Proveedores</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {isLoading ? 'Cargando...' : `${suppliers.length} proveedor${suppliers.length !== 1 ? 'es' : ''}`}
+          </p>
+        </div>
+        <Button onClick={handleNew} className="gap-2">
+          <Plus className="size-4" />
           Nuevo proveedor
         </Button>
       </div>
 
       {/* Search */}
       <div className="relative max-w-sm">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
         <Input
           placeholder="Buscar por nombre o documento..."
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          className="pl-9"
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          className="pl-10"
         />
       </div>
 
-      {/* Table */}
-      <div className="rounded-lg border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nombre</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Documento</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Contacto</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Teléfono</th>
-              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
-              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* Loading */}
-            {isLoading &&
-              Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i} className="border-b last:border-0">
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-40" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-28" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-32" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-5 w-16 rounded-full" /></td>
-                  <td className="px-4 py-3 text-right"><Skeleton className="h-7 w-16 ml-auto" /></td>
-                </tr>
-              ))}
-
-            {/* Empty */}
-            {!isLoading && suppliers.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
-                  <div className="flex flex-col items-center gap-2">
-                    <Truck className="size-8 opacity-40" />
-                    <span className="text-sm">
-                      {search ? 'Sin resultados para la búsqueda' : 'No hay proveedores registrados'}
+      {/* Cards grid */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border bg-card p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-11 rounded-xl" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-8 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      ) : suppliers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="size-20 rounded-full bg-muted flex items-center justify-center mb-4">
+            <Truck className="size-9 text-muted-foreground/40" />
+          </div>
+          <h3 className="font-semibold text-lg mb-1">
+            {search ? 'Sin resultados' : 'Aún no tienes proveedores'}
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            {search
+              ? `No encontramos proveedores con "${search}".`
+              : 'Registra tu primer proveedor para gestionar compras y órdenes.'}
+          </p>
+          {!search && (
+            <Button onClick={handleNew} className="mt-5 gap-2">
+              <Plus className="size-4" /> Registrar proveedor
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {suppliers.map((s: Supplier) => (
+            <div key={s.id} className="rounded-2xl border bg-card p-4 flex flex-col gap-3 hover:shadow-md hover:border-primary/20 transition-all">
+              {/* Header */}
+              <div className="flex items-start gap-3">
+                <div className="size-11 rounded-xl bg-indigo-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                  {s.name.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold truncate">{s.name}</p>
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.is_active ? 'bg-green-500/10 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                      {s.is_active ? 'Activo' : 'Inactivo'}
                     </span>
                   </div>
-                </td>
-              </tr>
-            )}
+                  {s.document_number ? (
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {s.document_type} {s.document_number}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground/40 italic">Sin documento</p>
+                  )}
+                </div>
+              </div>
 
-            {/* Rows */}
-            {!isLoading &&
-              suppliers.map((s: Supplier) => (
-                <tr key={s.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{s.name}</p>
-                    {s.email && (
-                      <p className="text-xs text-muted-foreground">{s.email}</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {s.document_number ? (
-                      <span>
-                        <span className="font-mono text-xs bg-muted px-1 py-0.5 rounded mr-1">
-                          {s.document_type}
-                        </span>
-                        {s.document_number}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground/50">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {s.contact_name ?? <span className="opacity-40">—</span>}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {s.phone ?? <span className="opacity-40">—</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    {s.is_active ? (
-                      <Badge variant="default">Activo</Badge>
-                    ) : (
-                      <Badge variant="secondary">Inactivo</Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setHistorySupplier(s)}
-                        aria-label="Ver órdenes"
-                        title="Ver órdenes de compra"
-                      >
-                        <ClipboardList className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setEvalSupplier(s)}
-                        aria-label="Evaluar"
-                        title="Evaluar proveedor"
-                      >
-                        <Star className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setContractsSupplier(s)}
-                        aria-label="Contratos"
-                        title="Contratos / convenios"
-                      >
-                        <FileSignature className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleEdit(s)}
-                        aria-label="Editar"
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleDelete(s)}
-                        aria-label="Eliminar"
-                        className="text-destructive hover:text-destructive"
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+              {/* Contacto */}
+              <div className="space-y-1">
+                {s.contact_name && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <CheckCircle className="size-3 shrink-0 text-muted-foreground/50" />
+                    {s.contact_name}
+                  </p>
+                )}
+                {s.phone && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <AlertTriangle className="size-3 shrink-0 opacity-0" />
+                    📞 {s.phone}
+                  </p>
+                )}
+                {s.email && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5 truncate">
+                    <AlertTriangle className="size-3 shrink-0 opacity-0" />
+                    ✉️ {s.email}
+                  </p>
+                )}
+                {!s.contact_name && !s.phone && !s.email && (
+                  <p className="text-xs text-muted-foreground/40 italic">Sin información de contacto</p>
+                )}
+              </div>
+
+              {/* Acciones */}
+              <div className="flex gap-1 pt-1 border-t flex-wrap">
+                <Button variant="ghost" size="sm" className="text-xs gap-1 flex-1" onClick={() => setHistorySupplier(s)}>
+                  <ClipboardList className="size-3.5" /> Órdenes
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs gap-1 flex-1" onClick={() => setEvalSupplier(s)}>
+                  <Star className="size-3.5" /> Evaluar
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs gap-1 flex-1" onClick={() => setContractsSupplier(s)}>
+                  <FileSignature className="size-3.5" /> Contratos
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => handleEdit(s)}>
+                  <Pencil className="size-3.5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs text-destructive hover:text-destructive gap-1" onClick={() => handleDelete(s)} disabled={deleteMutation.isPending}>
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
       {lastPage > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
+        <div className="flex items-center justify-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
             Anterior
           </Button>
-          <span className="text-sm text-muted-foreground">
-            Página {page} de {lastPage}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
-            disabled={page === lastPage}
-          >
+          <span className="text-sm text-muted-foreground">Página <strong>{page}</strong> de <strong>{lastPage}</strong></span>
+          <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(lastPage, p + 1))} disabled={page === lastPage}>
             Siguiente
           </Button>
         </div>

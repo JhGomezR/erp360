@@ -452,66 +452,69 @@ export default function CashPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b">
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
         {([['caja', 'Turno Actual', Landmark], ['historial', 'Historial', History], ['flujo', 'Flujo de Caja', BarChart3]] as const).map(([key, label, Icon]) => (
           <button key={key} onClick={() => setTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+            className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}>
-            <Icon className="size-4" />{label}
+            <Icon className="size-3.5" />{label}
           </button>
         ))}
       </div>
 
       {/* ── Historial ── */}
       {tab === 'historial' && (
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Caja</th>
-                  <th className="text-left px-4 py-3 font-medium">Estado</th>
-                  <th className="text-right px-4 py-3 font-medium">Apertura</th>
-                  <th className="text-right px-4 py-3 font-medium">Cierre</th>
-                  <th className="text-right px-4 py-3 font-medium">Diferencia</th>
-                  <th className="text-left px-4 py-3 font-medium">Abierta</th>
-                  <th className="text-left px-4 py-3 font-medium">Cerrada</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {loadingHistory
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i}>{Array.from({ length: 7 }).map((__, j) => (
-                        <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                      ))}</tr>
-                    ))
-                  : (history ?? []).map((reg) => (
-                      <tr key={reg.id} className="hover:bg-muted/30">
-                        <td className="px-4 py-3 font-medium">{reg.name}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant={reg.status === 'open' ? 'default' : 'secondary'}>
-                            {reg.status === 'open' ? 'Abierta' : 'Cerrada'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono">{fmt(reg.opening_amount)}</td>
-                        <td className="px-4 py-3 text-right font-mono">{reg.closing_amount != null ? fmt(reg.closing_amount) : '—'}</td>
-                        <td className={`px-4 py-3 text-right font-mono font-medium ${
-                          reg.difference != null && reg.difference < 0 ? 'text-destructive' : reg.difference != null && reg.difference > 0 ? 'text-green-600' : ''
-                        }`}>{reg.difference != null ? fmt(reg.difference) : '—'}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs">{new Date(reg.opened_at).toLocaleString('es-CO')}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs">{reg.closed_at ? new Date(reg.closed_at).toLocaleString('es-CO') : '—'}</td>
-                      </tr>
-                    ))}
-                {!loadingHistory && (history ?? []).length === 0 && (
-                  <tr><td colSpan={7} className="text-center py-8 text-muted-foreground text-sm">
-                    <History className="size-8 mx-auto mb-2 opacity-30" />Sin registros de caja
-                  </td></tr>
-                )}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <div className="space-y-3">
+          {loadingHistory
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border">
+                  <Skeleton className="size-10 rounded-xl" />
+                  <div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-48" /></div>
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-5 w-24" />
+                </div>
+              ))
+            : (history ?? []).length === 0
+              ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                    <History className="size-7 text-muted-foreground/40" />
+                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">Sin registros de caja</p>
+                </div>
+              )
+              : (history ?? []).map((reg) => (
+                <div key={reg.id} className="flex items-center gap-4 p-4 rounded-2xl border bg-card hover:shadow-sm transition-all">
+                  <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 ${reg.status === 'open' ? 'bg-green-500/10' : 'bg-muted'}`}>
+                    {reg.status === 'open' ? <Unlock className="size-5 text-green-600" /> : <Lock className="size-5 text-muted-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold">{reg.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Abierta: {new Date(reg.opened_at).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      {reg.closed_at && ` · Cerrada: ${new Date(reg.closed_at).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`}
+                    </p>
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${reg.status === 'open' ? 'bg-green-500/10 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                    {reg.status === 'open' ? 'Abierta' : 'Cerrada'}
+                  </span>
+                  <div className="text-right shrink-0">
+                    <p className="text-xs text-muted-foreground">Apertura</p>
+                    <p className="font-mono font-semibold text-sm">{fmt(reg.opening_amount)}</p>
+                  </div>
+                  {reg.difference != null && (
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-muted-foreground">Diferencia</p>
+                      <p className={`font-mono font-semibold text-sm ${reg.difference < 0 ? 'text-destructive' : reg.difference > 0 ? 'text-green-600' : ''}`}>
+                        {reg.difference >= 0 ? '+' : ''}{fmt(reg.difference)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))
+          }
+        </div>
       )}
 
       {/* ── Turno actual ── */}
@@ -572,50 +575,42 @@ export default function CashPage() {
 
       {/* Movimientos */}
       {status?.is_open && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Movimientos del turno</CardTitle></CardHeader>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Tipo</th>
-                  <th className="text-left px-4 py-3 font-medium">Concepto</th>
-                  <th className="text-right px-4 py-3 font-medium">Monto</th>
-                  <th className="text-left px-4 py-3 font-medium">Hora</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {loadingMov
-                  ? Array.from({ length: 3 }).map((_, i) => (
-                      <tr key={i}>{Array.from({ length: 4 }).map((__, j) => (
-                        <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                      ))}</tr>
-                    ))
-                  : movements.map((m) => (
-                      <tr key={m.id} className="hover:bg-muted/30">
-                        <td className="px-4 py-3">
-                          <Badge variant={m.type === 'in' ? 'default' : 'secondary'}>
-                            {m.type === 'in' ? 'Entrada' : 'Salida'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">{m.concept}</td>
-                        <td className={`px-4 py-3 text-right font-medium ${m.type === 'in' ? 'text-green-600' : 'text-red-600'}`}>
-                          {m.type === 'out' ? '-' : '+'}{fmt(m.amount)}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {new Date(m.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
-                        </td>
-                      </tr>
-                    ))}
-                {!loadingMov && movements.length === 0 && (
-                  <tr><td colSpan={4} className="text-center py-8 text-muted-foreground text-sm">
-                    Sin movimientos en este turno
-                  </td></tr>
-                )}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70 mb-3">
+            Movimientos del turno
+          </p>
+          {movements.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center rounded-2xl border bg-card">
+              <DollarSign className="size-8 text-muted-foreground/30 mb-2" />
+              <p className="text-sm text-muted-foreground">Sin movimientos aún</p>
+              <Button variant="outline" size="sm" className="mt-3 gap-1.5" onClick={() => setMoveDialog(true)}>
+                <Plus className="size-3.5" /> Registrar movimiento
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {movements.map((m) => (
+                <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/20 transition-colors">
+                  <div className={`size-9 rounded-lg flex items-center justify-center shrink-0 ${m.type === 'in' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                    {m.type === 'in'
+                      ? <TrendingUp className="size-4 text-green-600" />
+                      : <TrendingDown className="size-4 text-red-600" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{m.concept}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(m.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                      {m.user && ` · ${m.user}`}
+                    </p>
+                  </div>
+                  <p className={`text-sm font-bold tabular-nums ${m.type === 'in' ? 'text-green-600' : 'text-red-600'}`}>
+                    {m.type === 'out' ? '−' : '+'}{fmt(m.amount)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       </>)}

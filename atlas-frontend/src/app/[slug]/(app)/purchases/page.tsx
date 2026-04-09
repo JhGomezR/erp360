@@ -470,98 +470,79 @@ export default function PurchasesPage() {
         ))}
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50 text-muted-foreground">
-              <th className="px-4 py-3 text-left font-medium">#</th>
-              <th className="px-4 py-3 text-left font-medium">Proveedor</th>
-              <th className="px-4 py-3 text-left font-medium">Fecha</th>
-              <th className="px-4 py-3 text-left font-medium">Estado</th>
-              <th className="px-4 py-3 text-right font-medium">Total</th>
-              <th className="px-4 py-3 text-center font-medium">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b">
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-8" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-40" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-5 w-20" /></td>
-                  <td className="px-4 py-3 text-right"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-8 w-28 mx-auto" /></td>
-                </tr>
-              ))
-            ) : orders.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                  No hay órdenes de compra
-                </td>
-              </tr>
-            ) : (
-              orders.map((order) => (
-                <tr key={order.id} className="border-b hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-mono text-muted-foreground">#{order.id}</td>
-                  <td className="px-4 py-3 font-medium">{order.supplier_name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(order.created_at)}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={order.status} />
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium">{formatCurrency(order.total)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-center gap-2">
-                      {order.status === 'draft' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => sendMutation.mutate(order.id)}
-                          disabled={sendMutation.isPending}
-                        >
-                          <Send className="mr-1 h-3 w-3" />
-                          Enviar
-                        </Button>
-                      )}
-                      {(order.status === 'sent' || order.status === 'partial') && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setReceiveOrder(order)}
-                          disabled={receiveMutation.isPending}
-                        >
-                          <PackageCheck className="mr-1 h-3 w-3" />
-                          Recibir
-                        </Button>
-                      )}
-                      {order.status === 'received' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => router.push(`/${slug}/purchase-returns`)}
-                          title="Registrar devolución a proveedor"
-                        >
-                          <RotateCcw className="mr-1 h-3 w-3" />
-                          Devolver
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setDetailOrder(order)}
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">Ver detalle</span>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Orders list */}
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border">
+              <Skeleton className="size-10 rounded-xl" />
+              <div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-40" /><Skeleton className="h-3 w-24" /></div>
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-8 w-24" />
+            </div>
+          ))}
+        </div>
+      ) : orders.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-3">
+            <PackageCheck className="size-7 text-muted-foreground/40" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground">No hay órdenes de compra</p>
+          <Button size="sm" className="mt-4 gap-2" onClick={() => setCreateOpen(true)}>
+            <Plus className="size-4" /> Crear primera orden
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {orders.map((order) => {
+            const STATUS_COLOR: Record<string, string> = {
+              draft: 'bg-slate-500/10 text-slate-600',
+              sent: 'bg-blue-500/10 text-blue-700',
+              partial: 'bg-amber-500/10 text-amber-700',
+              received: 'bg-green-500/10 text-green-700',
+              cancelled: 'bg-red-500/10 text-red-700',
+            };
+            return (
+              <div key={order.id} className="flex items-center gap-4 p-4 rounded-2xl border bg-card hover:shadow-sm hover:border-primary/20 transition-all">
+                <div className="size-10 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
+                  <Calendar className="size-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold truncate">{order.supplier_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    #{order.id} · {formatDate(order.created_at)} · {order.items?.length ?? 0} ítem{(order.items?.length ?? 0) !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLOR[order.status] ?? 'bg-muted text-muted-foreground'}`}>
+                  {STATUS_LABELS[order.status]}
+                </span>
+                <p className="font-bold text-sm tabular-nums shrink-0">{formatCurrency(order.total)}</p>
+                <div className="flex gap-1.5 shrink-0">
+                  {order.status === 'draft' && (
+                    <Button size="sm" variant="outline" className="gap-1 text-xs h-8" onClick={() => sendMutation.mutate(order.id)} disabled={sendMutation.isPending}>
+                      <Send className="size-3" /> Enviar
+                    </Button>
+                  )}
+                  {(order.status === 'sent' || order.status === 'partial') && (
+                    <Button size="sm" variant="outline" className="gap-1 text-xs h-8" onClick={() => setReceiveOrder(order)} disabled={receiveMutation.isPending}>
+                      <PackageCheck className="size-3" /> Recibir
+                    </Button>
+                  )}
+                  {order.status === 'received' && (
+                    <Button size="sm" variant="outline" className="gap-1 text-xs h-8" onClick={() => router.push(`/${slug}/purchase-returns`)}>
+                      <RotateCcw className="size-3" /> Devolver
+                    </Button>
+                  )}
+                  <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => setDetailOrder(order)}>
+                    <Eye className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
         </TabsContent>
       </Tabs>

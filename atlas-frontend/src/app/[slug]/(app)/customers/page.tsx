@@ -7,7 +7,11 @@ import { useForm, Controller } from 'react-hook-form';
 import { standardSchemaResolver as zodResolver } from '@hookform/resolvers/standard-schema';
 import { z } from 'zod';
 import { notify } from '@/lib/notify';
-import { Pencil, Trash2, Search, ChevronLeft, ChevronRight, UserPlus, ShoppingBag } from 'lucide-react';
+import {
+  Pencil, Trash2, Search, ChevronLeft, ChevronRight,
+  UserPlus, ShoppingBag, Phone, Mail, FileText, Users,
+  Receipt,
+} from 'lucide-react';
 
 import { customersApi, posApi } from '@/lib/api/tenant.api';
 import type { Sale } from '@/types';
@@ -18,32 +22,13 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+  Sheet, SheetContent, SheetHeader, SheetTitle,
 } from '@/components/ui/sheet';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -63,12 +48,7 @@ interface Customer {
 
 interface PaginatedResponse<T> {
   data: T[];
-  meta: {
-    current_page: number;
-    last_page: number;
-    total: number;
-    per_page: number;
-  };
+  meta: { current_page: number; last_page: number; total: number; per_page: number };
 }
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -98,6 +78,120 @@ function useDebounce<T>(value: T, delay: number): T {
 
 const DOCUMENT_TYPES = ['CC', 'NIT', 'CE', 'Pasaporte'] as const;
 
+const fmt = (n: number) =>
+  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+
+// Genera color de avatar basado en nombre
+const AVATAR_COLORS = [
+  'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-rose-500',
+  'bg-orange-500', 'bg-amber-500', 'bg-green-500', 'bg-teal-500',
+  'bg-cyan-500', 'bg-indigo-500',
+];
+
+function avatarColor(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function initials(name: string) {
+  return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+}
+
+// ─── Customer Card ────────────────────────────────────────────────────────────
+
+function CustomerCard({
+  customer,
+  onEdit,
+  onDelete,
+  onHistory,
+}: {
+  customer: Customer;
+  onEdit: () => void;
+  onDelete: () => void;
+  onHistory: () => void;
+}) {
+  return (
+    <div className="group relative rounded-2xl border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all flex flex-col gap-3">
+
+      {/* Avatar + nombre */}
+      <div className="flex items-center gap-3">
+        <div className={`size-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0 ${avatarColor(customer.name)}`}>
+          {initials(customer.name)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold truncate">{customer.name}</p>
+          {customer.document_type && customer.document_number ? (
+            <p className="text-xs text-muted-foreground font-mono">
+              {customer.document_type} {customer.document_number}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground/40 italic">Sin documento</p>
+          )}
+        </div>
+      </div>
+
+      {/* Contacto */}
+      <div className="space-y-1.5">
+        {customer.phone ? (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Phone className="size-3 shrink-0" />
+            <span className="truncate">{customer.phone}</span>
+          </div>
+        ) : null}
+        {customer.email ? (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Mail className="size-3 shrink-0" />
+            <span className="truncate">{customer.email}</span>
+          </div>
+        ) : null}
+        {!customer.phone && !customer.email && (
+          <p className="text-xs text-muted-foreground/40 italic">Sin contacto</p>
+        )}
+      </div>
+
+      {/* Total compras */}
+      {typeof customer.total_purchases === 'number' && customer.total_purchases > 0 && (
+        <div className="flex items-center gap-1.5 rounded-lg bg-green-500/8 px-2.5 py-1.5">
+          <Receipt className="size-3 text-green-600 shrink-0" />
+          <span className="text-xs font-semibold text-green-700">{fmt(customer.total_purchases)}</span>
+          <span className="text-xs text-muted-foreground ml-auto">en compras</span>
+        </div>
+      )}
+
+      {/* Acciones */}
+      <div className="flex gap-1.5 pt-1 border-t">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex-1 text-xs gap-1.5"
+          onClick={onHistory}
+        >
+          <ShoppingBag className="size-3.5" />
+          Compras
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-xs"
+          onClick={onEdit}
+        >
+          <Pencil className="size-3.5" />
+          Editar
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onDelete}
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="size-3.5" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CustomersPage() {
@@ -105,7 +199,6 @@ export default function CustomersPage() {
   const slug = params.slug as string;
   const queryClient = useQueryClient();
 
-  // State
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -115,59 +208,25 @@ export default function CustomersPage() {
 
   const debouncedSearch = useDebounce(search, 400);
 
-  // Form
   const {
-    register,
-    handleSubmit,
-    reset,
-    control,
+    register, handleSubmit, reset, control,
     formState: { errors, isSubmitting },
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      document_type: '',
-      document_number: '',
-      address: '',
-      notes: '',
-    },
+    defaultValues: { name: '', email: '', phone: '', document_type: '', document_number: '', address: '', notes: '' },
   });
 
-  // Populate form when editing
   useEffect(() => {
-    if (editingCustomer) {
-      reset({
-        name: editingCustomer.name,
-        email: editingCustomer.email ?? '',
-        phone: editingCustomer.phone ?? '',
-        document_type: editingCustomer.document_type ?? '',
-        document_number: editingCustomer.document_number ?? '',
-        address: editingCustomer.address ?? '',
-        notes: editingCustomer.notes ?? '',
-      });
-    } else {
-      reset({
-        name: '',
-        email: '',
-        phone: '',
-        document_type: '',
-        document_number: '',
-        address: '',
-        notes: '',
-      });
-    }
+    reset(editingCustomer
+      ? { name: editingCustomer.name, email: editingCustomer.email ?? '', phone: editingCustomer.phone ?? '', document_type: editingCustomer.document_type ?? '', document_number: editingCustomer.document_number ?? '', address: editingCustomer.address ?? '', notes: editingCustomer.notes ?? '' }
+      : { name: '', email: '', phone: '', document_type: '', document_number: '', address: '', notes: '' }
+    );
   }, [editingCustomer, reset]);
 
-  // Query
   const { data, isLoading } = useQuery({
     queryKey: ['customers', slug, debouncedSearch, page],
     queryFn: async () => {
-      const res = await customersApi.list({
-        search: debouncedSearch || undefined,
-        page,
-      });
+      const res = await customersApi.list({ search: debouncedSearch || undefined, page });
       return res.data as PaginatedResponse<Customer>;
     },
   });
@@ -177,28 +236,17 @@ export default function CustomersPage() {
   const totalPages = meta?.last_page ?? 1;
   const total = meta?.total ?? 0;
 
-  // Mutations
   const saveMutation = useMutation({
     mutationFn: async (values: CustomerFormValues) => {
-      const payload = {
-        ...values,
-        email: values.email || undefined,
-        document_type: values.document_type || undefined,
-        document_number: values.document_number || undefined,
-      };
-      if (editingCustomer) {
-        return customersApi.update(editingCustomer.id, payload);
-      }
-      return customersApi.create(payload);
+      const payload = { ...values, email: values.email || undefined, document_type: values.document_type || undefined, document_number: values.document_number || undefined };
+      return editingCustomer ? customersApi.update(editingCustomer.id, payload) : customersApi.create(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers', slug] });
       notify.success(editingCustomer ? 'Cliente actualizado' : 'Cliente creado');
       handleCloseDialog();
     },
-    onError: () => {
-      notify.error('Error al guardar el cliente');
-    },
+    onError: () => notify.error('Error al guardar el cliente'),
   });
 
   const deleteMutation = useMutation({
@@ -207,299 +255,170 @@ export default function CustomersPage() {
       queryClient.invalidateQueries({ queryKey: ['customers', slug] });
       notify.success('Cliente eliminado');
     },
-    onError: () => {
-      notify.error('Error al eliminar el cliente');
-    },
+    onError: () => notify.error('Error al eliminar el cliente'),
   });
 
-  // Handlers
-  const handleCloseDialog = useCallback(() => {
-    setDialogOpen(false);
-    setEditingCustomer(null);
-  }, []);
+  const handleCloseDialog = useCallback(() => { setDialogOpen(false); setEditingCustomer(null); }, []);
+  const handleOpenCreate = () => { setEditingCustomer(null); setDialogOpen(true); };
+  const handleOpenEdit = (c: Customer) => { setEditingCustomer(c); setDialogOpen(true); };
+  const handleDelete = (c: Customer) => { if (window.confirm(`¿Eliminar a ${c.name}?`)) deleteMutation.mutate(c.id); };
 
-  const handleOpenCreate = () => {
-    setEditingCustomer(null);
-    setDialogOpen(true);
-  };
-
-  const handleOpenEdit = (customer: Customer) => {
-    setEditingCustomer(customer);
-    setDialogOpen(true);
-  };
-
-  const handleDelete = (customer: Customer) => {
-    if (window.confirm('¿Eliminar cliente?')) {
-      deleteMutation.mutate(customer.id);
-    }
-  };
-
-  const onSubmit = (values: CustomerFormValues) => {
-    saveMutation.mutate(values);
-  };
-
-  const handleDialogOpenChange = (open: boolean) => {
-    if (!open) {
-      handleCloseDialog();
-    } else {
-      setDialogOpen(true);
-    }
-  };
-
-  // Reset page when search changes
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch]);
-
-  // ─── Render ─────────────────────────────────────────────────────────────────
+  useEffect(() => { setPage(1); }, [debouncedSearch]);
 
   return (
     <div className="space-y-6">
+
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
-          {!isLoading && (
-            <Badge variant="secondary">{total.toLocaleString('es-CO')}</Badge>
-          )}
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {isLoading ? 'Cargando...' : `${total.toLocaleString('es-CO')} cliente${total !== 1 ? 's' : ''} registrados`}
+          </p>
         </div>
-        <Button onClick={handleOpenCreate}>
-          <UserPlus className="size-4 mr-2" />
+        <Button onClick={handleOpenCreate} className="gap-2">
+          <UserPlus className="size-4" />
           Nuevo cliente
         </Button>
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Buscar clientes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        {debouncedSearch && !isLoading && (
-          <span className="text-sm text-muted-foreground">
-            {total} resultado{total !== 1 ? 's' : ''}
-          </span>
-        )}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+        <Input
+          placeholder="Buscar por nombre, teléfono, documento..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10"
+        />
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Documento</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Teléfono</TableHead>
-              <TableHead>Compras totales</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-4 w-36" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
-                </TableRow>
-              ))
-            ) : customers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                  {debouncedSearch
-                    ? 'No se encontraron clientes con ese criterio.'
-                    : 'No hay clientes registrados.'}
-                </TableCell>
-              </TableRow>
-            ) : (
-              customers.map((customer) => (
-                <TableRow key={customer.id}>
-                  <TableCell className="font-medium">{customer.name}</TableCell>
-                  <TableCell>
-                    {customer.document_type && customer.document_number
-                      ? `${customer.document_type} ${customer.document_number}`
-                      : customer.document_number
-                        ? customer.document_number
-                        : '—'}
-                  </TableCell>
-                  <TableCell>{customer.email ?? '—'}</TableCell>
-                  <TableCell>{customer.phone ?? '—'}</TableCell>
-                  <TableCell>
-                    {typeof customer.total_purchases === 'number'
-                      ? `$${customer.total_purchases.toLocaleString('es-CO')}`
-                      : '—'}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setHistoryCustomer(customer)}
-                        title="Ver compras"
-                      >
-                        <ShoppingBag className="size-4" />
-                        <span className="sr-only">Ver compras</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleOpenEdit(customer)}
-                      >
-                        <Pencil className="size-4" />
-                        <span className="sr-only">Editar</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleDelete(customer)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="size-4 text-destructive" />
-                        <span className="sr-only">Eliminar</span>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Grid de clientes */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border bg-card p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-11 rounded-xl" />
+                <div className="space-y-1.5 flex-1">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-3 w-32" />
+              <Skeleton className="h-7 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      ) : customers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="size-20 rounded-full bg-muted flex items-center justify-center mb-4">
+            <Users className="size-9 text-muted-foreground/40" />
+          </div>
+          <h3 className="font-semibold text-lg mb-1">
+            {debouncedSearch ? 'Sin resultados' : 'Aún no tienes clientes'}
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            {debouncedSearch
+              ? `No encontramos clientes con "${debouncedSearch}". Intenta con otro término.`
+              : 'Registra tu primer cliente para empezar a llevar el historial de compras.'}
+          </p>
+          {!debouncedSearch && (
+            <Button onClick={handleOpenCreate} className="mt-5 gap-2">
+              <UserPlus className="size-4" />
+              Registrar primer cliente
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {customers.map((customer) => (
+            <CustomerCard
+              key={customer.id}
+              customer={customer}
+              onEdit={() => handleOpenEdit(customer)}
+              onDelete={() => handleDelete(customer)}
+              onHistory={() => setHistoryCustomer(customer)}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
       {!isLoading && totalPages > 1 && (
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
-          >
-            <ChevronLeft className="size-4 mr-1" />
-            Anterior
+        <div className="flex items-center justify-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
+            <ChevronLeft className="size-4 mr-1" /> Anterior
           </Button>
           <span className="text-sm text-muted-foreground">
-            Página {page} de {totalPages}
+            Página <strong>{page}</strong> de <strong>{totalPages}</strong>
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page >= totalPages}
-          >
-            Siguiente
-            <ChevronRight className="size-4 ml-1" />
+          <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
+            Siguiente <ChevronRight className="size-4 ml-1" />
           </Button>
         </div>
       )}
 
       {/* Create / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+      <Dialog open={dialogOpen} onOpenChange={(v) => !v && handleCloseDialog()}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingCustomer ? 'Editar cliente' : 'Nuevo cliente'}
+            <DialogTitle className="flex items-center gap-2">
+              {editingCustomer ? (
+                <><Pencil className="size-4" /> Editar cliente</>
+              ) : (
+                <><UserPlus className="size-4" /> Nuevo cliente</>
+              )}
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Nombre */}
+          <form onSubmit={handleSubmit((v) => saveMutation.mutate(v))} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="name">
-                Nombre completo <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="name"
-                placeholder="Ej. Juan García"
-                {...register('name')}
-                aria-invalid={!!errors.name}
-              />
-              {errors.name && (
-                <p className="text-xs text-destructive">{errors.name.message}</p>
-              )}
+              <Label htmlFor="name">Nombre completo <span className="text-destructive">*</span></Label>
+              <Input id="name" placeholder="Ej. Juan García" {...register('name')} aria-invalid={!!errors.name} />
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
             </div>
 
-            {/* Email */}
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="correo@ejemplo.com"
-                {...register('email')}
-                aria-invalid={!!errors.email}
-              />
-              {errors.email && (
-                <p className="text-xs text-destructive">{errors.email.message}</p>
-              )}
-            </div>
-
-            {/* Teléfono */}
-            <div className="space-y-1.5">
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input
-                id="phone"
-                placeholder="Ej. 3001234567"
-                {...register('phone')}
-              />
-            </div>
-
-            {/* Documento */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="document_type">Tipo documento</Label>
+                <Label htmlFor="phone">Teléfono</Label>
+                <Input id="phone" placeholder="Ej. 3001234567" {...register('phone')} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="correo@ejemplo.com" {...register('email')} aria-invalid={!!errors.email} />
+                {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Tipo documento</Label>
                 <Controller
                   name="document_type"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      value={field.value ?? ''}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger id="document_type" className="w-full">
-                        <SelectValue placeholder="Seleccionar" />
-                      </SelectTrigger>
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                       <SelectContent>
-                        {DOCUMENT_TYPES.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
+                        {DOCUMENT_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   )}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="document_number">Número documento</Label>
-                <Input
-                  id="document_number"
-                  placeholder="Ej. 1234567890"
-                  {...register('document_number')}
-                />
+                <Label htmlFor="document_number">Número</Label>
+                <Input id="document_number" placeholder="Ej. 1234567890" {...register('document_number')} />
               </div>
             </div>
 
-            {/* Dirección */}
             <div className="space-y-1.5">
               <Label htmlFor="address">Dirección</Label>
-              <Input
-                id="address"
-                placeholder="Ej. Calle 123 # 45-67"
-                {...register('address')}
-              />
+              <Input id="address" placeholder="Ej. Calle 123 # 45-67" {...register('address')} />
             </div>
 
-            {/* Notas */}
             <div className="space-y-1.5">
               <Label htmlFor="notes">Notas</Label>
               <textarea
@@ -507,20 +426,14 @@ export default function CustomersPage() {
                 placeholder="Observaciones sobre el cliente..."
                 rows={3}
                 {...register('notes')}
-                className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none resize-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none resize-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 placeholder:text-muted-foreground"
               />
             </div>
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseDialog}
-              >
-                Cancelar
-              </Button>
+              <Button type="button" variant="outline" onClick={handleCloseDialog}>Cancelar</Button>
               <Button type="submit" disabled={isSubmitting || saveMutation.isPending}>
-                {saveMutation.isPending ? 'Guardando...' : 'Guardar'}
+                {saveMutation.isPending ? 'Guardando...' : editingCustomer ? 'Actualizar' : 'Crear cliente'}
               </Button>
             </DialogFooter>
           </form>
@@ -531,12 +444,18 @@ export default function CustomersPage() {
       <Sheet open={!!historyCustomer} onOpenChange={(v) => !v && setHistoryCustomer(null)}>
         <SheetContent className="w-full sm:max-w-xl flex flex-col gap-0 p-0">
           <SheetHeader className="px-6 py-4 border-b">
-            <SheetTitle className="flex items-center gap-2">
-              <ShoppingBag className="size-4" />
-              Compras — {historyCustomer?.name}
-            </SheetTitle>
+            <div className="flex items-center gap-3">
+              {historyCustomer && (
+                <div className={`size-9 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0 ${avatarColor(historyCustomer.name)}`}>
+                  {initials(historyCustomer.name)}
+                </div>
+              )}
+              <div>
+                <SheetTitle className="text-base">{historyCustomer?.name}</SheetTitle>
+                <p className="text-xs text-muted-foreground">Historial de compras</p>
+              </div>
+            </div>
           </SheetHeader>
-
           <CustomerSalesContent
             customerId={historyCustomer?.id ?? null}
             slug={slug}
@@ -546,24 +465,20 @@ export default function CustomersPage() {
       </Sheet>
 
       {/* Receipt Dialog */}
-      <SaleReceiptDialog
-        sale={receiptSale}
-        open={!!receiptSale}
-        onOpenChange={(v) => !v && setReceiptSale(null)}
-      />
+      <SaleReceiptDialog sale={receiptSale} open={!!receiptSale} onOpenChange={(v) => !v && setReceiptSale(null)} />
     </div>
   );
 }
 
 // ─── Customer Sales Content ────────────────────────────────────────────────────
 
-interface CustomerSalesContentProps {
+function CustomerSalesContent({
+  customerId, slug, onViewReceipt,
+}: {
   customerId: number | null;
   slug: string;
   onViewReceipt: (sale: Sale) => void;
-}
-
-function CustomerSalesContent({ customerId, slug, onViewReceipt }: CustomerSalesContentProps) {
+}) {
   const { data, isLoading } = useQuery({
     queryKey: ['customer-sales', slug, customerId],
     queryFn: () => posApi.sales({ customer_id: customerId!, per_page: 50 }),
@@ -572,65 +487,60 @@ function CustomerSalesContent({ customerId, slug, onViewReceipt }: CustomerSales
 
   const sales: Sale[] = (data as any)?.data?.data ?? [];
 
-  const fmt = (n: number) => `$${n.toLocaleString('es-CO')}`;
+  const STATUS_MAP: Record<string, { label: string; className: string }> = {
+    completed: { label: 'Completada', className: 'bg-green-500/10 text-green-700' },
+    cancelled: { label: 'Cancelada', className: 'bg-red-500/10 text-red-700' },
+    pending: { label: 'Pendiente', className: 'bg-amber-500/10 text-amber-700' },
+  };
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <table className="w-full text-sm">
-        <thead className="sticky top-0 bg-background border-b">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Código</th>
-            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Fecha</th>
-            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
-            <th className="px-4 py-3 text-right font-medium text-muted-foreground">Total</th>
-            <th className="px-4 py-3" />
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading && Array.from({ length: 5 }).map((_, i) => (
-            <tr key={i} className="border-b">
-              <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-              <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
-              <td className="px-4 py-3"><Skeleton className="h-5 w-20" /></td>
-              <td className="px-4 py-3 text-right"><Skeleton className="h-4 w-16 ml-auto" /></td>
-              <td className="px-4 py-3" />
-            </tr>
-          ))}
-          {!isLoading && sales.length === 0 && (
-            <tr>
-              <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
-                Sin compras registradas para este cliente
-              </td>
-            </tr>
-          )}
-          {!isLoading && sales.map((sale) => (
-            <tr key={sale.id} className="border-b last:border-0 hover:bg-muted/30">
-              <td className="px-4 py-3 font-mono text-xs font-semibold">{sale.code}</td>
-              <td className="px-4 py-3 text-xs text-muted-foreground">
-                {new Date(sale.created_at).toLocaleDateString('es-CO')}
-              </td>
-              <td className="px-4 py-3">
-                <Badge variant={sale.status === 'completed' ? 'default' : sale.status === 'cancelled' ? 'destructive' : 'secondary'}>
-                  {sale.status === 'completed' ? 'Completada' : sale.status === 'cancelled' ? 'Cancelada' : 'Pendiente'}
-                </Badge>
-              </td>
-              <td className="px-4 py-3 text-right font-semibold tabular-nums">
-                {fmt(sale.total)}
-              </td>
-              <td className="px-4 py-3 text-center">
-                <button
-                  type="button"
-                  onClick={() => onViewReceipt(sale)}
-                  className="p-1.5 rounded hover:bg-muted transition-colors"
-                  title="Ver ticket"
-                >
-                  <ShoppingBag className="size-4 text-muted-foreground" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+      {isLoading && Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 p-3 rounded-xl border">
+          <Skeleton className="size-9 rounded-lg" />
+          <div className="flex-1 space-y-1.5"><Skeleton className="h-3 w-24" /><Skeleton className="h-3 w-16" /></div>
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+      ))}
+
+      {!isLoading && sales.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-3">
+            <ShoppingBag className="size-7 text-muted-foreground/40" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground">Sin compras registradas</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">Este cliente aún no tiene compras</p>
+        </div>
+      )}
+
+      {!isLoading && sales.map((sale) => {
+        const status = STATUS_MAP[sale.status] ?? { label: sale.status, className: 'bg-muted text-muted-foreground' };
+        return (
+          <button
+            key={sale.id}
+            type="button"
+            onClick={() => onViewReceipt(sale)}
+            className="w-full flex items-center gap-3 p-3 rounded-xl border hover:bg-muted/40 hover:border-primary/20 transition-all text-left"
+          >
+            <div className="size-9 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
+              <FileText className="size-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-mono font-semibold">{sale.code}</p>
+              <p className="text-xs text-muted-foreground">
+                {new Date(sale.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </p>
+            </div>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${status.className}`}>
+              {status.label}
+            </span>
+            <span className="text-sm font-bold tabular-nums">
+              {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(sale.total)}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

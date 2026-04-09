@@ -604,13 +604,13 @@ export default function SalesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b">
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+            className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}>
-            <Icon className="size-4" />{label}
+            <Icon className="size-3.5" />{label}
           </button>
         ))}
       </div>
@@ -623,222 +623,179 @@ export default function SalesPage() {
 
       {/* ── Cotizaciones ── */}
       {tab === 'quotes' && (
-        <Card>
-          {/* Batch actions bar */}
-          {selectedQuotes.length > 0 && (
-            <div className="px-4 py-2 border-b bg-muted/40 flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">{selectedQuotes.length} seleccionada(s)</span>
-              <Button size="sm" className="gap-1.5 h-7 text-xs" variant="outline"
-                onClick={() => batchSendMutation.mutate(selectedQuotes)}
-                disabled={batchSendMutation.isPending}>
-                <Mail className="size-3" />
-                {batchSendMutation.isPending ? 'Enviando…' : `Enviar seleccionadas (${selectedQuotes.length})`}
-              </Button>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSelectedQuotes([])}>
-                <X className="size-3" />Limpiar
+        <div className="space-y-3">
+          {/* Toolbar */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {selectedQuotes.length > 0 && (
+              <>
+                <span className="text-sm text-muted-foreground">{selectedQuotes.length} seleccionada(s)</span>
+                <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs"
+                  onClick={() => batchSendMutation.mutate(selectedQuotes)} disabled={batchSendMutation.isPending}>
+                  <Mail className="size-3" />{batchSendMutation.isPending ? 'Enviando…' : `Enviar (${selectedQuotes.length})`}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setSelectedQuotes([])}>
+                  <X className="size-3" /> Limpiar
+                </Button>
+              </>
+            )}
+            <div className="ml-auto">
+              <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs" onClick={() => setEmailLogOpen(true)}>
+                <List className="size-3" /> Log emails
               </Button>
             </div>
-          )}
-          {/* Email log button */}
-          <div className="px-4 py-2 flex justify-end border-b">
-            <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setEmailLogOpen(true)}>
-              <List className="size-3" />Ver log emails
-            </Button>
           </div>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3 w-8"></th>
-                    <th className="text-left px-4 py-3 font-medium">N°</th>
-                    <th className="text-left px-4 py-3 font-medium">Cliente</th>
-                    <th className="text-right px-4 py-3 font-medium">Total</th>
-                    <th className="text-left px-4 py-3 font-medium">Estado</th>
-                    <th className="text-left px-4 py-3 font-medium">Facturación</th>
-                    <th className="text-left px-4 py-3 font-medium">Fecha</th>
-                    <th className="text-left px-4 py-3 font-medium">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {loadingQ
-                    ? Array.from({ length: 4 }).map((_, i) => (
-                        <tr key={i}>{Array.from({ length: 8 }).map((__, j) => (
-                          <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
-                        ))}</tr>
-                      ))
-                    : filteredQuotes.map((q: Quote) => {
-                        const st    = Q_STATUS[q.status] ?? { label: q.status, variant: 'outline' as const };
-                        const invSt = INV_STATUS[q.invoice_status ?? 'not_invoiced'];
-                        const canSelect = ['draft', 'sent'].includes(q.status);
-                        return (
-                          <tr key={q.id} className="hover:bg-muted/30">
-                            <td className="px-4 py-3">
-                              {canSelect && (
-                                <input
-                                  type="checkbox"
-                                  className="rounded"
-                                  checked={selectedQuotes.includes(q.id)}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setSelectedQuotes((prev) => [...prev, q.id]);
-                                    } else {
-                                      setSelectedQuotes((prev) => prev.filter((id) => id !== q.id));
-                                    }
-                                  }}
-                                />
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-mono text-xs">{q.quote_number ?? `COT-${q.id}`}</span>
-                                {q.approval_required && (
-                                  <span title="Requiere aprobación">
-                                    <AlertTriangle className="size-3 text-amber-500" />
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3">{q.customer?.name ?? q.customer_name ?? '—'}</td>
-                            <td className="px-4 py-3 text-right font-semibold">{fmt(q.total)}</td>
-                            <td className="px-4 py-3">
-                              <Badge variant={st.variant}>{st.label}</Badge>
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className={`text-xs ${invSt.cls}`}>{invSt.label}</span>
-                              {q.invoiced_total > 0 && (
-                                <span className="text-xs text-muted-foreground ml-1">({fmt(q.invoiced_total)})</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground text-xs">
-                              {new Date(q.created_at).toLocaleDateString('es-CO')}
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="flex gap-1 flex-wrap">
-                                {/* Factura (preview) */}
-                                <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs"
-                                  onClick={() => setInvoiceSale(quoteToSale(q))}>
-                                  <FileText className="size-3" />Ver
-                                </Button>
-                                {/* Enviar */}
-                                {q.status === 'draft' && (
-                                  <Button variant="outline" size="sm" className="gap-1 h-7 text-xs"
-                                    onClick={() => sendQuote.mutate(q.id)} disabled={sendQuote.isPending}>
-                                    <Send className="size-3" />Enviar
-                                  </Button>
-                                )}
-                                {/* Solicitar aprobación */}
-                                {q.approval_required && ['draft', 'sent'].includes(q.status) && (
-                                  <Button variant="outline" size="sm" className="gap-1 h-7 text-xs"
-                                    onClick={() => requestApproval.mutate(q.id)} disabled={requestApproval.isPending}>
-                                    <Clock className="size-3" />Solicitar aprob.
-                                  </Button>
-                                )}
-                                {/* Aprobar */}
-                                {q.status === 'pending_approval' && (
-                                  <Button variant="outline" size="sm" className="gap-1 h-7 text-xs text-green-700 border-green-300"
-                                    onClick={() => approveMutation.mutate(q.id)} disabled={approveMutation.isPending}>
-                                    <CheckCircle2 className="size-3" />Aprobar
-                                  </Button>
-                                )}
-                                {/* Rechazar */}
-                                {q.status === 'pending_approval' && (
-                                  <Button variant="outline" size="sm" className="gap-1 h-7 text-xs text-destructive border-destructive/40"
-                                    onClick={() => setRejectId(q.id)}>
-                                    <XCircle className="size-3" />Rechazar
-                                  </Button>
-                                )}
-                                {/* Facturar (parcial/total) */}
-                                {q.invoice_status !== 'fully_invoiced' && ['draft','sent','accepted','pending_approval'].includes(q.status) && (
-                                  <Button variant="outline" size="sm" className="gap-1 h-7 text-xs text-blue-700 border-blue-300"
-                                    onClick={() => openPartialInvoice(q)}>
-                                    <Receipt className="size-3" />Facturar
-                                  </Button>
-                                )}
-                                {/* Convertir a orden */}
-                                {['draft','sent','accepted'].includes(q.status) && q.invoice_status !== 'fully_invoiced' && (
-                                  <Button variant="outline" size="sm" className="gap-1 h-7 text-xs"
-                                    onClick={() => convertToOrder.mutate(q.id)} disabled={convertToOrder.isPending}>
-                                    <RefreshCw className="size-3" />Orden
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  {!loadingQ && filteredQuotes.length === 0 && (
-                    <tr><td colSpan={8} className="text-center py-8 text-muted-foreground text-sm">No hay cotizaciones</td></tr>
-                  )}
-                </tbody>
-              </table>
+
+          {loadingQ ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border">
+                <Skeleton className="size-5 rounded" />
+                <div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-40" /><Skeleton className="h-3 w-24" /></div>
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-8 w-32" />
+              </div>
+            ))
+          ) : filteredQuotes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                <FileText className="size-7 text-muted-foreground/40" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">No hay cotizaciones</p>
+              <Button size="sm" className="mt-4 gap-2" onClick={() => setNewQuoteDialog(true)}>
+                <Plus className="size-4" /> Nueva cotización
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          ) : (
+            filteredQuotes.map((q: Quote) => {
+              const st = Q_STATUS[q.status] ?? { label: q.status, variant: 'outline' as const };
+              const invSt = INV_STATUS[q.invoice_status ?? 'not_invoiced'];
+              const canSelect = ['draft', 'sent'].includes(q.status);
+              const Q_COLOR: Record<string, string> = {
+                draft: 'bg-slate-500/10 text-slate-600',
+                sent: 'bg-blue-500/10 text-blue-700',
+                accepted: 'bg-green-500/10 text-green-700',
+                rejected: 'bg-red-500/10 text-red-700',
+                pending_approval: 'bg-amber-500/10 text-amber-700',
+                converted: 'bg-purple-500/10 text-purple-700',
+              };
+              return (
+                <div key={q.id} className="flex items-center gap-3 p-4 rounded-2xl border bg-card hover:shadow-sm hover:border-primary/20 transition-all">
+                  {canSelect && (
+                    <input type="checkbox" className="rounded shrink-0" checked={selectedQuotes.includes(q.id)}
+                      onChange={(e) => setSelectedQuotes((prev) => e.target.checked ? [...prev, q.id] : prev.filter((id) => id !== q.id))} />
+                  )}
+                  <div className="size-10 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
+                    <FileText className="size-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold font-mono text-sm">{q.quote_number ?? `COT-${q.id}`}</p>
+                      {q.approval_required && <AlertTriangle className="size-3 text-amber-500" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {q.customer?.name ?? q.customer_name ?? 'Sin cliente'} · {new Date(q.created_at).toLocaleDateString('es-CO')}
+                    </p>
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${Q_COLOR[q.status] ?? 'bg-muted text-muted-foreground'}`}>
+                    {st.label}
+                  </span>
+                  <span className={`text-xs shrink-0 hidden sm:block ${invSt.cls}`}>{invSt.label}</span>
+                  <p className="font-bold text-sm tabular-nums shrink-0">{fmt(q.total)}</p>
+                  <div className="flex gap-1 shrink-0 flex-wrap">
+                    <Button variant="ghost" size="sm" className="gap-1 h-8 text-xs px-2" onClick={() => setInvoiceSale(quoteToSale(q))}>
+                      <FileText className="size-3" /> Ver
+                    </Button>
+                    {q.status === 'draft' && (
+                      <Button variant="outline" size="sm" className="gap-1 h-8 text-xs" onClick={() => sendQuote.mutate(q.id)} disabled={sendQuote.isPending}>
+                        <Send className="size-3" /> Enviar
+                      </Button>
+                    )}
+                    {q.status === 'pending_approval' && (
+                      <Button variant="outline" size="sm" className="gap-1 h-8 text-xs text-green-700 border-green-300" onClick={() => approveMutation.mutate(q.id)} disabled={approveMutation.isPending}>
+                        <CheckCircle2 className="size-3" /> Aprobar
+                      </Button>
+                    )}
+                    {q.invoice_status !== 'fully_invoiced' && ['draft','sent','accepted','pending_approval'].includes(q.status) && (
+                      <Button variant="outline" size="sm" className="gap-1 h-8 text-xs text-blue-700 border-blue-300" onClick={() => openPartialInvoice(q)}>
+                        <Receipt className="size-3" /> Facturar
+                      </Button>
+                    )}
+                    {['draft','sent','accepted'].includes(q.status) && q.invoice_status !== 'fully_invoiced' && (
+                      <Button variant="outline" size="sm" className="gap-1 h-8 text-xs" onClick={() => convertToOrder.mutate(q.id)} disabled={convertToOrder.isPending}>
+                        <RefreshCw className="size-3" /> Orden
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       )}
 
       {/* ── Órdenes de Venta ── */}
       {tab === 'orders' && (
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">N°</th>
-                  <th className="text-left px-4 py-3 font-medium">Cliente</th>
-                  <th className="text-right px-4 py-3 font-medium">Total</th>
-                  <th className="text-left px-4 py-3 font-medium">Estado</th>
-                  <th className="text-left px-4 py-3 font-medium">Fecha</th>
-                  <th className="text-left px-4 py-3 font-medium">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {loadingO
-                  ? Array.from({ length: 4 }).map((_, i) => (
-                      <tr key={i}>{Array.from({ length: 6 }).map((__, j) => (
-                        <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
-                      ))}</tr>
-                    ))
-                  : filteredOrders.map((o: SalesOrder) => (
-                      <tr key={o.id} className="hover:bg-muted/30">
-                        <td className="px-4 py-3 font-mono text-xs">{o.order_number ?? `OV-${o.id}`}</td>
-                        <td className="px-4 py-3">{o.customer?.name ?? '—'}</td>
-                        <td className="px-4 py-3 text-right font-semibold">{fmt(o.total)}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant={O_VARIANT[o.status] ?? 'outline'}>{O_STATUS[o.status] ?? o.status}</Badge>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs">
-                          {new Date(o.created_at).toLocaleDateString('es-CO')}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs"
-                              onClick={() => setInvoiceSale(orderToSale(o))}>
-                              <FileText className="size-3" />Ver
-                            </Button>
-                            {o.status === 'draft' && (
-                              <Button variant="outline" size="sm" className="gap-1 h-7 text-xs"
-                                onClick={() => confirmOrder.mutate(o.id)} disabled={confirmOrder.isPending}>
-                                <RefreshCw className="size-3" />Confirmar
-                              </Button>
-                            )}
-                            {['confirmed', 'partial'].includes(o.status) && (
-                              <Button variant="outline" size="sm" className="gap-1 h-7 text-xs text-blue-700 border-blue-300"
-                                onClick={() => setDispatchOrderId(o.id)}>
-                                <Truck className="size-3" />Despachar
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                {!loadingO && filteredOrders.length === 0 && (
-                  <tr><td colSpan={6} className="text-center py-8 text-muted-foreground text-sm">No hay órdenes de venta</td></tr>
-                )}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <div className="space-y-2">
+          {loadingO ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border">
+                <Skeleton className="size-10 rounded-xl" />
+                <div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-40" /><Skeleton className="h-3 w-24" /></div>
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-5 w-24" />
+              </div>
+            ))
+          ) : filteredOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                <ShoppingBag className="size-7 text-muted-foreground/40" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">No hay órdenes de venta</p>
+            </div>
+          ) : (
+            filteredOrders.map((o: SalesOrder) => {
+              const O_COLOR: Record<string, string> = {
+                draft: 'bg-slate-500/10 text-slate-600',
+                confirmed: 'bg-blue-500/10 text-blue-700',
+                partial: 'bg-amber-500/10 text-amber-700',
+                delivered: 'bg-green-500/10 text-green-700',
+                cancelled: 'bg-red-500/10 text-red-700',
+              };
+              return (
+                <div key={o.id} className="flex items-center gap-3 p-4 rounded-2xl border bg-card hover:shadow-sm hover:border-primary/20 transition-all">
+                  <div className="size-10 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0">
+                    <ShoppingBag className="size-5 text-green-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold font-mono text-sm">{o.order_number ?? `OV-${o.id}`}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {o.customer?.name ?? 'Sin cliente'} · {new Date(o.created_at).toLocaleDateString('es-CO')}
+                    </p>
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${O_COLOR[o.status] ?? 'bg-muted text-muted-foreground'}`}>
+                    {O_STATUS[o.status] ?? o.status}
+                  </span>
+                  <p className="font-bold text-sm tabular-nums shrink-0">{fmt(o.total)}</p>
+                  <div className="flex gap-1 shrink-0">
+                    <Button variant="ghost" size="sm" className="gap-1 h-8 text-xs px-2" onClick={() => setInvoiceSale(orderToSale(o))}>
+                      <FileText className="size-3" /> Ver
+                    </Button>
+                    {o.status === 'draft' && (
+                      <Button variant="outline" size="sm" className="gap-1 h-8 text-xs" onClick={() => confirmOrder.mutate(o.id)} disabled={confirmOrder.isPending}>
+                        <RefreshCw className="size-3" /> Confirmar
+                      </Button>
+                    )}
+                    {['confirmed', 'partial'].includes(o.status) && (
+                      <Button variant="outline" size="sm" className="gap-1 h-8 text-xs text-blue-700 border-blue-300" onClick={() => setDispatchOrderId(o.id)}>
+                        <Truck className="size-3" /> Despachar
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       )}
 
       {/* ── Dialog: Nueva cotización ── */}

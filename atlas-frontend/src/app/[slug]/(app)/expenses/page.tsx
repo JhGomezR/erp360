@@ -147,39 +147,47 @@ export default function ExpensesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Gastos</h1>
-          <p className="text-muted-foreground text-sm">Registro y aprobación de gastos operativos</p>
+          <h1 className="text-2xl font-bold tracking-tight">Gastos</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Registro y aprobación de gastos operativos</p>
         </div>
         {tab === 'expenses' ? (
           <Button onClick={() => setExpDialog(true)} className="gap-2">
-            <Plus className="size-4" />Nuevo gasto
+            <Plus className="size-4" /> Nuevo gasto
           </Button>
         ) : (
           <Button onClick={() => setCatDialog(true)} className="gap-2">
-            <Plus className="size-4" />Nueva categoría
+            <Plus className="size-4" /> Nueva categoría
           </Button>
         )}
       </div>
 
-      {/* Resumen */}
+      {/* Resumen KPI */}
       {summary && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="py-4 flex items-center gap-3">
-              <DollarSign className="size-8 text-blue-600" />
-              <div>
-                <p className="text-xs text-muted-foreground">Total gastos</p>
-                <p className="text-lg font-bold">{fmt(summary.total ?? 0)}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="flex items-stretch">
+                <div className="w-1.5 bg-red-500 shrink-0" />
+                <div className="p-4">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Total gastos</p>
+                  <p className="text-xl font-bold">{fmt(summary.total ?? 0)}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
           {summary.by_category?.slice(0, 3).map((c) => (
-            <Card key={c.name}>
-              <CardContent className="py-4">
-                <p className="text-xs text-muted-foreground truncate">{c.name}</p>
-                <p className="text-lg font-bold">{fmt(c.total)}</p>
+            <Card key={c.name} className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="flex items-stretch">
+                  <div className="w-1.5 bg-amber-400 shrink-0" />
+                  <div className="p-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 truncate">{c.name}</p>
+                    <p className="text-xl font-bold">{fmt(c.total)}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -187,13 +195,13 @@ export default function ExpensesPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b">
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+            className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}>
-            <Icon className="size-4" />{label}
+            <Icon className="size-3.5" />{label}
           </button>
         ))}
       </div>
@@ -201,96 +209,126 @@ export default function ExpensesPage() {
       {/* Gastos */}
       {tab === 'expenses' && (
         <div className="space-y-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input placeholder="Buscar..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="flex gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-52 max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+              <Input placeholder="Buscar gasto..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? '')}>
               <SelectTrigger className="w-36"><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
                 {STATUS_FILTERS.map((s) => (
-                  <SelectItem key={s} value={s}>{s ? STATUS_LABEL[s] : 'Todos'}</SelectItem>
+                  <SelectItem key={s} value={s}>{s ? STATUS_LABEL[s] : 'Todos los estados'}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <Card>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium">Descripción</th>
-                    <th className="text-left px-4 py-3 font-medium">Categoría</th>
-                    <th className="text-right px-4 py-3 font-medium">Monto</th>
-                    <th className="text-left px-4 py-3 font-medium">Fecha</th>
-                    <th className="text-left px-4 py-3 font-medium">Estado</th>
-                    <th className="text-left px-4 py-3 font-medium">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {loadingExp
-                    ? Array.from({ length: 4 }).map((_, i) => (
-                        <tr key={i}>{Array.from({ length: 6 }).map((__, j) => (
-                          <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                        ))}</tr>
-                      ))
-                    : filtered.map((e) => (
-                        <tr key={e.id} className="hover:bg-muted/30">
-                          <td className="px-4 py-3 font-medium">{e.description}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{e.category?.name ?? '—'}</td>
-                          <td className="px-4 py-3 text-right font-semibold">{fmt(e.amount)}</td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {new Date(e.expense_date).toLocaleDateString('es-CO')}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant={STATUS_VARIANT[e.status] ?? 'outline'}>
-                              {STATUS_LABEL[e.status] ?? e.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 flex gap-1">
-                            {e.status === 'draft' && (
-                              <Button variant="outline" size="sm" className="gap-1"
-                                onClick={() => approve.mutate(e.id)} disabled={approve.isPending}>
-                                <CheckCircle className="size-3" />Aprobar
-                              </Button>
-                            )}
-                            {e.status === 'approved' && (
-                              <Button variant="outline" size="sm" className="gap-1"
-                                onClick={() => markPaid.mutate(e.id)} disabled={markPaid.isPending}>
-                                <CreditCard className="size-3" />Pagar
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                  {!loadingExp && filtered.length === 0 && (
-                    <tr><td colSpan={6} className="text-center py-8 text-muted-foreground text-sm">
-                      No hay gastos registrados
-                    </td></tr>
-                  )}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
+          {loadingExp ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-4 rounded-2xl border">
+                  <Skeleton className="size-10 rounded-xl" />
+                  <div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-40" /><Skeleton className="h-3 w-24" /></div>
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                <DollarSign className="size-7 text-muted-foreground/40" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">No hay gastos registrados</p>
+              <Button onClick={() => setExpDialog(true)} className="mt-4 gap-2" size="sm">
+                <Plus className="size-4" /> Registrar primer gasto
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filtered.map((e) => {
+                const STATUS_COLOR: Record<string, string> = {
+                  draft: 'bg-slate-500/10 text-slate-600',
+                  approved: 'bg-blue-500/10 text-blue-700',
+                  paid: 'bg-green-500/10 text-green-700',
+                  rejected: 'bg-red-500/10 text-red-700',
+                };
+                return (
+                  <div key={e.id} className="flex items-center gap-3 p-4 rounded-2xl border bg-card hover:shadow-sm hover:border-primary/20 transition-all">
+                    {/* Category dot */}
+                    <div
+                      className="size-10 rounded-xl shrink-0 flex items-center justify-center"
+                      style={{ backgroundColor: e.category?.color ? `${e.category.color}20` : '#f1f5f9' }}
+                    >
+                      <DollarSign className="size-5" style={{ color: e.category?.color ?? '#64748b' }} />
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">{e.description}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        {e.category && (
+                          <span
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium"
+                            style={{ backgroundColor: e.category.color ? `${e.category.color}20` : '#f1f5f9', color: e.category.color ?? '#64748b' }}
+                          >
+                            {e.category.name}
+                          </span>
+                        )}
+                        <span>{new Date(e.expense_date).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      </p>
+                    </div>
+
+                    {/* Monto */}
+                    <p className="font-bold text-sm tabular-nums shrink-0">{fmt(e.amount)}</p>
+
+                    {/* Estado */}
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLOR[e.status] ?? 'bg-muted text-muted-foreground'}`}>
+                      {STATUS_LABEL[e.status] ?? e.status}
+                    </span>
+
+                    {/* Acciones */}
+                    <div className="flex gap-1 shrink-0">
+                      {e.status === 'draft' && (
+                        <Button variant="outline" size="sm" className="gap-1 text-xs h-7 px-2"
+                          onClick={() => approve.mutate(e.id)} disabled={approve.isPending}>
+                          <CheckCircle className="size-3" /> Aprobar
+                        </Button>
+                      )}
+                      {e.status === 'approved' && (
+                        <Button variant="outline" size="sm" className="gap-1 text-xs h-7 px-2"
+                          onClick={() => markPaid.mutate(e.id)} disabled={markPaid.isPending}>
+                          <CreditCard className="size-3" /> Pagar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
       {/* Categorías */}
       {tab === 'categories' && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {categories.map((cat) => (
-            <Card key={cat.id}>
-              <CardContent className="flex items-center gap-3 py-4">
-                <div className="size-8 rounded-full" style={{ backgroundColor: cat.color ?? '#94a3b8' }} />
-                <span className="font-medium">{cat.name}</span>
-              </CardContent>
-            </Card>
+            <div key={cat.id} className="flex items-center gap-3 p-4 rounded-2xl border bg-card hover:shadow-sm transition-all">
+              <div className="size-10 rounded-xl shrink-0" style={{ backgroundColor: cat.color ?? '#94a3b8' }} />
+              <span className="font-semibold">{cat.name}</span>
+            </div>
           ))}
           {categories.length === 0 && (
-            <div className="col-span-3 text-center py-8 text-muted-foreground text-sm">
-              No hay categorías. Crea la primera.
+            <div className="col-span-4 flex flex-col items-center justify-center py-16 text-center">
+              <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                <Tag className="size-7 text-muted-foreground/40" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">Sin categorías</p>
+              <Button onClick={() => setCatDialog(true)} className="mt-4 gap-2" size="sm">
+                <Plus className="size-4" /> Crear primera categoría
+              </Button>
             </div>
           )}
         </div>
