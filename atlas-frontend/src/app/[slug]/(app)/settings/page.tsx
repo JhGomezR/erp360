@@ -319,23 +319,23 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Ajustes</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Ajustes</h1>
         <p className="text-muted-foreground text-sm">Configura tu negocio</p>
       </div>
 
       {/* Tab nav */}
-      <div className="flex gap-2 border-b">
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit flex-wrap">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
               tab === key
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            <Icon className="size-4" />
+            <Icon className="size-3.5" />
             {label}
           </button>
         ))}

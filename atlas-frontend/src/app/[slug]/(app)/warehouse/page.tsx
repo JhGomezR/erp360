@@ -326,7 +326,7 @@ export default function WarehousePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Almacén</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Almacén</h1>
           <p className="text-muted-foreground text-sm">Gestiona bodegas y transferencias de stock</p>
         </div>
         {tab === 'warehouses' && (
@@ -357,16 +357,16 @@ export default function WarehousePage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b">
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit flex-wrap">
         {TABS.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            <Icon className="size-4" />{label}
+            <Icon className="size-3.5" />{label}
           </button>
         ))}
       </div>

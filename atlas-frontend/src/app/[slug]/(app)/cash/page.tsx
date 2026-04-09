@@ -429,7 +429,7 @@ export default function CashPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Caja</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Caja</h1>
           <p className="text-muted-foreground text-sm">Apertura, cierre y movimientos de caja</p>
         </div>
         <div className="flex gap-2">

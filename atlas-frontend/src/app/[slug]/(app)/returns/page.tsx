@@ -453,7 +453,7 @@ export default function SaleReturnsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Devoluciones de venta</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Devoluciones de venta</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Gestiona devoluciones de clientes. Al procesar, se restituye el stock y se genera nota crédito.
           </p>

@@ -970,7 +970,7 @@ export default function PharmacyPage() {
     <div className="flex flex-col gap-6 p-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           <Pill className="size-6 text-primary" />
           Farmacia / Droguería
         </h1>

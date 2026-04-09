@@ -188,7 +188,7 @@ export default function KitchenPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <ChefHat className="size-6" />
             Pantalla de Cocina
           </h1>

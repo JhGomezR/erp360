@@ -591,7 +591,7 @@ export default function TablesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Mesas</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Mesas</h1>
           <p className="text-sm text-muted-foreground">
             {tables.length} mesas ·{' '}
             <span className="text-emerald-600">{counts.available ?? 0} disponibles</span>

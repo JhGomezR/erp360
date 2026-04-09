@@ -711,7 +711,7 @@ export default function QualityPage() {
     <AddonGate moduleKey="quality" slug={slug}>
     <div className="flex flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Gestión de Calidad</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Gestión de Calidad</h1>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

@@ -220,7 +220,7 @@ export default function AccountingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Contabilidad</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Contabilidad</h1>
         <p className="text-muted-foreground text-sm">Plan de cuentas, asientos y reportes financieros</p>
       </div>
 

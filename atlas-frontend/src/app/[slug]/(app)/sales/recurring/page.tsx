@@ -183,7 +183,7 @@ export default function RecurringPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Facturación Recurrente</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Facturación Recurrente</h1>
           <p className="text-muted-foreground text-sm">Facturas automáticas periódicas</p>
         </div>
         <Button onClick={openCreate} className="gap-2">

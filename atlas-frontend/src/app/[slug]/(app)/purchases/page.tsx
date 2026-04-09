@@ -418,7 +418,7 @@ export default function PurchasesPage() {
     <div className="flex flex-col gap-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Compras</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Compras</h1>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => router.push(`/${slug}/purchase-returns`)}>
             <RotateCcw className="mr-2 h-4 w-4" />

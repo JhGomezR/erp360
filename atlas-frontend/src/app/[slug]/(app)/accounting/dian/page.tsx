@@ -134,7 +134,7 @@ export default function DianPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Factura Electrónica DIAN</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Factura Electrónica DIAN</h1>
           <p className="text-muted-foreground text-sm">Configuración del emisor y resolución de facturación</p>
         </div>
         <div className="flex gap-2">

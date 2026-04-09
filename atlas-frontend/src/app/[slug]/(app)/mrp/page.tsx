@@ -611,7 +611,7 @@ export default function MrpPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold tracking-tight">MRP — Manufactura y Planificación</h1>
+      <h1 className="text-2xl font-bold tracking-tight">MRP — Manufactura y Planificación</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>

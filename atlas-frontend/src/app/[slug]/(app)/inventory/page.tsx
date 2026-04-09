@@ -1434,7 +1434,7 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Inventario</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Inventario</h1>
           <p className="text-sm text-muted-foreground">
             Gestión de productos, lotes y movimientos
           </p>

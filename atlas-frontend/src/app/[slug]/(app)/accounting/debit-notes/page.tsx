@@ -134,7 +134,7 @@ export default function DebitNotesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Notas de Débito</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Notas de Débito</h1>
           <p className="text-muted-foreground text-sm">Ajustes de cargo y diferencias cambiarias</p>
         </div>
         <Button onClick={() => setCreateOpen(true)} className="gap-2">
