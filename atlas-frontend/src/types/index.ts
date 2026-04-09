@@ -379,3 +379,74 @@ export interface ApiError {
   message: string;
   errors?: Record<string, string[]>;
 }
+
+// ─── Referidos ────────────────────────────────────────────────────────────────
+
+export interface Referrer {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  document?: string;
+  document_type?: 'CC' | 'CE' | 'NIT' | 'TI' | 'PP' | 'RC';
+  notes?: string;
+  is_active: boolean;
+  payment_info?: {
+    bank?: string;
+    account_type?: string;
+    account_number?: string;
+  };
+  // Aggregates (from API)
+  pending_commissions_count?: number;
+  total_earned?: number;
+  pending_amount?: number;
+  agreements?: ReferralAgreement[];
+  created_at?: string;
+}
+
+export interface ReferralAgreement {
+  id: number;
+  referrer_id: number;
+  referrer?: Referrer;
+  customer_id?: number;
+  name: string;
+  type: 'percentage' | 'fixed';
+  rate: number;
+  applies_to: 'all_sales' | 'specific_customer';
+  status: 'active' | 'paused' | 'ended';
+  starts_at: string;
+  ends_at?: string;
+  notes?: string;
+  commissions_count?: number;
+  total_commissions?: number;
+  created_at?: string;
+}
+
+export interface ReferralCommission {
+  id: number;
+  agreement_id: number;
+  agreement?: ReferralAgreement;
+  referrer_id: number;
+  referrer?: Referrer;
+  sale_id: number;
+  sale_number?: string;
+  customer_id?: number;
+  customer_name?: string;
+  sale_amount: number;
+  commission_rate: number;
+  commission_type: 'percentage' | 'fixed';
+  commission_amount: number;
+  status: 'pending' | 'approved' | 'paid' | 'cancelled';
+  paid_at?: string;
+  notes?: string;
+  created_at?: string;
+}
+
+export interface ReferralCommissionSummary {
+  referrer_id: number;
+  referrer_name: string;
+  total_commissions: number;
+  total_amount: number;
+  pending_amount: number;
+  paid_amount: number;
+}

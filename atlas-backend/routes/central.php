@@ -165,6 +165,8 @@ Route::middleware(['auth:api', 'role:super'])->group(function () {
         Route::get('/', [\App\Central\Billing\Controllers\TenantAddonHistoryController::class, 'index']);
         Route::patch('/{tenantId}/{addonId}/deactivate', [\App\Central\Billing\Controllers\TenantAddonHistoryController::class, 'deactivate']);
         Route::patch('/{tenantId}/{addonId}/activate',   [\App\Central\Billing\Controllers\TenantAddonHistoryController::class, 'activate']);
+        // Renovación: aplica precio vigente de addons.price como price_paid
+        Route::patch('/{tenantId}/{addonId}/renew',      [\App\Central\Billing\Controllers\TenantAddonHistoryController::class, 'renew']);
     });
 
     // ─── Usuarios de Tenants (gestión super admin) ────────────────────────────

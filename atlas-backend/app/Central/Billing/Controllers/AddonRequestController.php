@@ -65,16 +65,20 @@ class AddonRequestController extends Controller
             return response()->json(['message' => 'Tenant o add-on no encontrado.'], 422);
         }
 
-        DB::transaction(function () use ($addonRequest, $data, $id) {
-            // Activar add-on en el tenant (central DB)
+        DB::transaction(function () use ($addonRequest, $addon, $data, $id) {
+            // Activar add-on en el tenant (central DB).
+            // price_paid guarda el precio vigente al momento de la activación (grandfathering).
             DB::table('tenant_addon')->updateOrInsert(
                 [
                     'tenant_id' => $addonRequest->tenant_id,
                     'addon_id'  => $addonRequest->addon_id,
                 ],
                 [
-                    'is_active'  => true,
-                    'expires_at' => $data['expires_at'] ?? null,
+                    'is_active'    => true,
+                    'expires_at'   => $data['expires_at'] ?? null,
+                    'price_paid'   => $addon->price,
+                    'activated_at' => now(),
+                    'updated_at'   => now(),
                 ]
             );
 

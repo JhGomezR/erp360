@@ -1497,6 +1497,53 @@ export const collectionAccountsApi = {
   delete: (id: number) => t('delete', `/collection-accounts/${id}`),
 };
 
+// ─── Referidos ────────────────────────────────────────────────────────────────
+export const referralsApi = {
+  // Referentes
+  listReferrers: (params?: { search?: string; active?: boolean; page?: number; per_page?: number }) =>
+    t<import('@/types').PaginatedResponse<import('@/types').Referrer>>(
+      'get', '/referrals/referrers', undefined, params,
+    ),
+  getReferrer: (id: number) =>
+    t<import('@/types').Referrer>('get', `/referrals/referrers/${id}`),
+  createReferrer: (data: Partial<import('@/types').Referrer>) =>
+    t<import('@/types').Referrer>('post', '/referrals/referrers', data),
+  updateReferrer: (id: number, data: Partial<import('@/types').Referrer>) =>
+    t<import('@/types').Referrer>('put', `/referrals/referrers/${id}`, data),
+  deleteReferrer: (id: number) =>
+    t('delete', `/referrals/referrers/${id}`),
+
+  // Acuerdos
+  listAgreements: (params?: { referrer_id?: number; status?: string; page?: number }) =>
+    t<import('@/types').PaginatedResponse<import('@/types').ReferralAgreement>>(
+      'get', '/referrals/agreements', undefined, params,
+    ),
+  getAgreement: (id: number) =>
+    t<import('@/types').ReferralAgreement>('get', `/referrals/agreements/${id}`),
+  createAgreement: (data: Partial<import('@/types').ReferralAgreement>) =>
+    t<import('@/types').ReferralAgreement>('post', '/referrals/agreements', data),
+  updateAgreement: (id: number, data: Partial<import('@/types').ReferralAgreement>) =>
+    t<import('@/types').ReferralAgreement>('put', `/referrals/agreements/${id}`, data),
+  deleteAgreement: (id: number) =>
+    t('delete', `/referrals/agreements/${id}`),
+
+  // Comisiones
+  listCommissions: (params?: { referrer_id?: number; status?: string; from?: string; to?: string; page?: number }) =>
+    t<import('@/types').PaginatedResponse<import('@/types').ReferralCommission>>(
+      'get', '/referrals/commissions', undefined, params,
+    ),
+  commissionsSummary: () =>
+    t<import('@/types').ReferralCommissionSummary[]>('get', '/referrals/commissions/summary'),
+  approveCommission: (id: number) =>
+    t('patch', `/referrals/commissions/${id}/approve`),
+  payCommission: (id: number, data?: { paid_at?: string; notes?: string }) =>
+    t('patch', `/referrals/commissions/${id}/pay`, data),
+  bulkPay: (referrer_id: number, notes?: string) =>
+    t('post', '/referrals/commissions/bulk-pay', { referrer_id, notes }),
+  cancelCommission: (id: number, notes?: string) =>
+    t('patch', `/referrals/commissions/${id}/cancel`, { notes }),
+};
+
 // ─── Documento Soporte Electrónico ───────────────────────────────────────────
 export const supportDocsApi = {
   list: (params?: { status?: string; supplier_id?: number; from?: string; to?: string; page?: number }) =>

@@ -250,6 +250,31 @@ Route::middleware(['auth:tenant'])->group(function () {
         Route::post('{tableId}/order/close', [\App\Tenant\Tables\Controllers\OrderController::class, 'close']);
     });
 
+    // ─── Referidos (add-on) ───────────────────────────────────────────────
+    Route::middleware(['module.enabled:referrals', 'addon.required:referrals'])->prefix('referrals')->group(function () {
+        // Referentes
+        Route::get('referrers',         [\App\Tenant\Referrals\Controllers\ReferrerController::class, 'index']);
+        Route::post('referrers',        [\App\Tenant\Referrals\Controllers\ReferrerController::class, 'store']);
+        Route::get('referrers/{id}',    [\App\Tenant\Referrals\Controllers\ReferrerController::class, 'show']);
+        Route::put('referrers/{id}',    [\App\Tenant\Referrals\Controllers\ReferrerController::class, 'update']);
+        Route::delete('referrers/{id}', [\App\Tenant\Referrals\Controllers\ReferrerController::class, 'destroy']);
+
+        // Acuerdos de referido
+        Route::get('agreements',        [\App\Tenant\Referrals\Controllers\ReferralAgreementController::class, 'index']);
+        Route::post('agreements',       [\App\Tenant\Referrals\Controllers\ReferralAgreementController::class, 'store']);
+        Route::get('agreements/{id}',   [\App\Tenant\Referrals\Controllers\ReferralAgreementController::class, 'show']);
+        Route::put('agreements/{id}',   [\App\Tenant\Referrals\Controllers\ReferralAgreementController::class, 'update']);
+        Route::delete('agreements/{id}',[\App\Tenant\Referrals\Controllers\ReferralAgreementController::class, 'destroy']);
+
+        // Comisiones generadas
+        Route::get('commissions',                        [\App\Tenant\Referrals\Controllers\ReferralCommissionController::class, 'index']);
+        Route::get('commissions/summary',                [\App\Tenant\Referrals\Controllers\ReferralCommissionController::class, 'summary']);
+        Route::patch('commissions/{id}/approve',         [\App\Tenant\Referrals\Controllers\ReferralCommissionController::class, 'approve']);
+        Route::patch('commissions/{id}/pay',             [\App\Tenant\Referrals\Controllers\ReferralCommissionController::class, 'markPaid']);
+        Route::post('commissions/bulk-pay',              [\App\Tenant\Referrals\Controllers\ReferralCommissionController::class, 'bulkPay']);
+        Route::patch('commissions/{id}/cancel',          [\App\Tenant\Referrals\Controllers\ReferralCommissionController::class, 'cancel']);
+    });
+
     // ─── Compras ──────────────────────────────────────────────────────────
     Route::middleware('module.enabled:purchases')->prefix('purchases')->group(function () {
         Route::apiResource('suppliers', \App\Tenant\Purchases\Controllers\SupplierController::class);

@@ -6,6 +6,7 @@ use App\Events\SaleCreated;
 use App\Events\StockUpdated;
 use App\Tenant\Accounting\Services\AccountingService;
 use App\Tenant\Commissions\Services\CommissionService;
+use App\Tenant\Referrals\Services\ReferralService;
 use App\Tenant\Customers\Models\Customer;
 use App\Tenant\Inventory\Models\KardexEntry;
 use App\Tenant\Inventory\Models\PriceList;
@@ -73,6 +74,7 @@ class SaleController extends Controller
             'send_receipt'           => ['nullable', 'boolean'], // true = enviar correo al cliente
             'currency_code'          => ['nullable', 'string', 'max:3'],
             'exchange_rate'          => ['nullable', 'numeric'],
+            'referrer_id'            => ['nullable', 'integer', 'exists:referrers,id'],
             // Cliente rapido (si no existe customer_id, se crea al vuelo)
             'new_customer'                   => ['nullable', 'array'],
             'new_customer.first_name'        => ['required_with:new_customer', 'string', 'max:80'],
@@ -287,6 +289,7 @@ class SaleController extends Controller
                 'synced_at'      => isset($data['offline_id']) ? now() : null,
                 'currency_code'  => $data['currency_code'] ?? 'COP',
                 'exchange_rate'  => $data['exchange_rate'] ?? 1,
+                'referrer_id'    => $data['referrer_id'] ?? null,
             ]);
 
             // ─── Items + inventario ───────────────────────────────────────────
@@ -356,6 +359,11 @@ class SaleController extends Controller
                 );
             } catch (\Throwable) {
                 // Comisiones no bloquean la venta
+            }
+
+            // ─── Comisión de referido ─────────────────────────────────────────
+            if (! empty($data['referrer_id'])) {
+                (new ReferralService())->recordForSale($sale->id, (int) $data['referrer_id']);
             }
 
             // ─── Actualizar stats del cliente ─────────────────────────────────

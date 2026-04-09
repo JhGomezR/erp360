@@ -396,7 +396,7 @@ export default function RolesPage() {
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <Users className="size-3" />
                     {role.users_count} usuario{role.users_count !== 1 ? 's' : ''}
-                    · {role.permissions.length} permisos
+                    · {role.permissions?.length ?? 0} permisos
                   </p>
                 </div>
                 {role.is_system && (

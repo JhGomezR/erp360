@@ -76,6 +76,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Doc. Soporte',   href: 'accounting/support-docs', icon: FileCheck, module: 'accounting' },
   { label: 'Cuentas de cobro', href: 'collection-accounts', icon: Banknote,  module: 'pos' },
   { label: 'Comisiones',      href: 'commissions',          icon: TrendingUp, module: 'pos' },
+  { label: 'Referidos',       href: 'referrals',            icon: Users,      module: 'referrals' },
   { label: 'Reportes',       href: 'reports',    icon: BarChart2,       module: 'reports' },
   { label: 'E-commerce',     href: 'ecommerce',  icon: Store,           module: 'ecommerce' },
   { label: 'Taller',         href: 'workshop',   icon: Wrench,          module: 'workshop' },

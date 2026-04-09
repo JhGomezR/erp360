@@ -30,9 +30,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    // suppressHydrationWarning cubre el <script> que next-themes v0.4 inyecta
-    // para persistir el tema antes de la hidratación (comportamiento esperado).
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    // next-themes 0.4.x inyecta un <script> para persistir el tema antes de hidratación.
+    // React 19 emite un warning sobre esto — es comportamiento conocido/esperado del paquete.
+    // suppressHydrationWarning en <html> (layout.tsx) suprime el mismatch de hidratación.
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      storageKey="atlas-theme"
+    >
       <QueryClientProvider client={queryClient}>
         {children}
         <ClientToaster />

@@ -37,3 +37,6 @@ Schedule::command('atlas:auto-replenishment')->dailyAt('07:00')->withoutOverlapp
 
 // Backup automático de PostgreSQL: diariamente a las 03:00 AM (bajo tráfico)
 Schedule::command('atlas:backup-database')->dailyAt('03:00')->withoutOverlapping();
+
+// Vencimientos de add-ons: notificar próximos a vencer y desactivar expirados
+Schedule::command('atlas:check-addon-expirations')->dailyAt('08:30')->withoutOverlapping();

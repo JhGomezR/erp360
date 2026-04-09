@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         \App\Central\Backups\Commands\BackupDatabaseCommand::class,
+        \App\Central\Billing\Commands\CheckAddonExpirationsCommand::class,
     ])
     ->withRouting(
         commands: __DIR__.'/../routes/console.php',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -68,17 +68,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { isAuthenticated, isSuperAdmin, logout } = useAuthStore();
   const { branding, security } = usePublicSettings();
+  const [mounted, setMounted] = useState(false);
 
   // Cierra sesión tras inactividad según config central
   useIdleTimeout(security.idle_timeout);
 
   useEffect(() => {
+    setMounted(true);
     if (!isAuthenticated() || !isSuperAdmin()) {
       router.replace('/login');
     }
   }, [isAuthenticated, isSuperAdmin, router]);
 
-  if (!isAuthenticated() || !isSuperAdmin()) return null;
+  // Antes de montar: SSR y primer render del cliente devuelven lo mismo (null)
+  // para evitar hydration mismatch con Zustand persist (localStorage no existe en SSR).
+  if (!mounted || !isAuthenticated() || !isSuperAdmin()) return null;
 
   const handleLogout = async () => {
     try { await authApi.logout(); } catch { /* */ }

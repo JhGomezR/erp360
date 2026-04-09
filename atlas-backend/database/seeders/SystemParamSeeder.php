@@ -78,9 +78,10 @@ class SystemParamSeeder extends Seeder
             ['group' => 'monitoring', 'key' => 'monitoring.health_check_token',     'value' => '', 'type' => 'string',  'label' => 'Token secreto para /health (vacío = público)'],
 
             // Billing (reglas + plantillas de correo)
-            ['group' => 'billing', 'key' => 'billing.reminder_days',            'value' => '[7,3,1]', 'type' => 'json',    'label' => 'Dias antes del vencimiento para enviar recordatorio'],
+            ['group' => 'billing', 'key' => 'billing.reminder_days',              'value' => '[7,3,1]', 'type' => 'json',    'label' => 'Dias antes del vencimiento para enviar recordatorio'],
             ['group' => 'billing', 'key' => 'billing.grace_period_days',         'value' => '5',       'type' => 'integer', 'label' => 'Dias de gracia tras vencimiento antes de suspender'],
             ['group' => 'billing', 'key' => 'billing.suspension_warning_days',   'value' => '[3,1]',   'type' => 'json',    'label' => 'Dias antes de la suspension para enviar aviso'],
+            ['group' => 'billing', 'key' => 'billing.addon_expiry_warning_days', 'value' => '[7,3,1]', 'type' => 'json',    'label' => 'Dias antes del vencimiento de add-on para advertir al tenant'],
             ['group' => 'billing', 'key' => 'billing.reminder_subject',          'value' => '[{{app_name}}] Recordatorio de pago - vence en {{days_left}} dia(s)', 'type' => 'string', 'label' => 'Asunto: recordatorio de pago'],
             ['group' => 'billing', 'key' => 'billing.reminder_body',             'value' => '', 'type' => 'string', 'label' => 'Cuerpo HTML: recordatorio (vacio = plantilla por defecto)'],
             ['group' => 'billing', 'key' => 'billing.overdue_subject',           'value' => '[{{app_name}}] Pago vencido - {{tenant_name}}', 'type' => 'string', 'label' => 'Asunto: pago vencido'],
