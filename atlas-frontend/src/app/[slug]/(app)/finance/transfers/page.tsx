@@ -24,9 +24,6 @@ import {
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -497,53 +494,55 @@ export default function TransfersPage() {
         </Select>
       </div>
 
-      {/* Table */}
-      {listQ.isPending ? (
-        <Skeleton className="h-48 w-full" />
-      ) : batches.length === 0 ? (
-        <div className="py-14 text-center text-muted-foreground">
-          <ArrowLeftRight className="mx-auto size-8 mb-2 opacity-30" />
-          <p>Sin lotes de transferencias</p>
-        </div>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ref</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Descripción</TableHead>
-              <TableHead>Fecha</TableHead>
-              <TableHead className="text-right">Beneficiarios</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {batches.map((b) => (
-              <TableRow key={b.id} className="cursor-pointer hover:bg-muted/40" onClick={() => setSelectedId(b.id)}>
-                <TableCell className="font-mono text-xs">{b.batch_ref}</TableCell>
-                <TableCell className="text-xs">{TYPE_LABELS[b.type] ?? b.type}</TableCell>
-                <TableCell className="text-sm">{b.description ?? '—'}</TableCell>
-                <TableCell className="text-sm">{fmtDate(b.scheduled_date)}</TableCell>
-                <TableCell className="text-right">{b.items_count}</TableCell>
-                <TableCell className="text-right font-semibold">{fmt(b.total_amount)}</TableCell>
-                <TableCell>
-                  <Badge variant={STATUS_COLORS[b.status]} className="text-xs">{STATUS_LABELS[b.status]}</Badge>
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  {b.status === 'draft' && (
-                    <Button size="icon" variant="ghost" className="size-7 text-destructive"
-                      onClick={() => { if (confirm('¿Eliminar lote?')) deleteMut.mutate(b.id); }}>
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+      {/* List */}
+      <div className="flex flex-col gap-3">
+        {listQ.isPending
+          ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)
+          : batches.length === 0
+          ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <ArrowLeftRight className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">Sin lotes de transferencias</p>
+            </div>
+          )
+          : batches.map((b) => (
+            <button key={b.id} onClick={() => setSelectedId(b.id)}
+              className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all text-left w-full">
+              <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <ArrowLeftRight className="size-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-sm font-mono">{b.batch_ref}</p>
+                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{TYPE_LABELS[b.type] ?? b.type}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{b.description ?? '—'} · {fmtDate(b.scheduled_date)}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Beneficiarios</p>
+                  <p className="font-medium">{b.items_count}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="font-semibold">{fmt(b.total_amount)}</p>
+                </div>
+              </div>
+              <Badge variant={STATUS_COLORS[b.status]} className="text-xs flex-shrink-0">{STATUS_LABELS[b.status]}</Badge>
+              {b.status === 'draft' && (
+                <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                  <Button size="icon" variant="ghost" className="size-8 text-destructive"
+                    onClick={() => { if (confirm('¿Eliminar lote?')) deleteMut.mutate(b.id); }}>
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              )}
+            </button>
+          ))
+        }
+      </div>
 
       <CreateBatchDialog open={createOpen} onClose={() => setCreateOpen(false)} onCreated={inv} slug={slug} />
       <BatchDetailDialog batchId={selectedId} open={selectedId !== null} onClose={() => setSelectedId(null)} slug={slug} />

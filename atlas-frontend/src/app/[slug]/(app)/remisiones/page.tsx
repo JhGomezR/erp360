@@ -7,13 +7,11 @@ import {
   Truck, Plus, Eye, Trash2, ChevronLeft, ChevronRight, X,
 } from 'lucide-react';
 import { notify } from '@/lib/notify';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -103,72 +101,58 @@ export default function RemisionesPage() {
         </Select>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
-            <thead className="border-b">
-              <tr className="text-left text-muted-foreground">
-                <th className="px-4 py-3">Número</th>
-                <th className="px-4 py-3">Cliente</th>
-                <th className="px-4 py-3">Transportador</th>
-                <th className="px-4 py-3">Placa</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <tr key={i} className="border-b">
-                      {Array.from({ length: 7 }).map((_, j) => (
-                        <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>
-                      ))}
-                    </tr>
-                  ))
-                : remisiones.map((r) => (
-                    <tr key={r.id} className="border-b hover:bg-muted/30">
-                      <td className="px-4 py-3 font-mono font-medium">{r.order_number}</td>
-                      <td className="px-4 py-3">{r.customer?.name ?? r.customer_name}</td>
-                      <td className="px-4 py-3 text-xs">{r.carrier ?? '-'}</td>
-                      <td className="px-4 py-3 text-xs">{r.vehicle_plate ?? '-'}</td>
-                      <td className="px-4 py-3 text-right">{fmt(r.total)}</td>
-                      <td className="px-4 py-3">
-                        <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
-                      </td>
-                      <td className="px-4 py-3 text-right space-x-1">
-                        {r.status === 'draft' && (
-                          <>
-                            <Button
-                              size="sm" variant="ghost"
-                              onClick={() => confirmMutation.mutate(r.id)}
-                              disabled={confirmMutation.isPending}
-                            >
-                              <Eye className="h-4 w-4 text-blue-500" />
-                            </Button>
-                            <Button
-                              size="sm" variant="ghost"
-                              onClick={() => { if (confirm('¿Eliminar remisión?')) deleteMutation.mutate(r.id); }}
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-              {!isLoading && remisiones.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    No hay remisiones registradas.
-                  </td>
-                </tr>
+      <div className="flex flex-col gap-3">
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)
+          : remisiones.length === 0
+          ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <Truck className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay remisiones registradas</p>
+              <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
+                <Plus className="h-4 w-4 mr-2" /> Nueva remisión
+              </Button>
+            </div>
+          )
+          : remisiones.map((r) => (
+            <div key={r.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Truck className="size-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm font-mono">{r.order_number}</p>
+                <p className="text-xs text-muted-foreground truncate">{r.customer?.name ?? r.customer_name}</p>
+                {(r.carrier || r.vehicle_plate) && (
+                  <p className="text-xs text-muted-foreground">{[r.carrier, r.vehicle_plate].filter(Boolean).join(' · ')}</p>
+                )}
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="font-semibold">{fmt(r.total)}</p>
+                </div>
+              </div>
+              <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
+              {r.status === 'draft' && (
+                <div className="flex gap-1 flex-shrink-0">
+                  <Button size="sm" variant="ghost" className="size-8 p-0"
+                    onClick={() => confirmMutation.mutate(r.id)}
+                    disabled={confirmMutation.isPending}>
+                    <Eye className="h-4 w-4 text-blue-500" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="size-8 p-0"
+                    onClick={() => { if (confirm('¿Eliminar remisión?')) deleteMutation.mutate(r.id); }}
+                    disabled={deleteMutation.isPending}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+            </div>
+          ))
+        }
+      </div>
 
       {lastPage > 1 && (
         <div className="flex justify-center gap-2">

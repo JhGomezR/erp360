@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, AlertTriangle, Settings, Package } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -113,163 +112,145 @@ export default function ReplenishmentPage() {
   const manualCount = alerts.filter(a => !a.auto_reorder).length;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Reposición Automática de Inventario</h1>
-          <p className="text-sm text-gray-500">Genera órdenes de compra automáticas cuando el stock baja del punto de reorden</p>
+          <h1 className="text-2xl font-bold tracking-tight">Reposición de Inventario</h1>
+          <p className="text-sm text-muted-foreground">Genera órdenes de compra automáticas cuando el stock baja del punto de reorden</p>
         </div>
         <Button onClick={() => triggerMut.mutate()} disabled={triggerMut.isPending}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${triggerMut.isPending ? 'animate-spin' : ''}`} />
-          {triggerMut.isPending ? 'Ejecutando...' : 'Ejecutar reposición ahora'}
+          <RefreshCw className={`size-4 mr-2 ${triggerMut.isPending ? 'animate-spin' : ''}`} />
+          {triggerMut.isPending ? 'Ejecutando...' : 'Ejecutar reposición'}
         </Button>
       </div>
 
-      {/* Quick stats */}
+      {/* KPI row */}
       <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-4 pb-3">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span className="text-sm text-gray-500">Productos bajo reorder</span>
+        {[
+          { label: 'Bajo reorden', value: alerts.length, color: 'text-red-600', accent: 'bg-red-500', icon: AlertTriangle },
+          { label: 'Auto OC', value: autoCount, color: 'text-emerald-600', accent: 'bg-emerald-500', icon: RefreshCw },
+          { label: 'Manuales', value: manualCount, color: 'text-amber-600', accent: 'bg-amber-500', icon: Package },
+        ].map(({ label, value, color, accent, icon: Icon }) => (
+          <div key={label} className="rounded-2xl border bg-card overflow-hidden flex">
+            <div className={`w-1.5 ${accent}`} />
+            <div className="p-4 flex items-center gap-3">
+              <Icon className={`size-5 ${color}`} />
+              <div>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className={`text-2xl font-bold ${color}`}>{value}</p>
+              </div>
             </div>
-            <div className="text-2xl font-bold text-red-600 mt-1">{alerts.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3">
-            <div className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 text-green-500" />
-              <span className="text-sm text-gray-500">Con reposición automática</span>
-            </div>
-            <div className="text-2xl font-bold text-green-600 mt-1">{autoCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3">
-            <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-orange-500" />
-              <span className="text-sm text-gray-500">Solo alertas (manuales)</span>
-            </div>
-            <div className="text-2xl font-bold text-orange-600 mt-1">{manualCount}</div>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="alerts"><AlertTriangle className="w-4 h-4 mr-2" />Alertas de Stock</TabsTrigger>
-          <TabsTrigger value="settings"><Settings className="w-4 h-4 mr-2" />Configuración</TabsTrigger>
-        </TabsList>
+      {/* Tabs */}
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {[
+          { key: 'alerts', label: 'Alertas de stock', icon: AlertTriangle },
+          { key: 'settings', label: 'Configuración', icon: Settings },
+        ].map(({ key, label, icon: Icon }) => (
+          <button key={key} onClick={() => setTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            }`}>
+            <Icon className="size-3.5" />{label}
+          </button>
+        ))}
+      </div>
 
-        {/* Alerts */}
-        <TabsContent value="alerts">
-          <Card>
-            <CardHeader>
-              <CardTitle>Productos bajo el punto de reorden</CardTitle>
-              <p className="text-sm text-gray-500">
-                Los productos con <strong>reposición automática</strong> generarán OC automáticamente al ejecutar.
-              </p>
-            </CardHeader>
-            <CardContent>
-              {alertsQ.isLoading ? (
-                <div className="text-center py-8 text-gray-400">Cargando...</div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-500">
-                      <th className="pb-2">Producto</th>
-                      <th className="text-right">Stock actual</th>
-                      <th className="text-right">Punto reorden</th>
-                      <th className="text-right">Faltante</th>
-                      <th className="text-right">Qty a pedir</th>
-                      <th>Proveedor</th>
-                      <th>Auto OC</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {alerts.map(p => (
-                      <tr key={p.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2">
-                          <div className="font-medium">{p.name}</div>
-                          <div className="text-xs text-gray-500">{p.sku}</div>
-                        </td>
-                        <td className="text-right text-red-600 font-bold">{p.current_stock}</td>
-                        <td className="text-right text-gray-600">{p.reorder_point}</td>
-                        <td className="text-right text-red-600 font-medium">{p.shortage}</td>
-                        <td className="text-right text-blue-600">{p.reorder_qty ?? '—'}</td>
-                        <td className="text-gray-600">{p.supplier_name ?? <span className="text-orange-500">Sin proveedor</span>}</td>
-                        <td>
-                          {p.auto_reorder
-                            ? <span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Auto</span>
-                            : <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">Manual</span>}
-                        </td>
-                      </tr>
-                    ))}
-                    {alerts.length === 0 && (
-                      <tr><td colSpan={7} className="text-center py-8 text-green-600">¡Todo el inventario está sobre el punto de reorden!</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {/* Alertas */}
+      {tab === 'alerts' && (
+        <div className="flex flex-col gap-3">
+          {alertsQ.isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)
+          ) : alerts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                <Package className="size-7 text-emerald-600" />
+              </div>
+              <p className="font-medium text-emerald-700 dark:text-emerald-400">¡Todo el inventario está sobre el punto de reorden!</p>
+            </div>
+          ) : alerts.map((p) => (
+            <div key={p.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4">
+              <div className="size-9 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="size-4 text-red-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{p.name}</p>
+                <p className="text-xs text-muted-foreground font-mono">{p.sku} · {p.supplier_name ?? 'Sin proveedor'}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Stock</p>
+                  <p className="font-bold text-red-600">{p.current_stock}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Reorden</p>
+                  <p className="font-medium">{p.reorder_point}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Faltante</p>
+                  <p className="font-bold text-red-600">{p.shortage}</p>
+                </div>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium ${
+                p.auto_reorder
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                  : 'bg-muted text-muted-foreground'
+              }`}>
+                {p.auto_reorder ? 'Auto OC' : 'Manual'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
-        {/* Settings */}
-        <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuración por Producto</CardTitle>
-              <p className="text-sm text-gray-500">Define el punto de reorden, cantidad a pedir y si la reposición es automática.</p>
-            </CardHeader>
-            <CardContent>
-              {settingsQ.isLoading ? (
-                <div className="text-center py-8 text-gray-400">Cargando...</div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-500">
-                      <th className="pb-2">Producto</th>
-                      <th className="text-right">Punto reorden</th>
-                      <th className="text-right">Qty reposición</th>
-                      <th>Proveedor preferido</th>
-                      <th>Auto OC</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {settings.map(p => (
-                      <tr key={p.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2">
-                          <div className="font-medium">{p.name}</div>
-                          <div className="text-xs text-gray-500">{p.sku}</div>
-                        </td>
-                        <td className="text-right">{p.reorder_point ?? <span className="text-gray-400">—</span>}</td>
-                        <td className="text-right">{p.reorder_qty ?? <span className="text-gray-400">—</span>}</td>
-                        <td className="text-gray-600">{p.supplier_name ?? '—'}</td>
-                        <td>
-                          {p.auto_reorder
-                            ? <span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Sí</span>
-                            : <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">No</span>}
-                        </td>
-                        <td>
-                          <Button size="sm" variant="outline" onClick={() => setEditProduct(p)}>
-                            <Settings className="w-3 h-3" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                    {settings.length === 0 && (
-                      <tr><td colSpan={6} className="text-center py-8 text-gray-400">Configure el punto de reorden en cada producto</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Configuración */}
+      {tab === 'settings' && (
+        <div className="flex flex-col gap-3">
+          {settingsQ.isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)
+          ) : settings.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <Settings className="size-7 opacity-50" />
+              </div>
+              <p className="font-medium">Sin productos configurados</p>
+            </div>
+          ) : settings.map((p) => (
+            <div key={p.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4">
+              <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Package className="size-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{p.name}</p>
+                <p className="text-xs text-muted-foreground font-mono">{p.sku} · {p.supplier_name ?? 'Sin proveedor'}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Punto reorden</p>
+                  <p className="font-medium">{p.reorder_point ?? '—'}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Qty reponer</p>
+                  <p className="font-medium">{p.reorder_qty ?? '—'}</p>
+                </div>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium ${
+                p.auto_reorder
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                  : 'bg-muted text-muted-foreground'
+              }`}>
+                {p.auto_reorder ? 'Auto' : 'Manual'}
+              </span>
+              <Button size="sm" variant="outline" className="flex-shrink-0 h-8" onClick={() => setEditProduct(p)}>
+                <Settings className="size-3.5" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {editProduct && <EditSettingsDialog product={editProduct} onClose={() => setEditProduct(null)} />}
     </div>

@@ -5,14 +5,13 @@ import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { notify } from '@/lib/notify';
-import { Plus, Play, Trash2, RefreshCw, X } from 'lucide-react';
+import { Plus, Play, Trash2, RefreshCw, X, RepeatIcon } from 'lucide-react';
 
 import { recurringInvoicesApi, setTenantSlug } from '@/lib/api/tenant.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
@@ -191,71 +190,69 @@ export default function RecurringPage() {
         </Button>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Nombre</th>
-                <th className="text-left px-4 py-3 font-medium">Cliente</th>
-                <th className="text-left px-4 py-3 font-medium">Frecuencia</th>
-                <th className="text-left px-4 py-3 font-medium">Próximo envío</th>
-                <th className="text-left px-4 py-3 font-medium">Último envío</th>
-                <th className="text-center px-4 py-3 font-medium">Activo</th>
-                <th className="text-left px-4 py-3 font-medium">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {isLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <tr key={i}>{Array.from({ length: 7 }).map((__, j) => (
-                      <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                    ))}</tr>
-                  ))
-                : items.map((ri) => (
-                    <tr key={ri.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 font-medium">{ri.name}</td>
-                      <td className="px-4 py-3">{ri.customer_name}</td>
-                      <td className="px-4 py-3">
-                        <Badge variant="secondary">{FREQ_LABELS[ri.frequency] ?? ri.frequency}</Badge>
-                      </td>
-                      <td className="px-4 py-3 text-sm">{fmtDate(ri.next_run_date)}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">{fmtDate(ri.last_run_date)}</td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${ri.active ? 'bg-green-500' : 'bg-muted-foreground/30'}`}
-                          onClick={() => toggleMutation.mutate(ri.id)}
-                          disabled={toggleMutation.isPending}
-                        >
-                          <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform shadow ${ri.active ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                        </button>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs"
-                            onClick={() => openEdit(ri)}>
-                            <RefreshCw className="size-3" />Editar
-                          </Button>
-                          <Button variant="outline" size="sm" className="gap-1 h-7 text-xs text-blue-700 border-blue-300"
-                            onClick={() => runNowMutation.mutate(ri.id)}
-                            disabled={runNowMutation.isPending}>
-                            <Play className="size-3" />Ejecutar
-                          </Button>
-                          <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs text-destructive"
-                            onClick={() => setDeleteId(ri.id)}>
-                            <Trash2 className="size-3" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              {!isLoading && items.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-8 text-muted-foreground text-sm">No hay facturas recurrentes</td></tr>
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-3">
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)
+          : items.length === 0
+          ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <RepeatIcon className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay facturas recurrentes</p>
+              <Button variant="outline" size="sm" onClick={openCreate}>
+                <Plus className="size-4 mr-2" /> Nueva factura recurrente
+              </Button>
+            </div>
+          )
+          : items.map((ri) => (
+            <div key={ri.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <RepeatIcon className="size-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{ri.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{ri.customer_name}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Frecuencia</p>
+                  <Badge variant="secondary" className="text-xs">{FREQ_LABELS[ri.frequency] ?? ri.frequency}</Badge>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Próximo</p>
+                  <p className="text-xs font-medium">{fmtDate(ri.next_run_date)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Último</p>
+                  <p className="text-xs text-muted-foreground">{fmtDate(ri.last_run_date)}</p>
+                </div>
+              </div>
+              <button
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 ${ri.active ? 'bg-green-500' : 'bg-muted-foreground/30'}`}
+                onClick={() => toggleMutation.mutate(ri.id)}
+                disabled={toggleMutation.isPending}
+              >
+                <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform shadow ${ri.active ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              </button>
+              <div className="flex gap-1 flex-shrink-0">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(ri)}>
+                  <RefreshCw className="size-3.5" />
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 px-2 text-xs text-blue-700 border-blue-300"
+                  onClick={() => runNowMutation.mutate(ri.id)}
+                  disabled={runNowMutation.isPending}>
+                  <Play className="size-3 mr-1" />Ejecutar
+                </Button>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive"
+                  onClick={() => setDeleteId(ri.id)}>
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))
+        }
+      </div>
 
       {/* ── Create/Edit Dialog ── */}
       <Dialog open={dialogOpen} onOpenChange={(v) => { if (!v) { setDialogOpen(false); setEditItem(null); } }}>

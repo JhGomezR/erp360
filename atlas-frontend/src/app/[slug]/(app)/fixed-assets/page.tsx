@@ -240,61 +240,49 @@ export default function FixedAssetsPage() {
           </div>
 
           {isLoading ? (
-            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
+            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-2xl" />)}</div>
+          ) : assets.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <Building2 className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay activos registrados</p>
+            </div>
           ) : (
-            <div className="rounded-md border overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-3 py-2">Código</th>
-                    <th className="text-left px-3 py-2">Nombre</th>
-                    <th className="text-left px-3 py-2">Categoría</th>
-                    <th className="text-right px-3 py-2">Costo</th>
-                    <th className="text-right px-3 py-2">Depreciación</th>
-                    <th className="text-right px-3 py-2">Valor Libros</th>
-                    <th className="text-center px-3 py-2">Estado</th>
-                    <th className="px-3 py-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {assets.map(asset => {
-                    const pct = asset.acquisition_cost > 0 ? (asset.accumulated_depreciation / asset.acquisition_cost) * 100 : 0;
-                    return (
-                      <tr key={asset.id} className="border-t hover:bg-muted/30">
-                        <td className="px-3 py-2 font-mono text-xs">{asset.asset_code}</td>
-                        <td className="px-3 py-2 font-medium">{asset.name}</td>
-                        <td className="px-3 py-2 text-muted-foreground capitalize">{asset.category.replace('_', ' ')}</td>
-                        <td className="px-3 py-2 text-right">{fmt(asset.acquisition_cost)}</td>
-                        <td className="px-3 py-2 text-right">
-                          <div>{fmt(asset.accumulated_depreciation)}</div>
-                          <div className="text-xs text-muted-foreground">{fmtPct(pct)}</div>
-                        </td>
-                        <td className="px-3 py-2 text-right font-medium">{fmt(asset.book_value)}</td>
-                        <td className="px-3 py-2 text-center">
-                          <Badge variant={STATUS_VARIANT[asset.status] ?? 'outline'}>
-                            {STATUS_LABEL[asset.status] ?? asset.status}
-                          </Badge>
-                        </td>
-                        <td className="px-3 py-2">
-                          <div className="flex gap-1">
-                            <Button size="sm" variant="ghost" onClick={() => setScheduleAsset(asset)}>
-                              <Eye className="w-3.5 h-3.5" />
-                            </Button>
-                            {asset.status === 'active' && (
-                              <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setDisposeAsset(asset); setDisposeForm({ date: new Date().toISOString().slice(0, 10), reason: 'sale', amount: '', notes: '' }); }}>
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {assets.length === 0 && (
-                    <tr><td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">No hay activos registrados</td></tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              {assets.map(asset => {
+                const pct = asset.acquisition_cost > 0 ? (asset.accumulated_depreciation / asset.acquisition_cost) * 100 : 0;
+                return (
+                  <div key={asset.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                    <span className="font-mono text-xs text-muted-foreground w-20">{asset.asset_code}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{asset.name}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{asset.category.replace('_', ' ')}</p>
+                    </div>
+                    <div className="hidden md:flex flex-col items-end text-xs">
+                      <span className="font-mono">{fmt(asset.accumulated_depreciation)}</span>
+                      <span className="text-muted-foreground">{fmtPct(pct)}</span>
+                    </div>
+                    <div className="hidden sm:flex flex-col items-end text-xs">
+                      <span className="font-mono font-medium">{fmt(asset.book_value)}</span>
+                      <span className="text-muted-foreground">valor libros</span>
+                    </div>
+                    <Badge variant={STATUS_VARIANT[asset.status] ?? 'outline'}>
+                      {STATUS_LABEL[asset.status] ?? asset.status}
+                    </Badge>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => setScheduleAsset(asset)}>
+                        <Eye className="w-3.5 h-3.5" />
+                      </Button>
+                      {asset.status === 'active' && (
+                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setDisposeAsset(asset); setDisposeForm({ date: new Date().toISOString().slice(0, 10), reason: 'sale', amount: '', notes: '' }); }}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

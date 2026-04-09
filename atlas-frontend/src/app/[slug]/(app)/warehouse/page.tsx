@@ -420,63 +420,56 @@ export default function WarehousePage() {
 
       {/* Transferencias */}
       {tab === 'transfers' && (
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Origen</th>
-                  <th className="text-left px-4 py-3 font-medium">Destino</th>
-                  <th className="text-left px-4 py-3 font-medium">Estado</th>
-                  <th className="text-left px-4 py-3 font-medium">Fecha</th>
-                  <th className="text-left px-4 py-3 font-medium">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {loadingTr
-                  ? Array.from({ length: 4 }).map((_, i) => (
-                      <tr key={i}>{Array.from({ length: 5 }).map((__, j) => (
-                        <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                      ))}</tr>
-                    ))
-                  : transfers?.map((tr: TransferData) => (
-                      <tr key={tr.id} className="hover:bg-muted/30">
-                        <td className="px-4 py-3">{tr.from_warehouse?.name}</td>
-                        <td className="px-4 py-3">{tr.to_warehouse?.name}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant={STATUS_VARIANT[tr.status] ?? 'outline'}>
-                            {STATUS_LABEL[tr.status] ?? tr.status}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {new Date(tr.created_at).toLocaleDateString('es-CO')}
-                        </td>
-                        <td className="px-4 py-3">
-                          {tr.status === 'pending' && (
-                            <Button variant="outline" size="sm" className="gap-1"
-                              onClick={() => advanceTransfer.mutate({ id: tr.id, status: 'in_transit' })}>
-                              <RefreshCw className="size-3" />Despachar
-                            </Button>
-                          )}
-                          {tr.status === 'in_transit' && (
-                            <Button variant="outline" size="sm" className="gap-1"
-                              onClick={() => advanceTransfer.mutate({ id: tr.id, status: 'completed' })}>
-                              <RefreshCw className="size-3" />Completar
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                {!loadingTr && (!transfers || transfers.length === 0) && (
-                  <tr><td colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
-                    No hay transferencias registradas
-                  </td></tr>
-                )}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-3">
+          {loadingTr ? (
+            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)
+          ) : !transfers?.length ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <ArrowLeftRight className="size-7 opacity-50" />
+              </div>
+              <p className="font-medium">Sin transferencias registradas</p>
+            </div>
+          ) : (transfers as TransferData[]).map((tr) => {
+            const statusColor: Record<string, string> = {
+              pending: 'bg-amber-500', in_transit: 'bg-blue-500',
+              completed: 'bg-emerald-500', cancelled: 'bg-slate-400',
+            };
+            return (
+              <div key={tr.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4">
+                <div className={`size-2.5 rounded-full flex-shrink-0 ${statusColor[tr.status] ?? 'bg-muted'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm flex items-center gap-2">
+                    {tr.from_warehouse?.name}
+                    <ArrowLeftRight className="size-3.5 text-muted-foreground" />
+                    {tr.to_warehouse?.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{new Date(tr.created_at).toLocaleDateString('es-CO')}</p>
+                </div>
+                <Badge variant={STATUS_VARIANT[tr.status] ?? 'outline'} className="flex-shrink-0">
+                  {STATUS_LABEL[tr.status] ?? tr.status}
+                </Badge>
+                <div className="flex-shrink-0">
+                  {tr.status === 'pending' && (
+                    <Button variant="outline" size="sm" className="gap-1 h-8"
+                      onClick={() => advanceTransfer.mutate({ id: tr.id, status: 'in_transit' })}>
+                      <Truck className="size-3" />Despachar
+                    </Button>
+                  )}
+                  {tr.status === 'in_transit' && (
+                    <Button variant="outline" size="sm" className="gap-1 h-8"
+                      onClick={() => advanceTransfer.mutate({ id: tr.id, status: 'completed' })}>
+                      <PackageCheck className="size-3" />Completar
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {/* legacy empty state closing tags removed */}
+        </div>
       )}
+
 
       {/* Pallets */}
       {tab === 'pallets' && (

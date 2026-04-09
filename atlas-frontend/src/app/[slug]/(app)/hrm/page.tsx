@@ -870,74 +870,81 @@ export default function HRMPage() {
 
       {/* Nómina */}
       {tab === 'payroll' && (
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Empleado</th>
-                  <th className="text-left px-4 py-3 font-medium">Período</th>
-                  <th className="text-right px-4 py-3 font-medium">Pago neto</th>
-                  <th className="text-left px-4 py-3 font-medium">Estado</th>
-                  <th className="text-left px-4 py-3 font-medium">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {loadingPay
-                  ? Array.from({ length: 3 }).map((_, i) => (
-                      <tr key={i}>{Array.from({ length: 5 }).map((__, j) => (
-                        <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                      ))}</tr>
-                    ))
-                  : payrolls.map((p) => (
-                      <tr key={p.id} className="hover:bg-muted/30">
-                        <td className="px-4 py-3 font-medium">{p.employee?.name ?? '—'}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs">
-                          {new Date(p.period_start).toLocaleDateString('es-CO')} –{' '}
-                          {new Date(p.period_end).toLocaleDateString('es-CO')}
-                        </td>
-                        <td className="px-4 py-3 text-right font-semibold">{fmt(p.net_pay)}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant={STATUS_VARIANT[p.status] ?? 'outline'}>
-                            {p.status === 'draft' ? 'Borrador' : p.status === 'approved' ? 'Aprobada' : p.status === 'paid' ? 'Pagada' : p.status}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-1 flex-wrap">
-                            {p.status === 'draft' && (
-                              <Button variant="outline" size="sm" className="gap-1 h-7 text-xs"
-                                onClick={() => approvePayroll.mutate(p.id)} disabled={approvePayroll.isPending}>
-                                <CheckCircle className="size-3" />Aprobar
-                              </Button>
-                            )}
-                            <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs"
-                              onClick={() => downloadPayrollCsv(p.id, String(p.id))}>
-                              <Download className="size-3" />CSV
-                            </Button>
-                            {p.status !== 'draft' && (
-                              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs text-blue-700"
-                                disabled={exportingPila === p.id}
-                                onClick={() => downloadPila(p.id, String(p.id))}>
-                                <Download className="size-3" />PILA
-                              </Button>
-                            )}
-                            {p.status === 'paid' && (
-                              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs text-emerald-700"
-                                onClick={() => openNeDocs(p.id)}>
-                                <Download className="size-3" />NE-DIAN
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                {!loadingPay && payrolls.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-8 text-muted-foreground text-sm">Sin nóminas generadas</td></tr>
-                )}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-3">
+          {loadingPay ? (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)
+          ) : payrolls.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <FileText className="size-7 opacity-50" />
+              </div>
+              <p className="font-medium">Sin nóminas generadas</p>
+              <Button size="sm" onClick={() => setPayrollDialog(true)}>
+                <Plus className="mr-2 size-4" />Generar nómina
+              </Button>
+            </div>
+          ) : payrolls.map((p) => {
+            const statusColor: Record<string, string> = {
+              draft: 'bg-slate-400', approved: 'bg-blue-500', paid: 'bg-emerald-500',
+            };
+            const statusLabel: Record<string, string> = {
+              draft: 'Borrador', approved: 'Aprobada', paid: 'Pagada',
+            };
+            return (
+              <div key={p.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4">
+                {/* Avatar */}
+                <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+                  {(p.employee?.name ?? '?').split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm">{p.employee?.name ?? '—'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(p.period_start).toLocaleDateString('es-CO')} – {new Date(p.period_end).toLocaleDateString('es-CO')}
+                  </p>
+                </div>
+
+                {/* Net pay */}
+                <div className="text-right flex-shrink-0 hidden sm:block">
+                  <p className="text-xs text-muted-foreground">Pago neto</p>
+                  <p className="font-bold text-sm tabular-nums">{fmt(p.net_pay)}</p>
+                </div>
+
+                {/* Status dot */}
+                <div className={`size-2 rounded-full flex-shrink-0 ${statusColor[p.status] ?? 'bg-muted'}`} />
+                <span className="text-xs text-muted-foreground flex-shrink-0">{statusLabel[p.status] ?? p.status}</span>
+
+                {/* Actions */}
+                <div className="flex gap-1 flex-shrink-0">
+                  {p.status === 'draft' && (
+                    <Button variant="outline" size="sm" className="gap-1 h-8 text-xs"
+                      onClick={() => approvePayroll.mutate(p.id)} disabled={approvePayroll.isPending}>
+                      <CheckCircle className="size-3" />Aprobar
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="CSV"
+                    onClick={() => downloadPayrollCsv(p.id, String(p.id))}>
+                    <Download className="size-3.5" />
+                  </Button>
+                  {p.status !== 'draft' && (
+                    <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 text-blue-700"
+                      disabled={exportingPila === p.id}
+                      onClick={() => downloadPila(p.id, String(p.id))}>
+                      PILA
+                    </Button>
+                  )}
+                  {p.status === 'paid' && (
+                    <Button variant="ghost" size="sm" className="h-8 text-xs gap-1 text-emerald-700"
+                      onClick={() => openNeDocs(p.id)}>
+                      NE-DIAN
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {/* Vacaciones */}

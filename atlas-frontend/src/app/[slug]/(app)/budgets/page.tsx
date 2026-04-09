@@ -169,11 +169,11 @@ export default function BudgetsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b">
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-            <t.icon className="w-4 h-4" />{t.label}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${tab === t.id ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <t.icon className="w-3.5 h-3.5" />{t.label}
           </button>
         ))}
       </div>
@@ -186,61 +186,63 @@ export default function BudgetsPage() {
           </div>
 
           {isLoading ? (
-            <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
+            <div className="flex flex-col gap-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)}</div>
+          ) : budgets.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <PieChart className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay presupuestos para {yearFilter}</p>
+              <Button variant="outline" size="sm" onClick={() => setCreate(true)}>
+                <Plus className="w-4 h-4 mr-2" /> Nuevo Presupuesto
+              </Button>
+            </div>
           ) : (
-            <div className="rounded-md border overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-3 py-2">Nombre</th>
-                    <th className="text-left px-3 py-2">Tipo</th>
-                    <th className="text-left px-3 py-2">Período</th>
-                    <th className="text-right px-3 py-2">Presupuestado</th>
-                    <th className="text-right px-3 py-2">Real</th>
-                    <th className="text-right px-3 py-2">Variación</th>
-                    <th className="text-center px-3 py-2">Estado</th>
-                    <th className="px-3 py-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {budgets.map(b => (
-                    <tr key={b.id} className="border-t hover:bg-muted/30">
-                      <td className="px-3 py-2 font-medium">{b.name}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{TYPE_LABEL[b.type]}</td>
-                      <td className="px-3 py-2 text-xs text-muted-foreground">{b.period_from} → {b.period_to}</td>
-                      <td className="px-3 py-2 text-right">{fmt(b.total_budgeted)}</td>
-                      <td className="px-3 py-2 text-right">{fmt(b.total_actual)}</td>
-                      <td className="px-3 py-2 text-right">{varBadge(b.total_actual - b.total_budgeted)}</td>
-                      <td className="px-3 py-2 text-center">
-                        <Badge variant={STATUS_VARIANT[b.status] ?? 'outline'}>{STATUS_LABEL[b.status] ?? b.status}</Badge>
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" onClick={() => { setSelected(b.id); setTab('detail'); }}>Ver</Button>
-                          {b.status === 'draft' && (
-                            <Button size="sm" variant="ghost" onClick={() => approveMut.mutate(b.id)}>
-                              <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                            </Button>
-                          )}
-                          {['approved', 'active'].includes(b.status) && (
-                            <Button size="sm" variant="ghost" onClick={() => closeMut.mutate(b.id)}>
-                              <X className="w-3.5 h-3.5 text-muted-foreground" />
-                            </Button>
-                          )}
-                          {b.status === 'draft' && (
-                            <Button size="sm" variant="ghost" onClick={() => destroyMut.mutate(b.id)}>
-                              <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {budgets.length === 0 && (
-                    <tr><td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">No hay presupuestos para {yearFilter}</td></tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="flex flex-col gap-3">
+              {budgets.map(b => (
+                <div key={b.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-sm">{b.name}</p>
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{TYPE_LABEL[b.type]}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">{b.period_from} → {b.period_to}</p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-6 text-sm flex-shrink-0">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Presupuestado</p>
+                      <p className="font-medium">{fmt(b.total_budgeted)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Real</p>
+                      <p className="font-medium">{fmt(b.total_actual)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Variación</p>
+                      {varBadge(b.total_actual - b.total_budgeted) ?? <span className="text-xs text-muted-foreground">—</span>}
+                    </div>
+                  </div>
+                  <Badge variant={STATUS_VARIANT[b.status] ?? 'outline'} className="flex-shrink-0">{STATUS_LABEL[b.status] ?? b.status}</Badge>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setSelected(b.id); setTab('detail'); }}>Ver</Button>
+                    {b.status === 'draft' && (
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => approveMut.mutate(b.id)}>
+                        <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                      </Button>
+                    )}
+                    {['approved', 'active'].includes(b.status) && (
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => closeMut.mutate(b.id)}>
+                        <X className="w-3.5 h-3.5 text-muted-foreground" />
+                      </Button>
+                    )}
+                    {b.status === 'draft' && (
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => destroyMut.mutate(b.id)}>
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

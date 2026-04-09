@@ -30,10 +30,6 @@ import {
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import {
-  Tabs, TabsList, TabsTrigger, TabsContent,
-} from '@/components/ui/tabs';
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const fmt = (n: number) =>
@@ -865,25 +861,24 @@ export default function DianPage() {
 
       <StubBanner />
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="config">Configuración</TabsTrigger>
-          <TabsTrigger value="invoices">Facturas</TabsTrigger>
-          <TabsTrigger value="radian">RADIAN</TabsTrigger>
-        </TabsList>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'config', label: 'Configuración' },
+          { key: 'invoices', label: 'Facturas' },
+          { key: 'radian', label: 'RADIAN' },
+        ] as const).map(({ key, label }) => (
+          <button key={key} onClick={() => setTab(key)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="config" className="mt-6">
-          <ConfigTab slug={slug} />
-        </TabsContent>
-
-        <TabsContent value="invoices" className="mt-6">
-          <InvoicesTab slug={slug} />
-        </TabsContent>
-
-        <TabsContent value="radian" className="mt-6">
-          <RadianTab slug={slug} />
-        </TabsContent>
-      </Tabs>
+      <div className="mt-2">
+        {tab === 'config' && <ConfigTab slug={slug} />}
+        {tab === 'invoices' && <InvoicesTab slug={slug} />}
+        {tab === 'radian' && <RadianTab slug={slug} />}
+      </div>
     </div>
   );
 }

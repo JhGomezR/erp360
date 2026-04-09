@@ -21,7 +21,6 @@ import { Progress }  from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -613,17 +612,24 @@ export default function MrpPage() {
     <div className="flex flex-col gap-6 p-6">
       <h1 className="text-2xl font-bold tracking-tight">MRP — Manufactura y Planificación</h1>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="orders" className="gap-1.5"><Factory className="size-4" />Órdenes Producción</TabsTrigger>
-          <TabsTrigger value="bom" className="gap-1.5"><ListTree className="size-4" />Listas de Materiales</TabsTrigger>
-          <TabsTrigger value="requirements" className="gap-1.5"><Calculator className="size-4" />Requerimientos MRP</TabsTrigger>
-        </TabsList>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'orders', icon: Factory, label: 'Órdenes Producción' },
+          { key: 'bom', icon: ListTree, label: 'Listas de Materiales' },
+          { key: 'requirements', icon: Calculator, label: 'Requerimientos MRP' },
+        ] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => setActiveTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="size-3.5" />{label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="orders" className="mt-4"><ProductionOrdersTab slug={slug} /></TabsContent>
-        <TabsContent value="bom" className="mt-4"><BomTab slug={slug} /></TabsContent>
-        <TabsContent value="requirements" className="mt-4"><RequirementsTab slug={slug} /></TabsContent>
-      </Tabs>
+      <div className="mt-2">
+        {activeTab === 'orders' && <ProductionOrdersTab slug={slug} />}
+        {activeTab === 'bom' && <BomTab slug={slug} />}
+        {activeTab === 'requirements' && <RequirementsTab slug={slug} />}
+      </div>
     </div>
   );
 }

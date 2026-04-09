@@ -15,9 +15,6 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
-} from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -149,6 +146,7 @@ function DistributorDetailDialog({
   onClose: () => void;
 }) {
   const qc = useQueryClient();
+  const [dlgTab, setDlgTab] = useState<'info' | 'prices' | 'access'>('info');
   const [token, setToken] = useState<string | null>(null);
   const [paymentDlg, setPaymentDlg] = useState(false);
 
@@ -176,14 +174,17 @@ function DistributorDetailDialog({
         <DialogHeader>
           <DialogTitle>{distributor.name} — {distributor.code}</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="info">
-          <TabsList>
-            <TabsTrigger value="info">Información</TabsTrigger>
-            <TabsTrigger value="prices">Precios especiales</TabsTrigger>
-            <TabsTrigger value="access">Acceso portal</TabsTrigger>
-          </TabsList>
+        <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+          {(['info', 'prices', 'access'] as const).map((key) => (
+            <button key={key} onClick={() => setDlgTab(key)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dlgTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+              {key === 'info' ? 'Información' : key === 'prices' ? 'Precios especiales' : 'Acceso portal'}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="info" className="space-y-3 pt-3">
+        {dlgTab === 'info' && (
+          <div className="space-y-3 pt-3">
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div><span className="text-muted-foreground">Email:</span> {distributor.email}</div>
               <div><span className="text-muted-foreground">Empresa:</span> {distributor.company ?? '—'}</div>
@@ -212,9 +213,11 @@ function DistributorDetailDialog({
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="prices" className="pt-3">
+        {dlgTab === 'prices' && (
+          <div className="pt-3">
             <p className="text-sm text-muted-foreground mb-3">
               Precios o descuentos especiales por producto para este distribuidor.
             </p>
@@ -252,21 +255,18 @@ function DistributorDetailDialog({
                 )}
               </TableBody>
             </Table>
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="access" className="space-y-4 pt-3">
+        {dlgTab === 'access' && (
+          <div className="space-y-4 pt-3">
             <p className="text-sm text-muted-foreground">
               Genera un token de acceso al portal B2B. El distribuidor debe usar su
               email + contraseña para iniciar sesión en el portal.
             </p>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => tokenMut.mutate()}
-                disabled={tokenMut.isPending}
-              >
-                <RefreshCw className="size-4 mr-2" />
-                Regenerar token de API
+              <Button variant="outline" onClick={() => tokenMut.mutate()} disabled={tokenMut.isPending}>
+                <RefreshCw className="size-4 mr-2" />Regenerar token de API
               </Button>
             </div>
             {token && (
@@ -274,17 +274,11 @@ function DistributorDetailDialog({
                 <p className="text-xs text-muted-foreground font-medium">Token (cópialo ahora):</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 text-xs break-all font-mono">{token}</code>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => { navigator.clipboard.writeText(token); toast.success('Copiado'); }}
-                  >
+                  <Button size="icon" variant="ghost" onClick={() => { navigator.clipboard.writeText(token); toast.success('Copiado'); }}>
                     <Copy className="size-4" />
                   </Button>
                 </div>
-                <p className="text-xs text-amber-600">
-                  Este token no se volverá a mostrar. Válido por 24 horas.
-                </p>
+                <p className="text-xs text-amber-600">Este token no se volverá a mostrar. Válido por 24 horas.</p>
               </div>
             )}
             <div className="border rounded-md p-3 space-y-1 text-sm">
@@ -292,8 +286,8 @@ function DistributorDetailDialog({
               <p><span className="text-muted-foreground">Email:</span> {distributor.email}</p>
               <p><span className="text-muted-foreground">Contraseña:</span> la definida al crear / actualizar</p>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -499,50 +493,45 @@ function DistributorsTab() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Código</TableHead>
-              <TableHead>Nombre / Empresa</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead className="text-right">Cupo</TableHead>
-              <TableHead className="text-right">Saldo</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Pedidos</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {distQ.isLoading ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8">Cargando...</TableCell></TableRow>
-            ) : distributors.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Sin distribuidores</TableCell></TableRow>
-            ) : distributors.map(d => (
-              <TableRow key={d.id}>
-                <TableCell className="font-mono text-xs">{d.code}</TableCell>
-                <TableCell>
-                  <p className="font-medium">{d.name}</p>
-                  <p className="text-xs text-muted-foreground">{d.company ?? '—'}</p>
-                </TableCell>
-                <TableCell className="text-sm">{d.email}</TableCell>
-                <TableCell className="text-right font-mono text-sm">{fmt(d.credit_limit)}</TableCell>
-                <TableCell className="text-right font-mono text-sm text-destructive">{fmt(d.balance)}</TableCell>
-                <TableCell>
-                  <Badge variant={d.status === 'active' ? 'default' : 'secondary'}>
-                    {d.status === 'active' ? 'Activo' : d.status === 'inactive' ? 'Inactivo' : 'Suspendido'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center">{d.orders_count ?? 0}</TableCell>
-                <TableCell>
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedDist(d)}>
-                    <Eye className="size-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="space-y-2">
+        {distQ.isLoading ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">Cargando...</div>
+        ) : distributors.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+            <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+              <Users className="size-7 opacity-40" />
+            </div>
+            <p className="font-medium">Sin distribuidores</p>
+          </div>
+        ) : distributors.map(d => (
+          <div key={d.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+            <div className="min-w-[5rem]">
+              <span className="font-mono text-xs text-muted-foreground">{d.code}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium truncate">{d.name}</p>
+              <p className="text-xs text-muted-foreground">{d.company ?? d.email}</p>
+            </div>
+            <div className="hidden sm:block text-sm text-muted-foreground">{d.email}</div>
+            <div className="hidden md:flex flex-col items-end text-xs">
+              <span className="font-mono">{fmt(d.credit_limit)}</span>
+              <span className="text-muted-foreground">cupo</span>
+            </div>
+            <div className="hidden md:flex flex-col items-end text-xs">
+              <span className="font-mono text-destructive">{fmt(d.balance)}</span>
+              <span className="text-muted-foreground">saldo</span>
+            </div>
+            <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+              <ShoppingCart className="size-3" />{d.orders_count ?? 0}
+            </div>
+            <Badge variant={d.status === 'active' ? 'default' : 'secondary'}>
+              {d.status === 'active' ? 'Activo' : d.status === 'inactive' ? 'Inactivo' : 'Suspendido'}
+            </Badge>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedDist(d)}>
+              <Eye className="size-4" />
+            </Button>
+          </div>
+        ))}
       </div>
 
       <CreateDistributorDialog open={createDlg} onClose={() => setCreateDlg(false)} />
@@ -581,51 +570,35 @@ function OrdersTab() {
         </Select>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Pedido</TableHead>
-              <TableHead>Distribuidor</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Pago</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead>Fecha</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ordersQ.isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8">Cargando...</TableCell></TableRow>
-            ) : orders.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Sin pedidos</TableCell></TableRow>
-            ) : orders.map(o => (
-              <TableRow key={o.id}>
-                <TableCell className="font-mono font-medium">{o.order_number}</TableCell>
-                <TableCell className="text-sm">{o.distributor?.name ?? '—'}</TableCell>
-                <TableCell>
-                  <Badge variant={statusColors[o.status] as 'default' | 'secondary' | 'destructive'}>
-                    {statusLabels[o.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={payStatusColors[o.payment_status] as 'default' | 'secondary'}>
-                    {payStatusLabels[o.payment_status]}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right font-mono">{fmt(o.total)}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {new Date(o.created_at).toLocaleDateString('es-CO')}
-                </TableCell>
-                <TableCell>
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedOrderId(o.id)}>
-                    <Eye className="size-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="space-y-2">
+        {ordersQ.isLoading ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">Cargando...</div>
+        ) : orders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+            <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+              <ShoppingCart className="size-7 opacity-40" />
+            </div>
+            <p className="font-medium">Sin pedidos</p>
+          </div>
+        ) : orders.map(o => (
+          <div key={o.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+            <span className="font-mono font-medium text-sm w-28">{o.order_number}</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium truncate">{o.distributor?.name ?? '—'}</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">{new Date(o.created_at).toLocaleDateString('es-CO')}</p>
+            </div>
+            <Badge variant={statusColors[o.status] as 'default' | 'secondary' | 'destructive'}>
+              {statusLabels[o.status]}
+            </Badge>
+            <Badge variant={payStatusColors[o.payment_status] as 'default' | 'secondary'}>
+              {payStatusLabels[o.payment_status]}
+            </Badge>
+            <span className="font-mono text-sm font-semibold hidden sm:block">{fmt(o.total)}</span>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedOrderId(o.id)}>
+              <Eye className="size-4" />
+            </Button>
+          </div>
+        ))}
       </div>
 
       <OrderDetailDialog orderId={selectedOrderId} onClose={() => setSelectedOrderId(null)} />
@@ -637,6 +610,7 @@ function OrdersTab() {
 export default function B2bPage() {
   const params = useParams();
   const slug = params.slug as string;
+  const [b2bTab, setB2bTab] = useState<'distributors' | 'orders'>('distributors');
 
   const distQ = useQuery({
     queryKey: ['b2b-distributors'],
@@ -700,18 +674,18 @@ export default function B2bPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="distributors">
-        <TabsList>
-          <TabsTrigger value="distributors">Distribuidores</TabsTrigger>
-          <TabsTrigger value="orders">Pedidos</TabsTrigger>
-        </TabsList>
-        <TabsContent value="distributors" className="mt-4">
-          <DistributorsTab />
-        </TabsContent>
-        <TabsContent value="orders" className="mt-4">
-          <OrdersTab />
-        </TabsContent>
-      </Tabs>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([{ key: 'distributors', icon: Users, label: 'Distribuidores' }, { key: 'orders', icon: ShoppingCart, label: 'Pedidos' }] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => setB2bTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${b2bTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="size-3.5" />{label}
+          </button>
+        ))}
+      </div>
+      <div className="mt-2">
+        {b2bTab === 'distributors' && <DistributorsTab />}
+        {b2bTab === 'orders' && <OrdersTab />}
+      </div>
     </div>
     </AddonGate>
   );

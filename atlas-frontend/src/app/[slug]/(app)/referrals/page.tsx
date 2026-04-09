@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -513,6 +512,8 @@ function CommissionsTab() {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function ReferralsPage() {
+  const [activeTab, setActiveTab] = useState('referrers');
+
   return (
     <div className="space-y-6">
       <div>
@@ -522,23 +523,24 @@ export default function ReferralsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="referrers">
-        <TabsList>
-          <TabsTrigger value="referrers">
-            <Users className="size-4 mr-1.5" /> Referentes
-          </TabsTrigger>
-          <TabsTrigger value="agreements">
-            <HandshakeIcon className="size-4 mr-1.5" /> Acuerdos
-          </TabsTrigger>
-          <TabsTrigger value="commissions">
-            <DollarSign className="size-4 mr-1.5" /> Comisiones
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'referrers', icon: Users, label: 'Referentes' },
+          { key: 'agreements', icon: HandshakeIcon, label: 'Acuerdos' },
+          { key: 'commissions', icon: DollarSign, label: 'Comisiones' },
+        ] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => setActiveTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="size-3.5" />{label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="referrers" className="mt-4"><ReferrersTab /></TabsContent>
-        <TabsContent value="agreements" className="mt-4"><AgreementsTab /></TabsContent>
-        <TabsContent value="commissions" className="mt-4"><CommissionsTab /></TabsContent>
-      </Tabs>
+      <div>
+        {activeTab === 'referrers' && <ReferrersTab />}
+        {activeTab === 'agreements' && <AgreementsTab />}
+        {activeTab === 'commissions' && <CommissionsTab />}
+      </div>
     </div>
   );
 }

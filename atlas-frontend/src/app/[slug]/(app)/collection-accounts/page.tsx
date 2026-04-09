@@ -8,14 +8,11 @@ import {
   Building2,
 } from 'lucide-react';
 import { notify } from '@/lib/notify';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -144,91 +141,75 @@ export default function CollectionAccountsPage() {
         </Select>
       </div>
 
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
-            <thead className="border-b">
-              <tr className="text-left text-muted-foreground">
-                <th className="px-4 py-3">Número</th>
-                <th className="px-4 py-3">Entidad</th>
-                <th className="px-4 py-3">Período</th>
-                <th className="px-4 py-3">Vence</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3 text-right">Saldo</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading
-                ? Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i} className="border-b">
-                      {Array.from({ length: 8 }).map((_, j) => (
-                        <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>
-                      ))}
-                    </tr>
-                  ))
-                : accounts.map((acc) => {
-                    const balance = acc.total - acc.amount_paid;
-                    return (
-                      <tr key={acc.id} className="border-b hover:bg-muted/30">
-                        <td className="px-4 py-3 font-mono font-medium">{acc.account_number}</td>
-                        <td className="px-4 py-3">{acc.entity?.name ?? `#${acc.entity_id}`}</td>
-                        <td className="px-4 py-3 text-xs">{acc.period_from} → {acc.period_to}</td>
-                        <td className="px-4 py-3 text-xs">{acc.due_date}</td>
-                        <td className="px-4 py-3 text-right">{fmt(acc.total)}</td>
-                        <td className="px-4 py-3 text-right font-medium">{fmt(balance)}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant={STATUS_VARIANT[acc.status]}>
-                            {STATUS_LABEL[acc.status]}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-right space-x-1">
-                          <Button size="sm" variant="ghost" onClick={() => setViewAccount(acc)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {acc.status === 'draft' && (
-                            <Button
-                              size="sm" variant="ghost"
-                              onClick={() => sendMutation.mutate(acc.id)}
-                              disabled={sendMutation.isPending}
-                            >
-                              <Send className="h-4 w-4 text-blue-500" />
-                            </Button>
-                          )}
-                          {['sent', 'overdue'].includes(acc.status) && (
-                            <Button
-                              size="sm" variant="ghost"
-                              onClick={() => { setPayDialog(acc); setPayAmount(String(balance)); }}
-                            >
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                            </Button>
-                          )}
-                          {acc.status === 'draft' && (
-                            <Button
-                              size="sm" variant="ghost"
-                              onClick={() => { if (confirm('¿Eliminar cuenta?')) deleteMutation.mutate(acc.id); }}
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-              {!isLoading && accounts.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
-                    No hay cuentas de cobro registradas.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+      {/* List */}
+      <div className="flex flex-col gap-3">
+        {isLoading
+          ? Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)
+          : accounts.length === 0
+          ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <Banknote className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay cuentas de cobro registradas</p>
+              <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
+                <Plus className="h-4 w-4 mr-2" /> Nueva cuenta
+              </Button>
+            </div>
+          )
+          : accounts.map((acc) => {
+            const balance = acc.total - acc.amount_paid;
+            return (
+              <div key={acc.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Banknote className="size-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm font-mono">{acc.account_number}</p>
+                  <p className="text-xs text-muted-foreground">{acc.entity?.name ?? `#${acc.entity_id}`} · Vence: {acc.due_date}</p>
+                  <p className="text-xs text-muted-foreground">{acc.period_from} → {acc.period_to}</p>
+                </div>
+                <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="font-medium">{fmt(acc.total)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground">Saldo</p>
+                    <p className={`font-semibold ${balance > 0 ? 'text-orange-600' : 'text-emerald-600'}`}>{fmt(balance)}</p>
+                  </div>
+                </div>
+                <Badge variant={STATUS_VARIANT[acc.status]} className="flex-shrink-0">{STATUS_LABEL[acc.status]}</Badge>
+                <div className="flex gap-1 flex-shrink-0">
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setViewAccount(acc)}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {acc.status === 'draft' && (
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0"
+                      onClick={() => sendMutation.mutate(acc.id)}
+                      disabled={sendMutation.isPending}>
+                      <Send className="h-4 w-4 text-blue-500" />
+                    </Button>
+                  )}
+                  {['sent', 'overdue'].includes(acc.status) && (
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0"
+                      onClick={() => { setPayDialog(acc); setPayAmount(String(balance)); }}>
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    </Button>
+                  )}
+                  {acc.status === 'draft' && (
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0"
+                      onClick={() => { if (confirm('¿Eliminar cuenta?')) deleteMutation.mutate(acc.id); }}
+                      disabled={deleteMutation.isPending}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        }
+      </div>
 
       {/* Pagination */}
       {lastPage > 1 && (

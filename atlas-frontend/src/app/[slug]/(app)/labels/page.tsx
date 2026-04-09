@@ -313,12 +313,11 @@ export default function LabelsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b">
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors
-              ${tab === t.id ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-            <t.icon className="w-4 h-4" />{t.label}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${tab === t.id ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <t.icon className="size-3.5" />{t.label}
           </button>
         ))}
       </div>
@@ -353,50 +352,37 @@ export default function LabelsPage() {
           {/* Product List */}
           {prodsLoading ? (
             <div className="space-y-2">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
+          ) : products.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <Tag className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay productos</p>
+            </div>
           ) : (
-            <div className="rounded-md border overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-3 py-2 w-8" />
-                    <th className="text-left px-3 py-2">Producto</th>
-                    <th className="text-left px-3 py-2">SKU</th>
-                    <th className="text-left px-3 py-2">Código de Barras</th>
-                    <th className="text-right px-3 py-2">Precio</th>
-                    <th className="text-center px-3 py-2 w-36">Copias</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map(p => {
-                    const copies = selectedProds[p.id] ?? 0;
-                    return (
-                      <tr key={p.id} className={`border-t hover:bg-muted/30 ${copies > 0 ? 'bg-primary/5' : ''}`}>
-                        <td className="px-3 py-2">
-                          <input type="checkbox" className="h-4 w-4 accent-primary" checked={copies > 0} onChange={() => copies > 0 ? setCopies(p.id, -copies) : setCopies(p.id, 1)} />
-                        </td>
-                        <td className="px-3 py-2 font-medium">{p.name}</td>
-                        <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{p.sku}</td>
-                        <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{p.barcode ?? '—'}</td>
-                        <td className="px-3 py-2 text-right">{fmt(p.price)}</td>
-                        <td className="px-3 py-2">
-                          <div className="flex items-center justify-center gap-1">
-                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => setCopies(p.id, -1)} disabled={copies === 0}>
-                              <Minus className="w-3 h-3" />
-                            </Button>
-                            <span className="w-8 text-center text-sm font-medium">{copies}</span>
-                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => setCopies(p.id, 1)}>
-                              <Plus className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {products.length === 0 && (
-                    <tr><td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">No hay productos</td></tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              {products.map(p => {
+                const copies = selectedProds[p.id] ?? 0;
+                return (
+                  <div key={p.id} className={`rounded-2xl border bg-card p-3 flex items-center gap-3 hover:shadow-sm transition-all ${copies > 0 ? 'border-primary/40 bg-primary/5' : 'hover:border-primary/20'}`}>
+                    <input type="checkbox" className="h-4 w-4 accent-primary shrink-0" checked={copies > 0} onChange={() => copies > 0 ? setCopies(p.id, -copies) : setCopies(p.id, 1)} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{p.name}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{p.sku} · {p.barcode ?? '—'}</p>
+                    </div>
+                    <span className="text-sm font-mono hidden sm:block">{fmt(p.price)}</span>
+                    <div className="flex items-center gap-1">
+                      <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => setCopies(p.id, -1)} disabled={copies === 0}>
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <span className="w-8 text-center text-sm font-medium">{copies}</span>
+                      <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => setCopies(p.id, 1)}>
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -493,38 +479,26 @@ export default function LabelsPage() {
           {/* Sales list */}
           {salesLoading ? (
             <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
+          ) : sales.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <Truck className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay ventas</p>
+            </div>
           ) : (
-            <div className="rounded-md border overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-3 py-2 w-8" />
-                    <th className="text-left px-3 py-2">N° Venta</th>
-                    <th className="text-left px-3 py-2">Cliente</th>
-                    <th className="text-right px-3 py-2">Total</th>
-                    <th className="text-center px-3 py-2">Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sales.map(s => (
-                    <tr key={s.id} className={`border-t hover:bg-muted/30 cursor-pointer ${selectedSales.has(s.id) ? 'bg-primary/5' : ''}`}
-                      onClick={() => toggleSale(s.id)}>
-                      <td className="px-3 py-2">
-                        <input type="checkbox" className="h-4 w-4 accent-primary" checked={selectedSales.has(s.id)} onChange={() => toggleSale(s.id)} onClick={(e: React.MouseEvent) => e.stopPropagation()} />
-                      </td>
-                      <td className="px-3 py-2 font-mono text-xs font-medium">{s.sale_number ?? s.invoice_number ?? `V-${s.id}`}</td>
-                      <td className="px-3 py-2">{s.customer_name ?? 'Cliente directo'}</td>
-                      <td className="px-3 py-2 text-right">{fmt(s.total)}</td>
-                      <td className="px-3 py-2 text-center">
-                        <Badge variant={s.status === 'paid' ? 'default' : 'secondary'}>{s.status}</Badge>
-                      </td>
-                    </tr>
-                  ))}
-                  {sales.length === 0 && (
-                    <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">No hay ventas</td></tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              {sales.map(s => (
+                <div key={s.id}
+                  className={`rounded-2xl border bg-card p-3 flex items-center gap-3 cursor-pointer hover:shadow-sm transition-all ${selectedSales.has(s.id) ? 'border-primary/40 bg-primary/5' : 'hover:border-primary/20'}`}
+                  onClick={() => toggleSale(s.id)}>
+                  <input type="checkbox" className="h-4 w-4 accent-primary shrink-0" checked={selectedSales.has(s.id)} onChange={() => toggleSale(s.id)} onClick={(e: React.MouseEvent) => e.stopPropagation()} />
+                  <span className="font-mono text-xs font-medium w-24">{s.sale_number ?? s.invoice_number ?? `V-${s.id}`}</span>
+                  <span className="flex-1 truncate">{s.customer_name ?? 'Cliente directo'}</span>
+                  <span className="font-mono text-sm hidden sm:block">{fmt(s.total)}</span>
+                  <Badge variant={s.status === 'paid' ? 'default' : 'secondary'}>{s.status}</Badge>
+                </div>
+              ))}
             </div>
           )}
 

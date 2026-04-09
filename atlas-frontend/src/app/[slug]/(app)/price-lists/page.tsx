@@ -641,102 +641,71 @@ export default function PriceListsPage() {
         />
       </div>
 
-      {/* List table */}
-      <div className="rounded-xl border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-muted-foreground text-xs uppercase">
-            <tr>
-              <th className="px-4 py-3 text-left">Nombre</th>
-              <th className="px-4 py-3 text-center">Productos</th>
-              <th className="px-4 py-3 text-center">Estado</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {isLoading &&
-              Array.from({ length: 3 }).map((_, i) => (
-                <tr key={i}>
-                  {Array.from({ length: 4 }).map((__, j) => (
-                    <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>
-                  ))}
-                </tr>
-              ))}
-
-            {!isLoading && filteredLists.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground text-sm">
-                  <Tags className="size-10 mx-auto mb-3 opacity-30" />
-                  {lists.length === 0
-                    ? 'Aún no hay listas de precios. Crea una para empezar.'
-                    : 'Sin resultados para esa búsqueda.'}
-                </td>
-              </tr>
-            )}
-
-            {!isLoading &&
-              filteredLists.map((list) => (
-                <tr
-                  key={list.id}
-                  className="hover:bg-muted/30 transition-colors cursor-pointer"
-                  onClick={() => setDetailId(list.id)}
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{list.name}</span>
-                      {list.is_default && (
-                        <Badge className="gap-1 text-[10px] py-0 bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400">
-                          <Star className="size-2.5" />
-                          Por defecto
-                        </Badge>
-                      )}
-                    </div>
-                    {list.description && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{list.description}</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center text-muted-foreground">
-                    {list.items_count ?? 0}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      list.is_active
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {list.is_active ? 'Activa' : 'Inactiva'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8"
-                        onClick={() => openEdit(list)}
-                      >
-                        <Pencil className="size-3.5" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8"
-                        disabled={list.is_default || destroyMutation.isPending}
-                        title={list.is_default ? 'No se puede eliminar la lista por defecto' : undefined}
-                        onClick={() => {
-                          if (window.confirm(`¿Eliminar la lista "${list.name}"?`)) {
-                            destroyMutation.mutate(list.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="size-3.5 text-destructive" />
-                      </Button>
-                      <ChevronRight className="size-4 text-muted-foreground" />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+      {/* List */}
+      <div className="flex flex-col gap-3">
+        {isLoading
+          ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)
+          : filteredLists.length === 0
+          ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <Tags className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">
+                {lists.length === 0 ? 'Aún no hay listas de precios.' : 'Sin resultados para esa búsqueda.'}
+              </p>
+              {lists.length === 0 && (
+                <Button variant="outline" size="sm" onClick={openCreate}>
+                  <Plus className="size-4 mr-2" /> Nueva lista
+                </Button>
+              )}
+            </div>
+          )
+          : filteredLists.map((list) => (
+            <button key={list.id} onClick={() => setDetailId(list.id)}
+              className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all text-left w-full">
+              <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Tags className="size-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-sm">{list.name}</span>
+                  {list.is_default && (
+                    <Badge className="gap-1 text-[10px] py-0 bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400">
+                      <Star className="size-2.5" />Por defecto
+                    </Badge>
+                  )}
+                </div>
+                {list.description && <p className="text-xs text-muted-foreground mt-0.5">{list.description}</p>}
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Productos</p>
+                  <p className="font-medium">{list.items_count ?? 0}</p>
+                </div>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                list.is_active
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                  : 'bg-muted text-muted-foreground'
+              }`}>
+                {list.is_active ? 'Activa' : 'Inactiva'}
+              </span>
+              <div onClick={(e) => e.stopPropagation()} className="flex gap-1 flex-shrink-0">
+                <Button size="icon" variant="ghost" className="size-8" onClick={() => openEdit(list)}>
+                  <Pencil className="size-3.5" />
+                </Button>
+                <Button size="icon" variant="ghost" className="size-8"
+                  disabled={list.is_default || destroyMutation.isPending}
+                  title={list.is_default ? 'No se puede eliminar la lista por defecto' : undefined}
+                  onClick={() => { if (window.confirm(`¿Eliminar la lista "${list.name}"?`)) destroyMutation.mutate(list.id); }}>
+                  <Trash2 className="size-3.5 text-destructive" />
+                </Button>
+                <ChevronRight className="size-4 text-muted-foreground self-center" />
+              </div>
+            </button>
+          ))
+        }
       </div>
 
       {/* Create / Edit Dialog */}

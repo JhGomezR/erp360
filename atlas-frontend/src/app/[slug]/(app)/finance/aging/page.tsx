@@ -5,7 +5,6 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { agingApi } from '@/lib/api/tenant.api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DollarSign, AlertTriangle, Send, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -154,15 +153,18 @@ export default function AgingPage() {
         ))}
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="report">Reporte Aging</TabsTrigger>
-          <TabsTrigger value="customers">Por Cliente</TabsTrigger>
-          <TabsTrigger value="log">Log de Cobros</TabsTrigger>
-        </TabsList>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {[{ key: 'report', label: 'Reporte Aging' }, { key: 'customers', label: 'Por Cliente' }, { key: 'log', label: 'Log de Cobros' }].map(({ key, label }) => (
+          <button key={key} onClick={() => setTab(key)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
 
-        {/* Aging buckets */}
-        <TabsContent value="report">
+      {/* Aging buckets */}
+      {tab === 'report' && (
+        <div>
           {reportQ.isLoading ? (
             <div className="text-center py-12 text-gray-400">Calculando aging...</div>
           ) : (
@@ -175,87 +177,86 @@ export default function AgingPage() {
               </div>
             </div>
           )}
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Por cliente */}
-        <TabsContent value="customers">
-          <Card>
-            <CardContent className="pt-4">
+      {/* Por cliente */}
+      {tab === 'customers' && (
+        <div className="flex flex-col gap-3">
+          {byCustomer.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <TrendingUp className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">Sin cartera pendiente</p>
+            </div>
+          ) : byCustomer.map(c => (
+            <div key={c.customer_id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{c.customer_name}</p>
+                <p className="text-xs text-muted-foreground">{c.customer_email}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Facturas</p>
+                  <p className="font-medium">{c.invoice_count}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Saldo total</p>
+                  <p className="font-medium">{fmt(c.total_balance)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Vencido</p>
+                  <p className={`font-semibold ${c.overdue > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{fmt(c.overdue)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Días máx.</p>
+                  <p className={`font-semibold ${c.oldest_overdue > 90 ? 'text-red-600' : c.oldest_overdue > 30 ? 'text-orange-500' : ''}`}>{c.oldest_overdue}d</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Log */}
+      {tab === 'log' && (
+        <Card>
+          <CardContent className="pt-4">
+            {logQ.isLoading ? (
+              <div className="text-center py-8 text-gray-400">Cargando...</div>
+            ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-gray-500">
                     <th className="pb-2">Cliente</th>
+                    <th>Canal</th>
                     <th className="text-right">Facturas</th>
-                    <th className="text-right">Saldo total</th>
-                    <th className="text-right">Vencido</th>
-                    <th className="text-right">Días máx.</th>
+                    <th className="text-right">Saldo notificado</th>
+                    <th>Enviado</th>
+                    <th>Estado</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {byCustomer.map(c => (
-                    <tr key={c.customer_id} className="border-b hover:bg-gray-50">
-                      <td className="py-2">
-                        <div className="font-medium">{c.customer_name}</div>
-                        <div className="text-xs text-gray-500">{c.customer_email}</div>
-                      </td>
-                      <td className="text-right">{c.invoice_count}</td>
-                      <td className="text-right font-medium">{fmt(c.total_balance)}</td>
-                      <td className={`text-right font-medium ${c.overdue > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {fmt(c.overdue)}
-                      </td>
-                      <td className={`text-right ${c.oldest_overdue > 90 ? 'text-red-600 font-bold' : c.oldest_overdue > 30 ? 'text-orange-500' : ''}`}>
-                        {c.oldest_overdue}d
-                      </td>
-                    </tr>
-                  ))}
-                  {byCustomer.length === 0 && (
-                    <tr><td colSpan={5} className="text-center py-8 text-gray-400">Sin cartera pendiente</td></tr>
-                  )}
+                  {((logQ.data as unknown as { data: { data: unknown[] } })?.data?.data ?? []).map((log: unknown, i: number) => {
+                    const l = log as { id: number; customer_name: string; channel: string; invoice_count: number; total_balance: number; sent_at: string; status: string };
+                    return (
+                      <tr key={i} className="border-b hover:bg-gray-50">
+                        <td className="py-2">{l.customer_name}</td>
+                        <td className="capitalize">{l.channel}</td>
+                        <td className="text-right">{l.invoice_count}</td>
+                        <td className="text-right">{fmt(l.total_balance)}</td>
+                        <td className="text-xs text-gray-500">{new Date(l.sent_at).toLocaleString('es-CO')}</td>
+                        <td><span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">{l.status}</span></td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Log */}
-        <TabsContent value="log">
-          <Card>
-            <CardContent className="pt-4">
-              {logQ.isLoading ? (
-                <div className="text-center py-8 text-gray-400">Cargando...</div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-500">
-                      <th className="pb-2">Cliente</th>
-                      <th>Canal</th>
-                      <th className="text-right">Facturas</th>
-                      <th className="text-right">Saldo notificado</th>
-                      <th>Enviado</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {((logQ.data as unknown as { data: { data: unknown[] } })?.data?.data ?? []).map((log: unknown, i: number) => {
-                      const l = log as { id: number; customer_name: string; channel: string; invoice_count: number; total_balance: number; sent_at: string; status: string };
-                      return (
-                        <tr key={i} className="border-b hover:bg-gray-50">
-                          <td className="py-2">{l.customer_name}</td>
-                          <td className="capitalize">{l.channel}</td>
-                          <td className="text-right">{l.invoice_count}</td>
-                          <td className="text-right">{fmt(l.total_balance)}</td>
-                          <td className="text-xs text-gray-500">{new Date(l.sent_at).toLocaleString('es-CO')}</td>
-                          <td><span className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">{l.status}</span></td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

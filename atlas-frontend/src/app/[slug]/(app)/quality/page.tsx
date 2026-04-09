@@ -30,7 +30,6 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
 } from '@/components/ui/tabs';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -714,17 +713,24 @@ export default function QualityPage() {
         <h1 className="text-2xl font-bold tracking-tight">Gestión de Calidad</h1>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="plans" className="gap-1.5"><ClipboardCheck className="size-4" />Planes QC</TabsTrigger>
-          <TabsTrigger value="inspections" className="gap-1.5"><ListChecks className="size-4" />Inspecciones</TabsTrigger>
-          <TabsTrigger value="nonconformities" className="gap-1.5"><AlertTriangle className="size-4" />No Conformidades</TabsTrigger>
-        </TabsList>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'plans', icon: ClipboardCheck, label: 'Planes QC' },
+          { key: 'inspections', icon: ListChecks, label: 'Inspecciones' },
+          { key: 'nonconformities', icon: AlertTriangle, label: 'No Conformidades' },
+        ] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => setActiveTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="size-3.5" />{label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="plans" className="mt-4"><PlansTab slug={slug} /></TabsContent>
-        <TabsContent value="inspections" className="mt-4"><InspectionsTab slug={slug} /></TabsContent>
-        <TabsContent value="nonconformities" className="mt-4"><NonconformitiesTab slug={slug} /></TabsContent>
-      </Tabs>
+      <div className="mt-2">
+        {activeTab === 'plans' && <PlansTab slug={slug} />}
+        {activeTab === 'inspections' && <InspectionsTab slug={slug} />}
+        {activeTab === 'nonconformities' && <NonconformitiesTab slug={slug} />}
+      </div>
     </div>
     </AddonGate>
   );

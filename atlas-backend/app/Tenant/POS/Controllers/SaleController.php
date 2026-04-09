@@ -97,16 +97,11 @@ class SaleController extends Controller
                 ->where('opened_by', auth('tenant')->id())
                 ->first();
 
-            if ($openRegister && $openRegister->warehouse_id) {
-                $warehouseId = $openRegister->warehouse_id;
-            } else {
-                // Fallback: tienda por defecto del tenant
-                $warehouseId = DB::table('warehouses')
-                    ->where('type', 'store')
-                    ->where('is_default', true)
-                    ->where('is_active', true)
-                    ->value('id');
+            if (! $openRegister) {
+                abort(422, 'Debes abrir caja antes de registrar una venta.');
             }
+
+            $warehouseId = $openRegister->warehouse_id;
 
             // ─── Crear cliente al vuelo si se envian datos de cliente nuevo ──────
             if (empty($data['customer_id']) && ! empty($data['new_customer'])) {

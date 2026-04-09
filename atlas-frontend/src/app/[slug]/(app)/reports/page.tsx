@@ -292,66 +292,84 @@ export default function ReportsPage() {
 
           {/* Daily breakdown */}
           {salesReport?.by_day && salesReport.by_day.length > 0 && (
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium">Fecha</th>
-                    <th className="text-right px-4 py-3 font-medium">Ventas</th>
-                    <th className="text-right px-4 py-3 font-medium">Ingresos</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {salesReport.by_day.map((d) => (
-                    <tr key={d.date} className="hover:bg-muted/30">
-                      <td className="px-4 py-2">{new Date(d.date).toLocaleDateString('es-CO')}</td>
-                      <td className="px-4 py-2 text-right">{d.count}</td>
-                      <td className="px-4 py-2 text-right font-medium">{fmt(d.total)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Ventas por día</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const maxTotal = Math.max(...salesReport.by_day.map((d) => d.total), 1);
+                  return (
+                    <div className="flex flex-col gap-2">
+                      {salesReport.by_day.map((d) => (
+                        <div key={d.date} className="flex items-center gap-3 text-sm">
+                          <span className="w-24 flex-shrink-0 text-xs text-muted-foreground">
+                            {new Date(d.date).toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })}
+                          </span>
+                          <div className="flex-1 h-5 rounded bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded bg-primary/70 transition-all"
+                              style={{ width: `${Math.max(2, Math.round((d.total / maxTotal) * 100))}%` }}
+                            />
+                          </div>
+                          <span className="w-8 text-right text-xs text-muted-foreground flex-shrink-0">{d.count}</span>
+                          <span className="w-24 text-right font-medium flex-shrink-0 tabular-nums">{fmt(d.total)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
           )}
         </div>
       )}
 
       {/* Top Products */}
       {tab === 'products' && (
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">#</th>
-                <th className="text-left px-4 py-3 font-medium">Producto</th>
-                <th className="text-left px-4 py-3 font-medium">SKU</th>
-                <th className="text-right px-4 py-3 font-medium">Cantidad</th>
-                <th className="text-right px-4 py-3 font-medium">Ingresos</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {loadingTop
-                ? Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i}>
-                      {Array.from({ length: 5 }).map((_, j) => (
-                        <td key={j} className="px-4 py-3">
-                          <Skeleton className="h-4 w-20" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                : topProducts?.map((p, idx) => (
-                    <tr key={p.product_id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 text-muted-foreground">{idx + 1}</td>
-                      <td className="px-4 py-3 font-medium">{p.product_name}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{p.sku}</td>
-                      <td className="px-4 py-3 text-right">{p.total_quantity.toLocaleString('es-CO')}</td>
-                      <td className="px-4 py-3 text-right font-medium">{fmt(p.total_revenue)}</td>
-                    </tr>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Productos más vendidos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingTop ? (
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-10 rounded-lg" />)}
+              </div>
+            ) : !topProducts?.length ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Sin datos en el período seleccionado</p>
+            ) : (() => {
+              const maxRev = Math.max(...topProducts.map((p) => p.total_revenue), 1);
+              const podiumColors = ['text-amber-500', 'text-slate-400', 'text-amber-700'];
+              return (
+                <div className="flex flex-col gap-2">
+                  {topProducts.map((p, idx) => (
+                    <div key={p.product_id} className="flex items-center gap-3">
+                      <span className={`w-6 text-center font-bold text-sm flex-shrink-0 ${podiumColors[idx] ?? 'text-muted-foreground'}`}>
+                        {idx + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-sm font-medium truncate">{p.product_name}</span>
+                          <span className="text-sm font-bold tabular-nums flex-shrink-0">{fmt(p.total_revenue)}</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary/70"
+                            style={{ width: `${Math.max(2, Math.round((p.total_revenue / maxRev) * 100))}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground flex-shrink-0 w-12 text-right">
+                        {p.total_quantity.toLocaleString('es-CO')} u
+                      </span>
+                    </div>
                   ))}
-            </tbody>
-          </table>
-        </div>
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
       )}
 
       {/* Inventory Report */}
@@ -382,26 +400,33 @@ export default function ReportsPage() {
           </div>
 
           {inventoryReport?.categories && (
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium">Categoría</th>
-                    <th className="text-right px-4 py-3 font-medium">Productos</th>
-                    <th className="text-right px-4 py-3 font-medium">Valor</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {inventoryReport.categories.map((c) => (
-                    <tr key={c.name} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 font-medium">{c.name}</td>
-                      <td className="px-4 py-3 text-right">{c.count}</td>
-                      <td className="px-4 py-3 text-right">{fmt(c.value)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Por categoría</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const maxVal = Math.max(...inventoryReport.categories.map((c) => c.value), 1);
+                  return (
+                    <div className="flex flex-col gap-2">
+                      {inventoryReport.categories.map((c) => (
+                        <div key={c.name} className="flex items-center gap-3 text-sm">
+                          <span className="w-32 flex-shrink-0 font-medium truncate text-xs">{c.name}</span>
+                          <div className="flex-1 h-4 rounded bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded bg-primary/60"
+                              style={{ width: `${Math.max(2, Math.round((c.value / maxVal) * 100))}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground w-6 text-right flex-shrink-0">{c.count}</span>
+                          <span className="text-xs font-medium w-24 text-right flex-shrink-0 tabular-nums">{fmt(c.value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
           )}
         </div>
       )}

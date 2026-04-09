@@ -36,12 +36,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from '@/components/ui/tabs';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -960,6 +954,7 @@ function ExpiryAlertsTab({ slug }: { slug: string }) {
 export default function PharmacyPage() {
   const params = useParams();
   const slug = params.slug as string;
+  const [pharmTab, setPharmTab] = useState<'recetas' | 'controlados' | 'vencimientos'>('recetas');
 
   useEffect(() => {
     if (slug) setTenantSlug(slug);
@@ -979,34 +974,24 @@ export default function PharmacyPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="recetas">
-        <TabsList>
-          <TabsTrigger value="recetas">
-            <FileText className="size-4 mr-1.5" />
-            Recetas
-          </TabsTrigger>
-          <TabsTrigger value="controlados">
-            <BookOpen className="size-4 mr-1.5" />
-            Controlados
-          </TabsTrigger>
-          <TabsTrigger value="vencimientos">
-            <AlertTriangle className="size-4 mr-1.5" />
-            Vencimientos
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'recetas', icon: FileText, label: 'Recetas' },
+          { key: 'controlados', icon: BookOpen, label: 'Controlados' },
+          { key: 'vencimientos', icon: AlertTriangle, label: 'Vencimientos' },
+        ] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => setPharmTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${pharmTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="size-3.5" />{label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="recetas" className="mt-4">
-          <PrescriptionsTab slug={slug} />
-        </TabsContent>
-
-        <TabsContent value="controlados" className="mt-4">
-          <ControlledTab slug={slug} />
-        </TabsContent>
-
-        <TabsContent value="vencimientos" className="mt-4">
-          <ExpiryAlertsTab slug={slug} />
-        </TabsContent>
-      </Tabs>
+      <div className="mt-2">
+        {pharmTab === 'recetas' && <PrescriptionsTab slug={slug} />}
+        {pharmTab === 'controlados' && <ControlledTab slug={slug} />}
+        {pharmTab === 'vencimientos' && <ExpiryAlertsTab slug={slug} />}
+      </div>
     </div>
     </AddonGate>
   );

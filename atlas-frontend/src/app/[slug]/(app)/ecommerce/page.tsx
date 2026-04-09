@@ -309,88 +309,53 @@ function CatalogTab({ slug }: CatalogTabProps) {
       </div>
 
       {/* Product list */}
-      <Card>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Producto</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground hidden sm:table-cell">SKU</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Precio</th>
-                <th className="px-4 py-3 text-center font-medium text-muted-foreground">Stock</th>
-                <th className="px-4 py-3 text-center font-medium text-muted-foreground">En tienda</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading
-                ? Array.from({ length: 8 }).map((_, i) => (
-                    <tr key={i} className="border-t border-border">
-                      <td className="px-4 py-3"><Skeleton className="h-4 w-40" /></td>
-                      <td className="px-4 py-3 hidden sm:table-cell"><Skeleton className="h-4 w-20" /></td>
-                      <td className="px-4 py-3"><Skeleton className="h-4 w-20 ml-auto" /></td>
-                      <td className="px-4 py-3"><Skeleton className="h-4 w-10 mx-auto" /></td>
-                      <td className="px-4 py-3"><Skeleton className="h-6 w-10 mx-auto rounded-full" /></td>
-                    </tr>
-                  ))
-                : filtered.length === 0
-                ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
-                        <Package className="size-8 mx-auto mb-2 opacity-40" />
-                        <p>No se encontraron productos</p>
-                      </td>
-                    </tr>
-                  )
-                : filtered.map((product) => {
-                    const enabled = enabledMap[product.id] ?? false;
-                    const isPending = toggleMutation.isPending && toggleMutation.variables?.id === product.id;
-                    return (
-                      <tr key={product.id} className="border-t border-border hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex flex-col">
-                            <span className="font-medium">{product.name}</span>
-                            {product.category?.name && (
-                              <span className="text-xs text-muted-foreground">{product.category.name}</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 hidden sm:table-cell">
-                          <span className="font-mono text-xs text-muted-foreground">{product.sku}</span>
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums">
-                          {formatCurrency(product.price)}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {product.stock <= 0
-                            ? <Badge variant="destructive" className="text-[10px]">Sin stock</Badge>
-                            : product.stock <= product.min_stock
-                            ? <Badge variant="secondary" className="text-[10px]">{product.stock}</Badge>
-                            : <span className="tabular-nums">{product.stock}</span>}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            type="button"
-                            disabled={isPending}
-                            onClick={() => toggleMutation.mutate({ id: product.id, enabled: !enabled })}
-                            className={`inline-flex items-center justify-center size-8 rounded-full transition-colors ${
-                              enabled
-                                ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                            } disabled:opacity-50`}
-                            title={enabled ? 'Ocultar de tienda' : 'Mostrar en tienda'}
-                          >
-                            {enabled
-                              ? <Eye className="size-4" />
-                              : <EyeOff className="size-4" />}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+      <div className="space-y-2">
+        {isLoading
+          ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-2xl" />)
+          : filtered.length === 0
+          ? (
+              <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+                <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                  <Package className="size-7 opacity-40" />
+                </div>
+                <p className="font-medium">No se encontraron productos</p>
+              </div>
+            )
+          : filtered.map((product) => {
+              const enabled = enabledMap[product.id] ?? false;
+              const isPending = toggleMutation.isPending && toggleMutation.variables?.id === product.id;
+              return (
+                <div key={product.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{product.name}</p>
+                    {product.category?.name && <p className="text-xs text-muted-foreground">{product.category.name}</p>}
+                  </div>
+                  <span className="hidden sm:block font-mono text-xs text-muted-foreground">{product.sku}</span>
+                  <span className="font-mono text-sm tabular-nums">{formatCurrency(product.price)}</span>
+                  <div className="hidden sm:block">
+                    {product.stock <= 0
+                      ? <Badge variant="destructive" className="text-[10px]">Sin stock</Badge>
+                      : product.stock <= product.min_stock
+                      ? <Badge variant="secondary" className="text-[10px]">{product.stock}</Badge>
+                      : <span className="text-sm tabular-nums">{product.stock}</span>}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => toggleMutation.mutate({ id: product.id, enabled: !enabled })}
+                    className={`inline-flex items-center justify-center size-8 rounded-full transition-colors ${
+                      enabled
+                        ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    } disabled:opacity-50`}
+                    title={enabled ? 'Ocultar de tienda' : 'Mostrar en tienda'}
+                  >
+                    {enabled ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                  </button>
+                </div>
+              );
+            })}
+      </div>
     </div>
   );
 }
@@ -448,65 +413,44 @@ function OrdersTab({ slug }: { slug: string }) {
         ))}
       </div>
 
-      <div className="border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium">Orden</th>
-              <th className="text-left px-4 py-3 font-medium">Cliente</th>
-              <th className="text-left px-4 py-3 font-medium">Estado</th>
-              <th className="text-right px-4 py-3 font-medium">Total</th>
-              <th className="text-left px-4 py-3 font-medium">Fecha</th>
-              <th className="text-left px-4 py-3 font-medium">Acción</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {isLoading
-              ? Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>{Array.from({ length: 6 }).map((__, j) => (
-                    <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
-                  ))}</tr>
-                ))
-              : orders.map((order) => {
-                  const next = NEXT_STATUS[order.status];
-                  return (
-                    <tr key={order.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 font-mono text-xs font-medium">{order.order_number}</td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{order.customer_name}</div>
-                        {order.customer_email && <div className="text-xs text-muted-foreground">{order.customer_email}</div>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant={ORDER_STATUS_VARIANT[order.status] ?? 'outline'}>
-                          {ORDER_STATUS_LABEL[order.status] ?? order.status}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono font-medium">
-                        {formatCurrency(order.total)}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">
-                        {new Date(order.created_at).toLocaleDateString('es-CO')}
-                      </td>
-                      <td className="px-4 py-3">
-                        {next && (
-                          <Button variant="outline" size="sm" className="gap-1 h-7 text-xs"
-                            disabled={updateStatus.isPending}
-                            onClick={() => updateStatus.mutate({ id: order.id, status: next })}>
-                            <RefreshCw className="size-3" />{ORDER_STATUS_LABEL[next]}
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-            {!isLoading && orders.length === 0 && (
-              <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">
-                <ShoppingCart className="size-8 mx-auto mb-2 opacity-30" />
-                No hay órdenes
-              </td></tr>
-            )}
-          </tbody>
-        </table>
+      <div className="space-y-2">
+        {isLoading
+          ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-2xl" />)
+          : orders.length === 0
+          ? (
+              <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+                <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                  <ShoppingCart className="size-7 opacity-40" />
+                </div>
+                <p className="font-medium">No hay órdenes</p>
+              </div>
+            )
+          : orders.map((order) => {
+              const next = NEXT_STATUS[order.status];
+              return (
+                <div key={order.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                  <span className="font-mono text-xs font-medium w-28">{order.order_number}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{order.customer_name}</p>
+                    {order.customer_email && <p className="text-xs text-muted-foreground hidden sm:block">{order.customer_email}</p>}
+                  </div>
+                  <Badge variant={ORDER_STATUS_VARIANT[order.status] ?? 'outline'}>
+                    {ORDER_STATUS_LABEL[order.status] ?? order.status}
+                  </Badge>
+                  <span className="font-mono font-medium hidden sm:block">{formatCurrency(order.total)}</span>
+                  <span className="text-xs text-muted-foreground hidden md:block">
+                    {new Date(order.created_at).toLocaleDateString('es-CO')}
+                  </span>
+                  {next && (
+                    <Button variant="outline" size="sm" className="gap-1 h-7 text-xs"
+                      disabled={updateStatus.isPending}
+                      onClick={() => updateStatus.mutate({ id: order.id, status: next })}>
+                      <RefreshCw className="size-3" />{ORDER_STATUS_LABEL[next]}
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
       </div>
     </div>
   );
@@ -582,59 +526,42 @@ function AbandonedCartsTab({ slug }: { slug: string }) {
           <p>Sin carritos abandonados</p>
         </div>
       ) : (
-        <div className="rounded border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Cliente</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Email</th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground">Ítems</th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground">Total</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Fecha</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Recordatorios</th>
-                <th className="px-4 py-2" />
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {carts.map((cart) => (
-                <tr key={cart.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-2">{cart.customer_name ?? '—'}</td>
-                  <td className="px-4 py-2 text-muted-foreground text-xs">{cart.customer_email ?? '—'}</td>
-                  <td className="px-4 py-2 text-right">{cart.items_count}</td>
-                  <td className="px-4 py-2 text-right font-semibold">{fmtCOP(cart.total)}</td>
-                  <td className="px-4 py-2 text-xs">{fmtDate(cart.created_at)}</td>
-                  <td className="px-4 py-2 text-center">
-                    {cart.reminders_sent > 0
-                      ? <span className="text-xs text-blue-600">{cart.reminders_sent} env.</span>
-                      : <span className="text-xs text-muted-foreground">0</span>
-                    }
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="flex gap-1 justify-end">
-                      {cart.customer_email && (
-                        <button
-                          onClick={() => remindMut.mutate(cart.id)}
-                          disabled={remindMut.isPending}
-                          className="p-1 rounded hover:bg-blue-100 text-blue-600"
-                          title="Enviar recordatorio"
-                        >
-                          <Mail className="size-3.5" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => lostMut.mutate(cart.id)}
-                        disabled={lostMut.isPending}
-                        className="p-1 rounded hover:bg-red-100 text-red-500"
-                        title="Marcar como perdido"
-                      >
-                        <XCircle className="size-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {carts.map((cart) => (
+            <div key={cart.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{cart.customer_name ?? '—'}</p>
+                <p className="text-xs text-muted-foreground hidden sm:block">{cart.customer_email ?? '—'}</p>
+              </div>
+              <span className="text-xs text-muted-foreground hidden sm:block">{cart.items_count} ítems</span>
+              <span className="font-semibold font-mono text-sm">{fmtCOP(cart.total)}</span>
+              <span className="text-xs text-muted-foreground hidden md:block">{fmtDate(cart.created_at)}</span>
+              {cart.reminders_sent > 0
+                ? <span className="text-xs text-blue-600">{cart.reminders_sent} env.</span>
+                : <span className="text-xs text-muted-foreground">0 recordatorios</span>
+              }
+              <div className="flex gap-1">
+                {cart.customer_email && (
+                  <button
+                    onClick={() => remindMut.mutate(cart.id)}
+                    disabled={remindMut.isPending}
+                    className="p-1 rounded hover:bg-blue-100 text-blue-600"
+                    title="Enviar recordatorio"
+                  >
+                    <Mail className="size-3.5" />
+                  </button>
+                )}
+                <button
+                  onClick={() => lostMut.mutate(cart.id)}
+                  disabled={lostMut.isPending}
+                  className="p-1 rounded hover:bg-red-100 text-red-500"
+                  title="Marcar como perdido"
+                >
+                  <XCircle className="size-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

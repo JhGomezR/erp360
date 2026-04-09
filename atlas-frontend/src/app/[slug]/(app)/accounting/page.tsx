@@ -242,81 +242,71 @@ export default function AccountingPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b overflow-x-auto">
+      <div className="flex flex-wrap gap-0.5 p-1 rounded-lg bg-muted w-fit">
         {TABS.map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
-            className={`whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}>{label}</button>
         ))}
       </div>
 
       {/* ── Plan de cuentas ── */}
       {tab === 'accounts' && (
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Código</th>
-                <th className="text-left px-4 py-3 font-medium">Nombre</th>
-                <th className="text-left px-4 py-3 font-medium">Tipo</th>
-                <th className="text-right px-4 py-3 font-medium">Saldo</th>
-                <th className="text-left px-4 py-3 font-medium">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {loadingAccounts
-                ? Array.from({ length: 8 }).map((_, i) => (
-                    <tr key={i}>{Array.from({ length: 5 }).map((_, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>)}</tr>
-                  ))
-                : (accounts ?? []).map((a: Account) => (
-                    <tr key={a.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 font-mono text-xs">{a.code}</td>
-                      <td className="px-4 py-3 font-medium">{a.name}</td>
-                      <td className="px-4 py-3"><Badge variant="secondary">{TYPE_LABEL[a.type] ?? a.type}</Badge></td>
-                      <td className={`px-4 py-3 text-right font-mono ${a.balance < 0 ? 'text-destructive' : ''}`}>{fmt(a.balance)}</td>
-                      <td className="px-4 py-3"><Badge variant={a.is_active ? 'default' : 'secondary'}>{a.is_active ? 'Activo' : 'Inactivo'}</Badge></td>
-                    </tr>
-                  ))}
-            </tbody>
-          </table>
-          {!loadingAccounts && (accounts ?? []).length === 0 && (
-            <div className="py-12 text-center"><BookOpen className="size-8 mx-auto text-muted-foreground mb-2" /><p className="text-muted-foreground text-sm">No hay cuentas</p></div>
-          )}
+        <div className="space-y-2">
+          {loadingAccounts ? (
+            <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-14 animate-pulse" />)}</div>
+          ) : (accounts ?? []).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center"><BookOpen className="size-7 opacity-40" /></div>
+              <p className="font-medium">No hay cuentas</p>
+            </div>
+          ) : (accounts ?? []).map((a: Account) => (
+            <div key={a.id} className="rounded-2xl border bg-card px-4 py-3 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <span className="font-mono text-xs text-muted-foreground w-20 shrink-0">{a.code}</span>
+              <p className="font-medium text-sm flex-1 min-w-0">{a.name}</p>
+              <div className="hidden sm:flex items-center gap-3 shrink-0">
+                <Badge variant="secondary">{TYPE_LABEL[a.type] ?? a.type}</Badge>
+                <span className={`font-mono text-sm ${a.balance < 0 ? 'text-destructive' : ''}`}>{fmt(a.balance)}</span>
+              </div>
+              <Badge variant={a.is_active ? 'default' : 'secondary'}>{a.is_active ? 'Activo' : 'Inactivo'}</Badge>
+            </div>
+          ))}
         </div>
       )}
 
       {/* ── Asientos ── */}
       {tab === 'journal' && (
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Referencia</th>
-                <th className="text-left px-4 py-3 font-medium">Descripción</th>
-                <th className="text-left px-4 py-3 font-medium">Fecha</th>
-                <th className="text-right px-4 py-3 font-medium">Débito</th>
-                <th className="text-right px-4 py-3 font-medium">Crédito</th>
-                <th className="text-left px-4 py-3 font-medium">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {loadingEntries
-                ? Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i}>{Array.from({ length: 6 }).map((_, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>)}</tr>
-                  ))
-                : (entries ?? []).map((e: JournalEntry) => (
-                    <tr key={e.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 font-mono text-xs">{e.reference}</td>
-                      <td className="px-4 py-3 text-muted-foreground truncate max-w-xs">{e.description}</td>
-                      <td className="px-4 py-3">{new Date(e.date).toLocaleDateString('es-CO')}</td>
-                      <td className="px-4 py-3 text-right font-mono">{fmt(e.total_debit)}</td>
-                      <td className="px-4 py-3 text-right font-mono">{fmt(e.total_credit)}</td>
-                      <td className="px-4 py-3"><Badge variant={e.status === 'posted' ? 'default' : 'secondary'}>{e.status === 'posted' ? 'Contabilizado' : 'Borrador'}</Badge></td>
-                    </tr>
-                  ))}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {loadingEntries ? (
+            <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-16 animate-pulse" />)}</div>
+          ) : (entries ?? []).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center"><BookOpen className="size-7 opacity-40" /></div>
+              <p className="font-medium">Sin asientos contables</p>
+            </div>
+          ) : (entries ?? []).map((e: JournalEntry) => (
+            <div key={e.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">{e.reference}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(e.date).toLocaleDateString('es-CO')}</span>
+                </div>
+                <p className="text-sm mt-0.5 truncate text-muted-foreground">{e.description}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Débito</p>
+                  <p className="font-mono">{fmt(e.total_debit)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Crédito</p>
+                  <p className="font-mono">{fmt(e.total_credit)}</p>
+                </div>
+              </div>
+              <Badge variant={e.status === 'posted' ? 'default' : 'secondary'}>{e.status === 'posted' ? 'Contabilizado' : 'Borrador'}</Badge>
+            </div>
+          ))}
         </div>
       )}
 
@@ -435,49 +425,27 @@ export default function AccountingPage() {
               <Plus className="size-4" />Generar períodos {generateYear}
             </Button>
           </div>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50"><tr>
-                <th className="text-left px-4 py-3 font-medium">Período</th>
-                <th className="text-left px-4 py-3 font-medium">Desde</th>
-                <th className="text-left px-4 py-3 font-medium">Hasta</th>
-                <th className="text-center px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium">Acción</th>
-              </tr></thead>
-              <tbody className="divide-y">
-                {loadingPeriods
-                  ? Array.from({ length: 6 }).map((_, i) => <tr key={i}>{Array.from({ length: 5 }).map((_, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>)}</tr>)
-                  : (periods ?? []).map((p: AccountingPeriod) => (
-                      <tr key={p.id} className="hover:bg-muted/30">
-                        <td className="px-4 py-3 font-medium">{p.name}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs">{new Date(p.date_from).toLocaleDateString('es-CO')}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs">{new Date(p.date_to).toLocaleDateString('es-CO')}</td>
-                        <td className="px-4 py-3 text-center">
-                          <Badge variant={p.status === 'open' ? 'default' : 'secondary'}>
-                            {p.status === 'open' ? 'Abierto' : 'Cerrado'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          {p.status === 'open' ? (
-                            <Button variant="outline" size="sm" className="gap-1 h-7 text-xs"
-                              onClick={() => setCloseDialog(p)}>
-                              <Lock className="size-3" />Cerrar
-                            </Button>
-                          ) : (
-                            <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs"
-                              onClick={() => reopenPeriodMut.mutate(p.id)}
-                              disabled={reopenPeriodMut.isPending}>
-                              <Unlock className="size-3" />Reabrir
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
-            {!loadingPeriods && (periods ?? []).length === 0 && (
+          <div className="space-y-2">
+            {loadingPeriods ? (
+              <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-14 animate-pulse" />)}</div>
+            ) : (periods ?? []).length === 0 ? (
               <div className="py-10 text-center text-muted-foreground text-sm">No hay períodos. Genera los del año.</div>
-            )}
+            ) : (periods ?? []).map((p: AccountingPeriod) => (
+              <div key={p.id} className="rounded-2xl border bg-card px-4 py-3 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                <p className="font-medium text-sm flex-1">{p.name}</p>
+                <span className="text-xs text-muted-foreground hidden sm:block">{new Date(p.date_from).toLocaleDateString('es-CO')} — {new Date(p.date_to).toLocaleDateString('es-CO')}</span>
+                <Badge variant={p.status === 'open' ? 'default' : 'secondary'}>{p.status === 'open' ? 'Abierto' : 'Cerrado'}</Badge>
+                {p.status === 'open' ? (
+                  <Button variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={() => setCloseDialog(p)}>
+                    <Lock className="size-3" />Cerrar
+                  </Button>
+                ) : (
+                  <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs" onClick={() => reopenPeriodMut.mutate(p.id)} disabled={reopenPeriodMut.isPending}>
+                    <Unlock className="size-3" />Reabrir
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -490,43 +458,30 @@ export default function AccountingPage() {
               <Plus className="size-4" />Nueva retención
             </Button>
           </div>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50"><tr>
-                <th className="text-left px-4 py-3 font-medium">Nombre</th>
-                <th className="text-left px-4 py-3 font-medium">Tipo</th>
-                <th className="text-left px-4 py-3 font-medium">Concepto</th>
-                <th className="text-right px-4 py-3 font-medium">Tarifa</th>
-                <th className="text-right px-4 py-3 font-medium">Base mín.</th>
-                <th className="text-center px-4 py-3 font-medium">Compras</th>
-                <th className="text-center px-4 py-3 font-medium">Ventas</th>
-                <th className="px-4 py-3"></th>
-              </tr></thead>
-              <tbody className="divide-y">
-                {loadingRetentions
-                  ? Array.from({ length: 4 }).map((_, i) => <tr key={i}>{Array.from({ length: 8 }).map((_, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>)}</tr>)
-                  : (retentions ?? []).map((r: TaxRetention) => (
-                      <tr key={r.id} className="hover:bg-muted/30">
-                        <td className="px-4 py-3 font-medium">{r.name}</td>
-                        <td className="px-4 py-3"><Badge variant="secondary">{r.type_label}</Badge></td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs">{r.concept_code ?? '—'}</td>
-                        <td className="px-4 py-3 text-right font-mono">{(r.rate * 100).toFixed(2)}%</td>
-                        <td className="px-4 py-3 text-right">{fmt(r.base_minimum)}</td>
-                        <td className="px-4 py-3 text-center">{r.applies_to_purchases ? '✓' : '—'}</td>
-                        <td className="px-4 py-3 text-center">{r.applies_to_sales ? '✓' : '—'}</td>
-                        <td className="px-4 py-3">
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                            onClick={() => deleteRetentionMut.mutate(r.id)}>
-                            <Trash2 className="size-3" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
-            {!loadingRetentions && (retentions ?? []).length === 0 && (
+          <div className="space-y-2">
+            {loadingRetentions ? (
+              <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-14 animate-pulse" />)}</div>
+            ) : (retentions ?? []).length === 0 ? (
               <div className="py-10 text-center text-muted-foreground text-sm">No hay retenciones configuradas</div>
-            )}
+            ) : (retentions ?? []).map((r: TaxRetention) => (
+              <div key={r.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-sm">{r.name}</span>
+                    <Badge variant="secondary">{r.type_label}</Badge>
+                    {r.concept_code && <span className="text-xs text-muted-foreground">{r.concept_code}</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {r.applies_to_purchases && <span>Compras</span>}{r.applies_to_purchases && r.applies_to_sales && ' · '}{r.applies_to_sales && <span>Ventas</span>}
+                    {' · '}Base mín. {fmt(r.base_minimum)}
+                  </div>
+                </div>
+                <span className="font-mono text-sm font-semibold">{(r.rate * 100).toFixed(2)}%</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={() => deleteRetentionMut.mutate(r.id)}>
+                  <Trash2 className="size-3" />
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -539,49 +494,34 @@ export default function AccountingPage() {
               <Plus className="size-4" />Nuevo evento
             </Button>
           </div>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50"><tr>
-                <th className="text-left px-4 py-3 font-medium">CUFE</th>
-                <th className="text-left px-4 py-3 font-medium">Factura</th>
-                <th className="text-left px-4 py-3 font-medium">Tipo evento</th>
-                <th className="text-left px-4 py-3 font-medium">Estado</th>
-                <th className="text-left px-4 py-3 font-medium">Enviado</th>
-                <th className="px-4 py-3"></th>
-              </tr></thead>
-              <tbody className="divide-y">
-                {loadingRadian
-                  ? Array.from({ length: 4 }).map((_, i) => <tr key={i}>{Array.from({ length: 6 }).map((_, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>)}</tr>)
-                  : (radianEvents ?? []).map((ev: RadianEvent) => (
-                      <tr key={ev.id} className="hover:bg-muted/30">
-                        <td className="px-4 py-3 font-mono text-xs max-w-[180px] truncate" title={ev.cufe}>{ev.cufe}</td>
-                        <td className="px-4 py-3 text-xs">{ev.invoice_number ?? '—'}</td>
-                        <td className="px-4 py-3"><Badge variant="secondary">{ev.event_type}</Badge></td>
-                        <td className="px-4 py-3">
-                          <Badge variant={ev.status === 'sent' ? 'default' : ev.status === 'failed' ? 'outline' : 'secondary'}>
-                            {ev.status === 'sent' ? 'Enviado' : ev.status === 'failed' ? 'Fallido' : ev.status}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground">
-                          {ev.sent_at ? new Date(ev.sent_at).toLocaleDateString('es-CO') : '—'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Button variant="outline" size="sm" className="gap-1 h-7 text-xs"
-                            disabled={resendRadianMut.isPending}
-                            onClick={() => resendRadianMut.mutate(ev.id)}>
-                            <RefreshCw className="size-3" />Reenviar
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
-            {!loadingRadian && (radianEvents ?? []).length === 0 && (
-              <div className="py-10 text-center text-muted-foreground text-sm">
-                <Send className="size-8 mx-auto mb-2 opacity-30" />
-                No hay eventos RADIAN registrados
+          <div className="space-y-2">
+            {loadingRadian ? (
+              <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-14 animate-pulse" />)}</div>
+            ) : (radianEvents ?? []).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+                <div className="size-14 rounded-full bg-muted flex items-center justify-center"><Send className="size-7 opacity-40" /></div>
+                <p className="font-medium">No hay eventos RADIAN registrados</p>
               </div>
-            )}
+            ) : (radianEvents ?? []).map((ev: RadianEvent) => (
+              <div key={ev.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-xs text-muted-foreground truncate max-w-[200px]" title={ev.cufe}>{ev.cufe}</span>
+                    {ev.invoice_number && <span className="text-xs font-medium">{ev.invoice_number}</span>}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Badge variant="secondary" className="text-xs">{ev.event_type}</Badge>
+                    {ev.sent_at && <span className="text-xs text-muted-foreground">{new Date(ev.sent_at).toLocaleDateString('es-CO')}</span>}
+                  </div>
+                </div>
+                <Badge variant={ev.status === 'sent' ? 'default' : ev.status === 'failed' ? 'outline' : 'secondary'}>
+                  {ev.status === 'sent' ? 'Enviado' : ev.status === 'failed' ? 'Fallido' : ev.status}
+                </Badge>
+                <Button variant="outline" size="sm" className="gap-1 h-7 text-xs shrink-0" disabled={resendRadianMut.isPending} onClick={() => resendRadianMut.mutate(ev.id)}>
+                  <RefreshCw className="size-3" />Reenviar
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       )}

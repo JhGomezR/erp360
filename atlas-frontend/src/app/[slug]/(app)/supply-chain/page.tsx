@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MapPin, Truck, Plus, Package, Navigation, CheckCircle, AlertTriangle, Calculator } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
@@ -619,130 +618,97 @@ export default function SupplyChainPage() {
         ))}
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="shipments"><Package className="w-4 h-4 mr-2" />Envíos</TabsTrigger>
-          <TabsTrigger value="routes"><Navigation className="w-4 h-4 mr-2" />Rutas</TabsTrigger>
-          <TabsTrigger value="freight"><Calculator className="w-4 h-4 mr-2" />Flete</TabsTrigger>
-        </TabsList>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'shipments', icon: Package, label: 'Envíos' },
+          { key: 'routes', icon: Navigation, label: 'Rutas' },
+          { key: 'freight', icon: Calculator, label: 'Flete' },
+        ] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => setTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="w-3.5 h-3.5" />{label}
+          </button>
+        ))}
+      </div>
 
-        {/* Envíos */}
-        <TabsContent value="shipments">
-          <Card>
-            <CardHeader><CardTitle>Trazabilidad de Envíos</CardTitle></CardHeader>
-            <CardContent>
-              {shipmentsQ.isLoading ? (
-                <div className="text-center py-8 text-gray-400">Cargando...</div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-500">
-                      <th className="pb-2">Tracking</th>
-                      <th>Destinatario</th>
-                      <th>Transportista</th>
-                      <th>Entrega est.</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {shipments.map(s => (
-                      <tr key={s.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2 font-mono text-xs text-blue-600">{s.tracking_number}</td>
-                        <td>
-                          <div className="font-medium">{s.recipient_name}</div>
-                          <div className="text-gray-500 text-xs truncate max-w-40">{s.destination_address}</div>
-                        </td>
-                        <td className="text-gray-600">{s.carrier ?? '—'}</td>
-                        <td className={s.estimated_delivery_date && new Date(s.estimated_delivery_date) < new Date() && s.status !== 'delivered' ? 'text-red-600 font-medium' : ''}>
-                          {s.estimated_delivery_date ?? '—'}
-                        </td>
-                        <td><StatusChip status={s.status} /></td>
-                        <td>
-                          {!['delivered', 'returned'].includes(s.status) && (
-                            <Button size="sm" variant="outline" onClick={() => setAddEventShipment(s)}>
-                              <MapPin className="w-3 h-3 mr-1" />Evento
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                    {shipments.length === 0 && (
-                      <tr><td colSpan={6} className="text-center py-8 text-gray-400">Sin envíos registrados</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {/* Envíos */}
+      {tab === 'shipments' && (
+        <div className="space-y-2">
+          {shipmentsQ.isLoading ? (
+            <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-16 animate-pulse" />)}</div>
+          ) : shipments.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center"><Package className="size-7 opacity-40" /></div>
+              <p className="font-medium">Sin envíos registrados</p>
+            </div>
+          ) : shipments.map(s => (
+            <div key={s.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-blue-600">{s.tracking_number}</span>
+                  {s.carrier && <span className="text-xs text-muted-foreground">{s.carrier}</span>}
+                </div>
+                <p className="font-semibold text-sm mt-0.5">{s.recipient_name}</p>
+                {s.destination_address && <p className="text-xs text-muted-foreground truncate">{s.destination_address}</p>}
+              </div>
+              <div className="hidden sm:block text-sm shrink-0">
+                <p className="text-xs text-muted-foreground">Entrega est.</p>
+                <p className={`text-xs ${s.estimated_delivery_date && new Date(s.estimated_delivery_date) < new Date() && s.status !== 'delivered' ? 'text-red-600 font-medium' : ''}`}>
+                  {s.estimated_delivery_date ?? '—'}
+                </p>
+              </div>
+              <StatusChip status={s.status} />
+              <div className="shrink-0">
+                {!['delivered', 'returned'].includes(s.status) && (
+                  <Button size="sm" variant="outline" onClick={() => setAddEventShipment(s)}>
+                    <MapPin className="w-3 h-3 mr-1" />Evento
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-        {/* Rutas */}
-        <TabsContent value="routes">
-          <Card>
-            <CardHeader>
-              <CardTitle>Planes de Ruta</CardTitle>
-              <p className="text-sm text-gray-500">Optimización nearest-neighbor automática</p>
-            </CardHeader>
-            <CardContent>
-              {routesQ.isLoading ? (
-                <div className="text-center py-8 text-gray-400">Cargando...</div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-500">
-                      <th className="pb-2">Ruta</th>
-                      <th>Fecha</th>
-                      <th>Paradas</th>
-                      <th>Distancia</th>
-                      <th>Vehículo / Conductor</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {routes.map(r => (
-                      <tr key={r.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2">
-                          <div className="font-medium">{r.name}</div>
-                          <div className="text-xs text-gray-500 font-mono">{r.ref}</div>
-                        </td>
-                        <td>{r.planned_date}</td>
-                        <td>{r.total_stops}</td>
-                        <td>{r.total_distance_km ? `${r.total_distance_km} km` : '—'}</td>
-                        <td className="text-gray-600 text-xs">
-                          {r.vehicle_plate && <div>{r.vehicle_plate}</div>}
-                          {r.driver_name && <div>{r.driver_name}</div>}
-                          {!r.vehicle_plate && !r.driver_name && '—'}
-                        </td>
-                        <td><StatusChip status={r.status} /></td>
-                        <td>
-                          {['draft', 'optimized'].includes(r.status) && (
-                            <Button size="sm" onClick={() => startRouteMut.mutate(r.id)}>
-                              <Truck className="w-3 h-3 mr-1" />Iniciar
-                            </Button>
-                          )}
-                          {r.status === 'completed' && (
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                    {routes.length === 0 && (
-                      <tr><td colSpan={7} className="text-center py-8 text-gray-400">Sin rutas creadas</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {/* Rutas */}
+      {tab === 'routes' && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Planes de Ruta — Optimización nearest-neighbor automática</p>
+          {routesQ.isLoading ? (
+            <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-16 animate-pulse" />)}</div>
+          ) : routes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center"><Navigation className="size-7 opacity-40" /></div>
+              <p className="font-medium">Sin rutas creadas</p>
+            </div>
+          ) : routes.map(r => (
+            <div key={r.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sm">{r.name}</span>
+                  <span className="font-mono text-xs text-muted-foreground">{r.ref}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {r.planned_date} · {r.total_stops} paradas{r.total_distance_km ? ` · ${r.total_distance_km} km` : ''}
+                  {(r.vehicle_plate || r.driver_name) ? ` · ${[r.vehicle_plate, r.driver_name].filter(Boolean).join(' / ')}` : ''}
+                </p>
+              </div>
+              <StatusChip status={r.status} />
+              <div className="shrink-0">
+                {['draft', 'optimized'].includes(r.status) && (
+                  <Button size="sm" onClick={() => startRouteMut.mutate(r.id)}>
+                    <Truck className="w-3 h-3 mr-1" />Iniciar
+                  </Button>
+                )}
+                {r.status === 'completed' && <CheckCircle className="w-4 h-4 text-green-500" />}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-        {/* Flete */}
-        <TabsContent value="freight">
-          <FreightCalculatorTab />
-        </TabsContent>
-      </Tabs>
+      {/* Flete */}
+      {tab === 'freight' && <FreightCalculatorTab />}
 
       {showCreateRoute && <CreateRouteDialog open onClose={() => setShowCreateRoute(false)} />}
       {showCreateShipment && <CreateShipmentDialog open onClose={() => setShowCreateShipment(false)} />}

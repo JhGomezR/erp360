@@ -29,12 +29,6 @@ import {
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
-} from '@/components/ui/tabs';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -390,26 +384,29 @@ function ProjectDetailView({ projectId, slug, onBack }: ProjectDetailViewProps) 
       </div>
       <Progress value={detail.progress} className="h-2" />
 
-      <Tabs value={innerTab} onValueChange={setInnerTab}>
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="tasks">Tareas</TabsTrigger>
-            <TabsTrigger value="milestones">Hitos</TabsTrigger>
-            <TabsTrigger value="time">Horas</TabsTrigger>
-            <TabsTrigger value="gantt">Gantt</TabsTrigger>
-          </TabsList>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+          {(['tasks', 'milestones', 'time', 'gantt'] as const).map((key) => (
+            <button key={key} onClick={() => setInnerTab(key)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${innerTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+              {key === 'tasks' ? 'Tareas' : key === 'milestones' ? 'Hitos' : key === 'time' ? 'Horas' : 'Gantt'}
+            </button>
+          ))}
+        </div>
+        <div>
           {innerTab === 'tasks'      && <Button size="sm" onClick={() => setTaskDialog(true)}><Plus className="mr-1 size-3.5" />Tarea</Button>}
           {innerTab === 'milestones' && <Button size="sm" onClick={() => setMsDialog(true)}><Plus className="mr-1 size-3.5" />Hito</Button>}
           {innerTab === 'time'       && <Button size="sm" onClick={() => setTimeDialog(true)}><Plus className="mr-1 size-3.5" />Registrar horas</Button>}
         </div>
+      </div>
 
         {/* Tasks */}
-        <TabsContent value="tasks" className="mt-3">
+        {innerTab === 'tasks' && (<div className="mt-3">
           <div className="space-y-2">
             {tasksQ.isPending ? <Skeleton className="h-40 w-full" /> :
              tasks.length === 0 ? (
               <div className="py-10 text-center text-muted-foreground"><ListTodo className="mx-auto size-8 mb-2 opacity-30" /><p>Sin tareas</p></div>
-             ) : tasks.map((task) => (
+             ) : (tasks.map((task) => (
               <div key={task.id} className="rounded border p-3">
                 <div className="flex items-start gap-3">
                   <button onClick={() => updateTaskMut.mutate({ taskId: task.id, data: { status: task.status === 'done' ? 'todo' : 'done' } })}
@@ -442,12 +439,12 @@ function ProjectDetailView({ projectId, slug, onBack }: ProjectDetailViewProps) 
                   </div>
                 </div>
               </div>
-            ))}
+            )))}
           </div>
-        </TabsContent>
+        </div>)}
 
         {/* Milestones */}
-        <TabsContent value="milestones" className="mt-3">
+        {innerTab === 'milestones' && (<div className="mt-3">
           {msQ.isPending ? <Skeleton className="h-40 w-full" /> :
            milestones.length === 0 ? (
             <div className="py-10 text-center text-muted-foreground"><Flag className="mx-auto size-8 mb-2 opacity-30" /><p>Sin hitos</p></div>
@@ -480,47 +477,39 @@ function ProjectDetailView({ projectId, slug, onBack }: ProjectDetailViewProps) 
               ))}
             </div>
            )}
-        </TabsContent>
+        </div>)}
 
         {/* Time Logs */}
-        <TabsContent value="time" className="mt-3">
+        {innerTab === 'time' && (<div className="mt-3">
           {timeQ.isPending ? <Skeleton className="h-40 w-full" /> :
            timeLogs.length === 0 ? (
             <div className="py-10 text-center text-muted-foreground"><Clock className="mx-auto size-8 mb-2 opacity-30" /><p>Sin registros de horas</p></div>
            ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Descripción</TableHead>
-                  <TableHead className="text-right">Horas</TableHead>
-                  <TableHead className="text-right">Costo</TableHead>
-                  <TableHead>Facturable</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(timeLogs as Record<string, unknown>[]).map((l, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="text-sm">{fmtDate(String(l.logged_date))}</TableCell>
-                    <TableCell className="text-sm">{String(l.description ?? '—')}</TableCell>
-                    <TableCell className="text-right">{Number(l.hours)}h</TableCell>
-                    <TableCell className="text-right">{fmt(Number(l.cost))}</TableCell>
-                    <TableCell>{l.billable ? <CheckCircle className="size-4 text-green-600" /> : <span className="text-muted-foreground text-xs">No</span>}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="space-y-2">
+              {(timeLogs as Record<string, unknown>[]).map((l, i) => (
+                <div key={i} className="rounded-2xl border bg-card p-3 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm">{String(l.description ?? '—')}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{fmtDate(String(l.logged_date))}</p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-4 text-sm shrink-0">
+                    <span className="font-medium">{Number(l.hours)}h</span>
+                    <span className="text-muted-foreground">{fmt(Number(l.cost))}</span>
+                  </div>
+                  {l.billable ? <CheckCircle className="size-4 text-green-600 shrink-0" /> : <span className="text-muted-foreground text-xs shrink-0">No facturable</span>}
+                </div>
+              ))}
+            </div>
            )}
-        </TabsContent>
+        </div>)}
 
         {/* Gantt */}
-        <TabsContent value="gantt" className="mt-3">
+        {innerTab === 'gantt' && (<div className="mt-3">
           {tasksQ.isPending
             ? <Skeleton className="h-48 w-full" />
             : <GanttChart tasks={tasks} />
           }
-        </TabsContent>
-      </Tabs>
+        </div>)}
 
       {/* Task Dialog */}
       <Dialog open={taskDialog} onOpenChange={setTaskDialog}>

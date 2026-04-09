@@ -20,9 +20,13 @@ import {
   WifiOff,
   Wifi,
   RefreshCw,
+  Lock,
+  Store,
+  DollarSign,
+  CheckCircle2,
 } from 'lucide-react';
 
-import { productsApi, categoriesApi, posApi, billingApi, fractionsApi, setTenantSlug } from '@/lib/api/tenant.api';
+import { productsApi, categoriesApi, posApi, billingApi, fractionsApi, cashApi, setTenantSlug } from '@/lib/api/tenant.api';
 import {
   enqueue as offlineEnqueue,
   syncQueue as offlineSync,
@@ -264,6 +268,46 @@ export default function PosPage() {
     staleTime: 1000 * 60 * 10,
   });
 
+  // ── Cash register ──
+  const [openCashName, setOpenCashName] = useState('Caja Principal');
+  const [openCashAmount, setOpenCashAmount] = useState('');
+  const [openCashNotes, setOpenCashNotes] = useState('');
+  const [openingCash, setOpeningCash] = useState(false);
+
+  const { data: cashData, isLoading: cashLoading, refetch: refetchCash } = useQuery({
+    queryKey: ['cash-current', slug],
+    queryFn: async () => {
+      try {
+        const r = await cashApi.current();
+        return (r as any).data as any;
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 30_000,
+    retry: false,
+  });
+
+  const activeCash = cashData?.status === 'open' ? cashData : null;
+
+  async function handleOpenCash() {
+    if (!openCashName.trim()) return;
+    setOpeningCash(true);
+    try {
+      await cashApi.open({
+        name: openCashName.trim(),
+        opening_amount: parseFloat(openCashAmount) || 0,
+        notes: openCashNotes.trim() || undefined,
+      });
+      notify.success('Caja abierta. ¡Listo para vender!');
+      refetchCash();
+    } catch (err) {
+      notify.error(err, 'Error al abrir caja');
+    } finally {
+      setOpeningCash(false);
+    }
+  }
+
   // ── Fractions addon check ──
   const { data: addonsData } = useQuery({
     queryKey: ['billing-addons', slug],
@@ -467,6 +511,106 @@ export default function PosPage() {
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────────
 
+  // ── Blocking screen: no open cash register ──
+  if (cashLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-72 gap-4 text-muted-foreground">
+        <div className="size-10 rounded-full border-4 border-primary/30 border-t-primary animate-spin" />
+        <p className="text-sm">Verificando estado de caja…</p>
+      </div>
+    );
+  }
+
+  if (!activeCash) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-0">
+        {/* Card */}
+        <div className="w-full max-w-md rounded-2xl border bg-card shadow-sm overflow-hidden">
+          {/* Header */}
+          <div className="bg-primary/5 border-b px-6 py-5 flex items-center gap-3">
+            <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock className="size-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-bold text-base">Abre tu turno</h2>
+              <p className="text-xs text-muted-foreground">Debes abrir caja antes de registrar ventas</p>
+            </div>
+          </div>
+
+          {/* Form */}
+          <div className="px-6 py-5 flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="cash-name" className="text-xs font-medium">
+                Nombre de caja
+              </Label>
+              <div className="relative">
+                <Store className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <input
+                  id="cash-name"
+                  type="text"
+                  value={openCashName}
+                  onChange={(e) => setOpenCashName(e.target.value)}
+                  placeholder="Ej. Caja Principal"
+                  className="w-full pl-9 pr-3 h-9 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="cash-amount" className="text-xs font-medium">
+                Monto de apertura <span className="text-muted-foreground font-normal">(opcional)</span>
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <input
+                  id="cash-amount"
+                  type="number"
+                  min="0"
+                  value={openCashAmount}
+                  onChange={(e) => setOpenCashAmount(e.target.value)}
+                  placeholder="0"
+                  className="w-full pl-9 pr-3 h-9 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="cash-notes" className="text-xs font-medium">
+                Observaciones <span className="text-muted-foreground font-normal">(opcional)</span>
+              </Label>
+              <input
+                id="cash-notes"
+                type="text"
+                value={openCashNotes}
+                onChange={(e) => setOpenCashNotes(e.target.value)}
+                placeholder="Notas de apertura…"
+                className="w-full px-3 h-9 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+
+            <Button
+              className="w-full mt-1"
+              onClick={handleOpenCash}
+              disabled={openingCash || !openCashName.trim()}
+            >
+              {openingCash ? (
+                <span className="flex items-center gap-2">
+                  <RefreshCw className="size-4 animate-spin" />
+                  Abriendo caja…
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4" />
+                  Abrir turno
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Break out of the layout's padding: -m-4 sm:-m-6, then fill height */}
@@ -478,8 +622,18 @@ export default function PosPage() {
           {/* Title bar */}
           <div className="flex items-center justify-between gap-2 flex-shrink-0">
             <div>
-              <h1 className="text-xl font-semibold tracking-tight flex items-center gap-2">
+              <h1 className="text-xl font-semibold tracking-tight flex items-center gap-2 flex-wrap">
                 Punto de Venta
+                {/* Active cash badge */}
+                {activeCash && (
+                  <span className="flex items-center gap-1 text-xs font-normal text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700">
+                    <CheckCircle2 className="size-3" />
+                    {activeCash.name}
+                    {activeCash.opening_amount != null && (
+                      <span className="ml-0.5 opacity-70">· {formatCurrency(Number(activeCash.opening_amount))}</span>
+                    )}
+                  </span>
+                )}
                 {!isOnline && (
                   <span className="flex items-center gap-1 text-xs font-normal text-orange-600 bg-orange-50 border border-orange-200 rounded px-1.5 py-0.5">
                     <WifiOff className="size-3" />

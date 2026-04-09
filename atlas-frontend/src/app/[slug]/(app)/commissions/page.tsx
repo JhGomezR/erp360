@@ -15,7 +15,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -145,15 +144,19 @@ export default function CommissionsPage() {
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-        <TabsList>
-          <TabsTrigger value="summary">Resumen por vendedor</TabsTrigger>
-          <TabsTrigger value="detail">Detalle</TabsTrigger>
-          <TabsTrigger value="rules">Reglas de comisión</TabsTrigger>
-        </TabsList>
+      {/* Tabs */}
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {(['summary', 'detail', 'rules'] as const).map((key) => (
+          <button key={key} onClick={() => setTab(key)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            {key === 'summary' ? 'Resumen' : key === 'detail' ? 'Detalle' : 'Reglas'}
+          </button>
+        ))}
+      </div>
 
-        {/* ── Summary ── */}
-        <TabsContent value="summary" className="space-y-4">
+      {/* ── Summary ── */}
+      {tab === 'summary' && (
+        <div className="space-y-4">
           {loadingSummary ? (
             <div className="space-y-2">
               {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
@@ -189,10 +192,12 @@ export default function CommissionsPage() {
               ))}
             </div>
           )}
-        </TabsContent>
+        </div>
+      )}
 
-        {/* ── Detail ── */}
-        <TabsContent value="detail" className="space-y-4">
+      {/* ── Detail ── */}
+      {tab === 'detail' && (
+        <div className="space-y-4">
           <div className="flex gap-3 items-center justify-between">
             <Select value={filterStatus || '_all'} onValueChange={(v) => { setFilterStatus(v === '_all' ? '' : v); setPage(1); }}>
               <SelectTrigger className="w-44">
@@ -217,75 +222,46 @@ export default function CommissionsPage() {
             )}
           </div>
 
-          <Card>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
-                <thead className="border-b">
-                  <tr className="text-left text-muted-foreground">
-                    <th className="px-4 py-3 w-8"></th>
-                    <th className="px-4 py-3">Venta</th>
-                    <th className="px-4 py-3">Producto</th>
-                    <th className="px-4 py-3">Vendedor</th>
-                    <th className="px-4 py-3 text-right">Venta</th>
-                    <th className="px-4 py-3 text-right">Tasa</th>
-                    <th className="px-4 py-3 text-right">Comisión</th>
-                    <th className="px-4 py-3">Estado</th>
-                    <th className="px-4 py-3 text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loadingList
-                    ? Array.from({ length: 5 }).map((_, i) => (
-                        <tr key={i} className="border-b">
-                          {Array.from({ length: 9 }).map((_, j) => (
-                            <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>
-                          ))}
-                        </tr>
-                      ))
-                    : commissions.map((c) => (
-                        <tr key={c.id} className="border-b hover:bg-muted/30">
-                          <td className="px-4 py-3">
-                            {c.status === 'approved' && (
-                              <input
-                                type="checkbox"
-                                checked={selectedIds.includes(c.id)}
-                                onChange={() => toggleSelect(c.id)}
-                              />
-                            )}
-                          </td>
-                          <td className="px-4 py-3 font-mono text-xs">#{c.sale_id}</td>
-                          <td className="px-4 py-3">{c.product_name ?? '-'}</td>
-                          <td className="px-4 py-3">#{c.user_id}</td>
-                          <td className="px-4 py-3 text-right">{fmt(c.sale_amount)}</td>
-                          <td className="px-4 py-3 text-right">{Number(c.commission_rate).toFixed(2)}%</td>
-                          <td className="px-4 py-3 text-right font-semibold">{fmt(c.commission_amount)}</td>
-                          <td className="px-4 py-3">
-                            <Badge variant={STATUS_VARIANT[c.status]}>{STATUS_LABEL[c.status]}</Badge>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            {c.status === 'pending' && (
-                              <Button
-                                size="sm" variant="ghost"
-                                onClick={() => approveMutation.mutate(c.id)}
-                                disabled={approveMutation.isPending}
-                              >
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                  {!loadingList && commissions.length === 0 && (
-                    <tr>
-                      <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
-                        No hay comisiones en el período.
-                      </td>
-                    </tr>
+          <div className="flex flex-col gap-3">
+            {loadingList
+              ? Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 rounded-2xl bg-muted animate-pulse" />)
+              : commissions.length === 0
+              ? <p className="text-center text-muted-foreground py-8">No hay comisiones en el período.</p>
+              : commissions.map((c) => (
+                <div key={c.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                  {c.status === 'approved' && (
+                    <input type="checkbox" checked={selectedIds.includes(c.id)} onChange={() => toggleSelect(c.id)} className="flex-shrink-0" />
                   )}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm">{c.product_name ?? '—'}</p>
+                    <p className="text-xs text-muted-foreground font-mono">Venta #{c.sale_id} · Vendedor #{c.user_id}</p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Venta</p>
+                      <p className="font-medium">{fmt(c.sale_amount)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Tasa</p>
+                      <p className="font-medium">{Number(c.commission_rate).toFixed(2)}%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Comisión</p>
+                      <p className="font-bold text-emerald-600">{fmt(c.commission_amount)}</p>
+                    </div>
+                  </div>
+                  <Badge variant={STATUS_VARIANT[c.status]} className="flex-shrink-0">{STATUS_LABEL[c.status]}</Badge>
+                  {c.status === 'pending' && (
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 flex-shrink-0"
+                      onClick={() => approveMutation.mutate(c.id)}
+                      disabled={approveMutation.isPending}>
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    </Button>
+                  )}
+                </div>
+              ))
+            }
+          </div>
 
           {lastPage > 1 && (
             <div className="flex justify-center gap-2">
@@ -298,81 +274,60 @@ export default function CommissionsPage() {
               </Button>
             </div>
           )}
-        </TabsContent>
+        </div>
+      )}
 
-        {/* ── Rules ── */}
-        <TabsContent value="rules" className="space-y-4">
+      {/* ── Rules ── */}
+      {tab === 'rules' && (
+        <div className="space-y-4">
           <div className="flex justify-end">
             <Button onClick={() => { setEditRule(null); setShowRuleForm(true); }}>
               <Plus className="h-4 w-4 mr-2" /> Nueva regla
             </Button>
           </div>
 
-          <Card>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
-                <thead className="border-b">
-                  <tr className="text-left text-muted-foreground">
-                    <th className="px-4 py-3">Nombre</th>
-                    <th className="px-4 py-3">Aplica a</th>
-                    <th className="px-4 py-3">Tipo</th>
-                    <th className="px-4 py-3 text-right">Valor</th>
-                    <th className="px-4 py-3">Estado</th>
-                    <th className="px-4 py-3 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loadingRules
-                    ? Array.from({ length: 3 }).map((_, i) => (
-                        <tr key={i} className="border-b">
-                          {Array.from({ length: 6 }).map((_, j) => (
-                            <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>
-                          ))}
-                        </tr>
-                      ))
-                    : rules.map((r) => (
-                        <tr key={r.id} className="border-b hover:bg-muted/30">
-                          <td className="px-4 py-3 font-medium">{r.name}</td>
-                          <td className="px-4 py-3">
-                            {APPLIES_LABEL[r.applies_to]}
-                            {r.entity_name && <span className="text-xs text-muted-foreground"> ({r.entity_name})</span>}
-                          </td>
-                          <td className="px-4 py-3">{r.type === 'percentage' ? 'Porcentaje' : 'Fijo'}</td>
-                          <td className="px-4 py-3 text-right font-mono">
-                            {r.type === 'percentage' ? `${r.value}%` : fmt(r.value)}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant={r.is_active ? 'default' : 'secondary'}>
-                              {r.is_active ? 'Activa' : 'Inactiva'}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-right space-x-1">
-                            <Button size="sm" variant="ghost" onClick={() => { setEditRule(r); setShowRuleForm(true); }}>
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm" variant="ghost"
-                              onClick={() => { if (confirm('¿Eliminar regla?')) deleteRuleMutation.mutate(r.id); }}
-                              disabled={deleteRuleMutation.isPending}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                  {!loadingRules && rules.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                        No hay reglas de comisión configuradas.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <div className="flex flex-col gap-3">
+            {loadingRules
+              ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 rounded-2xl bg-muted animate-pulse" />)
+              : rules.length === 0
+              ? (
+                <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+                  <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                    <TrendingUp className="size-7 opacity-40" />
+                  </div>
+                  <p className="font-medium">No hay reglas de comisión configuradas</p>
+                </div>
+              )
+              : rules.map((r) => (
+                <div key={r.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm">{r.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {APPLIES_LABEL[r.applies_to]}{r.entity_name ? ` (${r.entity_name})` : ''} · {r.type === 'percentage' ? 'Porcentaje' : 'Fijo'}
+                    </p>
+                  </div>
+                  <span className="font-mono font-semibold text-sm flex-shrink-0">
+                    {r.type === 'percentage' ? `${r.value}%` : fmt(r.value)}
+                  </span>
+                  <Badge variant={r.is_active ? 'default' : 'secondary'} className="flex-shrink-0">
+                    {r.is_active ? 'Activa' : 'Inactiva'}
+                  </Badge>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => { setEditRule(r); setShowRuleForm(true); }}>
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0"
+                      onClick={() => { if (confirm('¿Eliminar regla?')) deleteRuleMutation.mutate(r.id); }}
+                      disabled={deleteRuleMutation.isPending}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      )}
 
       {showRuleForm && (
         <RuleForm

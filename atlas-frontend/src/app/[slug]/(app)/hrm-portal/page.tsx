@@ -26,12 +26,6 @@ import {
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
-} from '@/components/ui/tabs';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -249,34 +243,33 @@ function PayslipsTab({ slug }: { slug: string }) {
       ) : payslips.length === 0 ? (
         <div className="py-14 text-center text-muted-foreground"><FileText className="mx-auto size-10 mb-3 opacity-30" /><p>No hay recibos disponibles.</p></div>
       ) : (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Período</TableHead>
-                  <TableHead className="text-right">Salario base</TableHead>
-                  <TableHead className="text-right">Devengado</TableHead>
-                  <TableHead className="text-right">Deducciones</TableHead>
-                  <TableHead className="text-right font-semibold">Neto</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payslips.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="text-sm">{fmtDate(p.period_start)} — {fmtDate(p.period_end)}</TableCell>
-                    <TableCell className="text-right">{fmt(p.base_salary)}</TableCell>
-                    <TableCell className="text-right text-green-600">{fmt(p.total_earned)}</TableCell>
-                    <TableCell className="text-right text-red-600">-{fmt(p.total_deductions)}</TableCell>
-                    <TableCell className="text-right font-semibold">{fmt(p.net_pay)}</TableCell>
-                    <TableCell><Badge variant={p.period_status === 'paid' ? 'outline' : 'secondary'}>{p.period_status === 'paid' ? 'Pagado' : p.period_status}</Badge></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <div className="space-y-2">
+          {payslips.map((p) => (
+            <div key={p.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm">{fmtDate(p.period_start)} — {fmtDate(p.period_end)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Salario base: {fmt(p.base_salary)}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Devengado</p>
+                  <p className="font-medium text-green-600">{fmt(p.total_earned)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Deducciones</p>
+                  <p className="font-medium text-red-600">-{fmt(p.total_deductions)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Neto</p>
+                  <p className="font-semibold">{fmt(p.net_pay)}</p>
+                </div>
+              </div>
+              <Badge variant={p.period_status === 'paid' ? 'outline' : 'secondary'}>
+                {p.period_status === 'paid' ? 'Pagado' : p.period_status}
+              </Badge>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -482,19 +475,26 @@ export default function EmployeePortalPage() {
         <p className="text-sm text-muted-foreground">Gestiona tu perfil, consulta tus recibos y solicita permisos.</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="profile" className="gap-1.5"><User className="size-4" />Mi Perfil</TabsTrigger>
-          <TabsTrigger value="payslips" className="gap-1.5"><FileText className="size-4" />Recibos</TabsTrigger>
-          <TabsTrigger value="vacations" className="gap-1.5"><Calendar className="size-4" />Vacaciones</TabsTrigger>
-          <TabsTrigger value="absences" className="gap-1.5"><BriefcaseMedical className="size-4" />Ausencias</TabsTrigger>
-        </TabsList>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'profile', icon: User, label: 'Mi Perfil' },
+          { key: 'payslips', icon: FileText, label: 'Recibos' },
+          { key: 'vacations', icon: Calendar, label: 'Vacaciones' },
+          { key: 'absences', icon: BriefcaseMedical, label: 'Ausencias' },
+        ] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => setActiveTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="size-3.5" />{label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="profile" className="mt-4"><ProfileTab slug={slug} /></TabsContent>
-        <TabsContent value="payslips" className="mt-4"><PayslipsTab slug={slug} /></TabsContent>
-        <TabsContent value="vacations" className="mt-4"><VacationsTab slug={slug} /></TabsContent>
-        <TabsContent value="absences" className="mt-4"><AbsencesTab slug={slug} /></TabsContent>
-      </Tabs>
+      <div className="mt-2">
+        {activeTab === 'profile' && <ProfileTab slug={slug} />}
+        {activeTab === 'payslips' && <PayslipsTab slug={slug} />}
+        {activeTab === 'vacations' && <VacationsTab slug={slug} />}
+        {activeTab === 'absences' && <AbsencesTab slug={slug} />}
+      </div>
     </div>
   );
 }

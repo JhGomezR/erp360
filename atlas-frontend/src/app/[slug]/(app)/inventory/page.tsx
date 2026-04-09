@@ -1518,110 +1518,114 @@ export default function InventoryPage() {
             </CardContent>
           </Card>
 
-          {/* Table */}
-          <Card>
-            <CardHeader className="pb-0">
-              <CardTitle className="text-base">Productos</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/40">
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">SKU</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nombre</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Categoría</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Precio</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Costo</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Stock</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Estado</th>
-                      <th className="px-4 py-3 text-right font-medium text-muted-foreground">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {productsLoading ? (
-                      <TableSkeletonRows />
-                    ) : products.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} className="px-4 py-12 text-center">
-                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                            <PackageSearch className="size-8" />
-                            <p className="font-medium">No se encontraron productos</p>
-                            <p className="text-xs">Intenta cambiar los filtros o crea un nuevo producto.</p>
+          {/* Product list */}
+          {productsLoading ? (
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <Skeleton key={i} className="h-28 rounded-2xl" />
+              ))}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <PackageSearch className="size-7" />
+              </div>
+              <p className="font-medium">No se encontraron productos</p>
+              <p className="text-xs">Intenta cambiar los filtros o agrega un nuevo producto</p>
+              <Button size="sm" onClick={handleNewProduct}>
+                <Plus className="mr-2 size-4" />Nuevo producto
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                {products.map((product) => {
+                  const outOfStock = product.stock <= 0;
+                  const lowStock = !outOfStock && product.stock <= product.min_stock;
+                  const stockPct = product.min_stock > 0
+                    ? Math.min(100, Math.round((product.stock / (product.min_stock * 3)) * 100))
+                    : product.stock > 0 ? 100 : 0;
+
+                  return (
+                    <div
+                      key={product.id}
+                      className="rounded-2xl border bg-card hover:shadow-sm hover:border-primary/20 transition-all overflow-hidden flex flex-col"
+                    >
+                      {/* Top bar */}
+                      <div className={`h-1 w-full ${outOfStock ? 'bg-destructive' : lowStock ? 'bg-amber-400' : 'bg-emerald-500'}`} />
+
+                      <div className="p-4 flex flex-col gap-2 flex-1">
+                        {/* Header row */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm leading-tight truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground font-mono">{product.sku}</p>
                           </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      products.map((product) => (
-                        <tr
-                          key={product.id}
-                          className="border-b border-border transition-colors last:border-0 hover:bg-muted/30"
-                        >
-                          <td className="px-4 py-3">
-                            <span className="font-mono text-xs text-muted-foreground">{product.sku}</span>
-                          </td>
-                          <td className="px-4 py-3 font-medium">{product.name}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{product.category?.name ?? '—'}</td>
-                          <td className="px-4 py-3 tabular-nums">{formatCurrency(product.price)}</td>
-                          <td className="px-4 py-3 tabular-nums text-muted-foreground">{formatCurrency(product.cost)}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <span className="tabular-nums">{product.stock}</span>
-                              {product.stock <= product.min_stock && (
-                                <Badge variant="destructive">Bajo stock</Badge>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant={product.is_active ? 'default' : 'outline'}>
-                              {product.is_active ? 'Activo' : 'Inactivo'}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(product)} title="Editar producto">
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon-sm" onClick={() => handleAdjust(product)} title="Ajustar stock">
-                                <ArrowUpDown className="size-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon-sm" onClick={() => handleKardex(product)} title="Ver movimientos">
-                                <History className="size-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                onClick={() => handleDelete(product)}
-                                title="Eliminar producto"
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                          <Badge variant={product.is_active ? 'default' : 'outline'} className="text-xs flex-shrink-0">
+                            {product.is_active ? 'Activo' : 'Inactivo'}
+                          </Badge>
+                        </div>
+
+                        {/* Category */}
+                        {product.category?.name && (
+                          <span className="text-xs text-muted-foreground">{product.category.name}</span>
+                        )}
+
+                        {/* Prices */}
+                        <div className="flex items-center gap-3 text-sm">
+                          <span className="font-bold text-primary">{formatCurrency(product.price)}</span>
+                          <span className="text-xs text-muted-foreground">Costo: {formatCurrency(product.cost)}</span>
+                        </div>
+
+                        {/* Stock bar */}
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Stock</span>
+                            <span className={`font-medium ${outOfStock ? 'text-destructive' : lowStock ? 'text-amber-600' : 'text-emerald-600'}`}>
+                              {product.stock} u {outOfStock ? '· Sin stock' : lowStock ? '· Bajo stock' : ''}
+                            </span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${outOfStock ? 'bg-destructive' : lowStock ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                              style={{ width: `${stockPct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-1 pt-1 border-t">
+                          <Button variant="ghost" size="sm" className="flex-1 h-7 text-xs gap-1" onClick={() => handleEdit(product)}>
+                            <Pencil className="size-3" />Editar
+                          </Button>
+                          <Button variant="ghost" size="sm" className="flex-1 h-7 text-xs gap-1" onClick={() => handleAdjust(product)}>
+                            <ArrowUpDown className="size-3" />Stock
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleKardex(product)} title="Ver movimientos">
+                            <History className="size-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => handleDelete(product)} title="Eliminar">
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Pagination */}
-              {!productsLoading && lastPage > 1 && (
-                <div className="flex items-center justify-between border-t border-border px-4 py-3">
-                  <p className="text-sm text-muted-foreground">Página {currentPage} de {lastPage}</p>
+              {lastPage > 1 && (
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <p>Página {currentPage} de {lastPage} · {total} producto{total !== 1 ? 's' : ''}</p>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1}>
-                      Anterior
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(lastPage, p + 1))} disabled={currentPage >= lastPage}>
-                      Siguiente
-                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1}>Anterior</Button>
+                    <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(lastPage, p + 1))} disabled={currentPage >= lastPage}>Siguiente</Button>
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </>
+          )}
         </TabsContent>
 
         {/* ── Lotes / Vencimientos ──────────────────────────────────────────── */}

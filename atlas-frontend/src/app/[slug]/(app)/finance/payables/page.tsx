@@ -232,10 +232,10 @@ export default function PayablesPage() {
       </div>
 
       {/* View toggle */}
-      <div className="flex gap-2">
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
         {(['aging', 'supplier', 'list'] as const).map((mode) => (
           <button key={mode} onClick={() => setViewMode(mode)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === mode ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
             {mode === 'aging' ? 'Aging' : mode === 'supplier' ? 'Por Proveedor' : 'Lista Detallada'}
           </button>
         ))}

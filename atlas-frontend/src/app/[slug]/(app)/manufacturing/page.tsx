@@ -234,62 +234,51 @@ export default function ManufacturingPage() {
 
           {ordersLoading ? (
             <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
+          ) : orders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <ClipboardList className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay órdenes de producción</p>
+            </div>
           ) : (
-            <div className="rounded-md border overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-3 py-2">N° Orden</th>
-                    <th className="text-left px-3 py-2">Producto</th>
-                    <th className="text-right px-3 py-2">Cant. Ord.</th>
-                    <th className="text-right px-3 py-2">Cant. Prod.</th>
-                    <th className="text-left px-3 py-2">Fecha Prog.</th>
-                    <th className="text-right px-3 py-2">Costo Est.</th>
-                    <th className="text-center px-3 py-2">Estado</th>
-                    <th className="px-3 py-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map(order => (
-                    <tr key={order.id} className="border-t hover:bg-muted/30">
-                      <td className="px-3 py-2 font-mono text-xs">{order.order_number}</td>
-                      <td className="px-3 py-2 font-medium">{order.product_name}</td>
-                      <td className="px-3 py-2 text-right">{order.quantity_ordered}</td>
-                      <td className="px-3 py-2 text-right">{order.quantity_produced > 0 ? order.quantity_produced : '—'}</td>
-                      <td className="px-3 py-2">{order.scheduled_date}</td>
-                      <td className="px-3 py-2 text-right">{fmt(order.cost_estimated)}</td>
-                      <td className="px-3 py-2 text-center">
-                        <Badge variant={STATUS_VARIANT[order.status] ?? 'outline'}>{STATUS_LABEL[order.status]}</Badge>
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="ghost" onClick={() => setViewOrder(order)}>
-                            <Eye className="w-3.5 h-3.5" />
-                          </Button>
-                          {order.status === 'draft' && (
-                            <Button size="sm" variant="ghost" onClick={() => startMut.mutate(order.id)} title="Iniciar">
-                              <Play className="w-3.5 h-3.5 text-blue-600" />
-                            </Button>
-                          )}
-                          {order.status === 'in_progress' && (
-                            <Button size="sm" variant="ghost" onClick={() => { setComplete(order); setCompleteQty(String(order.quantity_ordered)); }} title="Completar">
-                              <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                            </Button>
-                          )}
-                          {['draft', 'in_progress'].includes(order.status) && (
-                            <Button size="sm" variant="ghost" onClick={() => cancelMut.mutate(order.id)} title="Cancelar">
-                              <X className="w-3.5 h-3.5 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {orders.length === 0 && (
-                    <tr><td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">No hay órdenes de producción</td></tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              {orders.map(order => (
+                <div key={order.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                  <span className="font-mono text-xs text-muted-foreground w-28">{order.order_number}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{order.product_name}</p>
+                    <p className="text-xs text-muted-foreground">{order.bom?.bom_code}</p>
+                  </div>
+                  <div className="hidden sm:flex flex-col items-end text-xs text-muted-foreground">
+                    <span>{order.quantity_ordered} ord.</span>
+                    <span>{order.quantity_produced > 0 ? `${order.quantity_produced} prod.` : '—'}</span>
+                  </div>
+                  <span className="hidden md:block text-xs text-muted-foreground">{order.scheduled_date}</span>
+                  <span className="hidden sm:block font-mono text-sm">{fmt(order.cost_estimated)}</span>
+                  <Badge variant={STATUS_VARIANT[order.status] ?? 'outline'}>{STATUS_LABEL[order.status]}</Badge>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => setViewOrder(order)}>
+                      <Eye className="w-3.5 h-3.5" />
+                    </Button>
+                    {order.status === 'draft' && (
+                      <Button size="sm" variant="ghost" onClick={() => startMut.mutate(order.id)} title="Iniciar">
+                        <Play className="w-3.5 h-3.5 text-blue-600" />
+                      </Button>
+                    )}
+                    {order.status === 'in_progress' && (
+                      <Button size="sm" variant="ghost" onClick={() => { setComplete(order); setCompleteQty(String(order.quantity_ordered)); }} title="Completar">
+                        <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                      </Button>
+                    )}
+                    {['draft', 'in_progress'].includes(order.status) && (
+                      <Button size="sm" variant="ghost" onClick={() => cancelMut.mutate(order.id)} title="Cancelar">
+                        <X className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -301,45 +290,32 @@ export default function ManufacturingPage() {
           <Input placeholder="Buscar BOM..." value={searchBom} onChange={e => setSearchBom(e.target.value)} className="max-w-xs" />
           {bomLoading ? (
             <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
+          ) : boms.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <List className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay listas de materiales</p>
+            </div>
           ) : (
-            <div className="rounded-md border overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-3 py-2">Código</th>
-                    <th className="text-left px-3 py-2">Producto</th>
-                    <th className="text-right px-3 py-2">Qty Produce</th>
-                    <th className="text-right px-3 py-2">Costo Estándar</th>
-                    <th className="text-right px-3 py-2">Componentes</th>
-                    <th className="text-center px-3 py-2">Estado</th>
-                    <th className="px-3 py-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {boms.map(bom => (
-                    <tr key={bom.id} className="border-t hover:bg-muted/30">
-                      <td className="px-3 py-2 font-mono text-xs">{bom.bom_code}</td>
-                      <td className="px-3 py-2 font-medium">{bom.product_name}</td>
-                      <td className="px-3 py-2 text-right">{bom.quantity_produced} {bom.unit}</td>
-                      <td className="px-3 py-2 text-right">{fmt(bom.standard_cost)}</td>
-                      <td className="px-3 py-2 text-right">{bom.items_count ?? '—'}</td>
-                      <td className="px-3 py-2 text-center">
-                        <Badge variant={bom.status === 'active' ? 'default' : 'secondary'}>
-                          {bom.status === 'active' ? 'Activo' : 'Inactivo'}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-2">
-                        <Button size="sm" variant="ghost" onClick={() => destroyBomMut.mutate(bom.id)}>
-                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                  {boms.length === 0 && (
-                    <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">No hay listas de materiales</td></tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              {boms.map(bom => (
+                <div key={bom.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                  <span className="font-mono text-xs text-muted-foreground w-24">{bom.bom_code}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{bom.product_name}</p>
+                    <p className="text-xs text-muted-foreground">{bom.quantity_produced} {bom.unit}</p>
+                  </div>
+                  <span className="hidden sm:block font-mono text-sm">{fmt(bom.standard_cost)}</span>
+                  <span className="hidden md:block text-xs text-muted-foreground">{bom.items_count ?? '—'} componentes</span>
+                  <Badge variant={bom.status === 'active' ? 'default' : 'secondary'}>
+                    {bom.status === 'active' ? 'Activo' : 'Inactivo'}
+                  </Badge>
+                  <Button size="sm" variant="ghost" onClick={() => destroyBomMut.mutate(bom.id)}>
+                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                  </Button>
+                </div>
+              ))}
             </div>
           )}
         </div>

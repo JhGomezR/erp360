@@ -306,52 +306,49 @@ export default function BankingPage() {
 
       {/* ── Extractos ── */}
       {tab === 'statements' && !selectedStmt && (
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Cuenta</th>
-                  <th className="text-left px-4 py-3 font-medium">Referencia</th>
-                  <th className="text-left px-4 py-3 font-medium">Período</th>
-                  <th className="text-right px-4 py-3 font-medium">Saldo apertura</th>
-                  <th className="text-right px-4 py-3 font-medium">Saldo cierre</th>
-                  <th className="text-left px-4 py-3 font-medium">Estado</th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {loadingStmts
-                  ? Array.from({ length: 3 }).map((_, i) => <tr key={i}>{Array.from({ length: 7 }).map((__, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>)}</tr>)
-                  : stmtList.map((s) => (
-                      <tr key={s.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => setSelectedStmt(s)}>
-                        <td className="px-4 py-3 font-medium">{s.bank_account?.name ?? '—'}</td>
-                        <td className="px-4 py-3 font-mono text-xs">{s.reference ?? '—'}</td>
-                        <td className="px-4 py-3 text-xs">{new Date(s.period_from + 'T12:00:00').toLocaleDateString('es-CO')} — {new Date(s.period_to + 'T12:00:00').toLocaleDateString('es-CO')}</td>
-                        <td className="px-4 py-3 text-right">{fmt(s.opening_balance)}</td>
-                        <td className="px-4 py-3 text-right font-semibold">{fmt(s.closing_balance)}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant={s.status === 'reconciled' ? 'default' : 'secondary'}>
-                            {s.status === 'reconciled' ? 'Conciliado' : 'Pendiente'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          {s.status !== 'reconciled' && (
-                            <Button variant="ghost" size="sm" className="text-destructive h-7 w-7 p-0"
-                              onClick={(e) => { e.stopPropagation(); if (confirm('¿Eliminar extracto?')) deleteStmtMut.mutate(s.id); }}>
-                              <Trash2 className="size-4" />
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                {!loadingStmts && stmtList.length === 0 && (
-                  <tr><td colSpan={7} className="text-center py-8 text-muted-foreground text-sm"><FileText className="size-8 mx-auto mb-2 opacity-30" /><p>Sin extractos importados</p></td></tr>
-                )}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-3">
+          {loadingStmts ? (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)
+          ) : stmtList.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <FileText className="size-7 opacity-50" />
+              </div>
+              <p className="font-medium">Sin extractos importados</p>
+            </div>
+          ) : stmtList.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setSelectedStmt(s)}
+              className="w-full text-left rounded-2xl border bg-card hover:shadow-sm hover:border-primary/20 transition-all p-4 flex items-center gap-4"
+            >
+              <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <FileText className="size-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{s.bank_account?.name ?? '—'}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(s.period_from + 'T12:00:00').toLocaleDateString('es-CO')} — {new Date(s.period_to + 'T12:00:00').toLocaleDateString('es-CO')}
+                  {s.reference && <span className="ml-2 font-mono">· {s.reference}</span>}
+                </p>
+              </div>
+              <div className="text-right flex-shrink-0 hidden sm:block">
+                <p className="text-xs text-muted-foreground">Saldo cierre</p>
+                <p className="font-bold text-sm">{fmt(s.closing_balance)}</p>
+              </div>
+              <Badge variant={s.status === 'reconciled' ? 'default' : 'secondary'} className="flex-shrink-0">
+                {s.status === 'reconciled' ? 'Conciliado' : 'Pendiente'}
+              </Badge>
+              {s.status !== 'reconciled' && (
+                <Button variant="ghost" size="sm" className="text-destructive h-8 w-8 p-0 flex-shrink-0"
+                  onClick={(e) => { e.stopPropagation(); if (confirm('¿Eliminar extracto?')) deleteStmtMut.mutate(s.id); }}>
+                  <Trash2 className="size-4" />
+                </Button>
+              )}
+            </button>
+          ))}
+        </div>
       )}
 
       {/* ── Detalle extracto ── */}
@@ -413,45 +410,49 @@ export default function BankingPage() {
 
       {/* ── Conciliaciones ── */}
       {tab === 'reconciliations' && !selectedRec && (
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">Cuenta</th>
-                  <th className="text-left px-4 py-3 font-medium">Período extracto</th>
-                  <th className="text-right px-4 py-3 font-medium">Saldo libros</th>
-                  <th className="text-right px-4 py-3 font-medium">Saldo banco</th>
-                  <th className="text-right px-4 py-3 font-medium">Diferencia</th>
-                  <th className="text-left px-4 py-3 font-medium">Estado</th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {loadingRecs
-                  ? Array.from({ length: 3 }).map((_, i) => <tr key={i}>{Array.from({ length: 7 }).map((__, j) => <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>)}</tr>)
-                  : recList.map((r) => (
-                      <tr key={r.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => setSelectedRec(r)}>
-                        <td className="px-4 py-3 font-medium">{r.statement?.bank_account?.name ?? '—'}</td>
-                        <td className="px-4 py-3 text-xs">{r.statement?.period_from ? new Date(r.statement.period_from + 'T12:00:00').toLocaleDateString('es-CO') : '—'} — {r.statement?.period_to ? new Date(r.statement.period_to + 'T12:00:00').toLocaleDateString('es-CO') : '—'}</td>
-                        <td className="px-4 py-3 text-right">{fmt(r.book_balance)}</td>
-                        <td className="px-4 py-3 text-right">{fmt(r.bank_balance)}</td>
-                        <td className={`px-4 py-3 text-right font-semibold ${Math.abs(r.difference) < 1 ? 'text-green-600' : 'text-red-600'}`}>{fmt(r.difference)}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant={r.status === 'completed' ? 'default' : 'secondary'}>
-                            {r.status === 'completed' ? 'Completada' : 'En progreso'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString('es-CO')}</td>
-                      </tr>
-                    ))}
-                {!loadingRecs && recList.length === 0 && (
-                  <tr><td colSpan={7} className="text-center py-8 text-muted-foreground text-sm"><CheckCircle2 className="size-8 mx-auto mb-2 opacity-30" /><p>Sin conciliaciones registradas</p></td></tr>
-                )}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-3">
+          {loadingRecs ? (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)
+          ) : recList.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <CheckCircle2 className="size-7 opacity-50" />
+              </div>
+              <p className="font-medium">Sin conciliaciones registradas</p>
+            </div>
+          ) : recList.map((r) => {
+            const balanced = Math.abs(r.difference) < 1;
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setSelectedRec(r)}
+                className="w-full text-left rounded-2xl border bg-card hover:shadow-sm hover:border-primary/20 transition-all p-4 flex items-center gap-4"
+              >
+                <div className={`size-9 rounded-xl flex items-center justify-center flex-shrink-0 ${balanced ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}`}>
+                  <CheckCircle2 className={`size-4 ${balanced ? 'text-emerald-600' : 'text-amber-600'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm">{r.statement?.bank_account?.name ?? '—'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {r.statement?.period_from ? new Date(r.statement.period_from + 'T12:00:00').toLocaleDateString('es-CO') : '—'}
+                    {' '}—{' '}
+                    {r.statement?.period_to ? new Date(r.statement.period_to + 'T12:00:00').toLocaleDateString('es-CO') : '—'}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0 hidden sm:flex flex-col gap-0.5">
+                  <p className="text-xs text-muted-foreground">Diferencia</p>
+                  <p className={`font-bold text-sm tabular-nums ${balanced ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {fmt(r.difference)}
+                  </p>
+                </div>
+                <Badge variant={r.status === 'completed' ? 'default' : 'secondary'} className="flex-shrink-0">
+                  {r.status === 'completed' ? 'Completada' : 'En progreso'}
+                </Badge>
+              </button>
+            );
+          })}
+        </div>
       )}
 
       {/* ── Detalle conciliación ── */}

@@ -464,59 +464,66 @@ export default function SaleReturnsPage() {
         </Button>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50 text-muted-foreground">
-              <th className="px-4 py-3 text-left font-medium">#</th>
-              <th className="px-4 py-3 text-left font-medium">Venta</th>
-              <th className="px-4 py-3 text-left font-medium">Cliente</th>
-              <th className="px-4 py-3 text-left font-medium">Motivo</th>
-              <th className="px-4 py-3 text-left font-medium">Fecha</th>
-              <th className="px-4 py-3 text-left font-medium">Estado</th>
-              <th className="px-4 py-3 text-right font-medium">Total</th>
-              <th className="px-4 py-3 text-center font-medium">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b">
-                  {Array.from({ length: 8 }).map((__, j) => (
-                    <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>
-                  ))}
-                </tr>
-              ))
-            ) : returns.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
-                  No hay devoluciones registradas
-                </td>
-              </tr>
-            ) : (
-              returns.map((ret) => (
-                <tr key={ret.id} className="border-b hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-mono text-muted-foreground">#{ret.id}</td>
-                  <td className="px-4 py-3 font-mono">#{ret.sale_id}</td>
-                  <td className="px-4 py-3">{ret.customer_name ?? 'General'}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {REASON_OPTIONS.find((r) => r.value === ret.reason)?.label ?? ret.reason}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(ret.created_at)}</td>
-                  <td className="px-4 py-3"><StatusBadge status={ret.status} /></td>
-                  <td className="px-4 py-3 text-right font-medium">{formatCurrency(ret.total)}</td>
-                  <td className="px-4 py-3 text-center">
-                    <Button size="sm" variant="ghost" onClick={() => openDetail(ret)}>
-                      <Eye className="size-4" />
-                      <span className="sr-only">Ver detalle</span>
-                    </Button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      {/* List */}
+      <div className="flex flex-col gap-3">
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+          ))
+        ) : returns.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
+            <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+              <RotateCcw className="size-7" />
+            </div>
+            <p className="font-medium">Sin devoluciones registradas</p>
+            <p className="text-xs">Las devoluciones de clientes aparecerán aquí</p>
+            <Button size="sm" onClick={() => setCreateOpen(true)}>
+              <Plus className="mr-2 size-4" />
+              Nueva devolución
+            </Button>
+          </div>
+        ) : (
+          returns.map((ret) => {
+            const statusColors: Record<SaleReturn['status'], string> = {
+              pending:   'bg-amber-500',
+              processed: 'bg-emerald-500',
+              cancelled: 'bg-red-500',
+            };
+            return (
+              <button
+                key={ret.id}
+                type="button"
+                onClick={() => openDetail(ret)}
+                className="w-full text-left rounded-2xl border bg-card hover:shadow-sm hover:border-primary/20 transition-all p-4 flex items-center gap-4"
+              >
+                {/* Status dot */}
+                <div className={`size-2.5 rounded-full flex-shrink-0 ${statusColors[ret.status]}`} />
+
+                {/* Main info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm">Devolución #{ret.id}</span>
+                    <span className="text-xs text-muted-foreground font-mono">· Venta #{ret.sale_id}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {ret.customer_name ?? 'Cliente general'} · {REASON_OPTIONS.find((r) => r.value === ret.reason)?.label ?? ret.reason}
+                  </p>
+                </div>
+
+                {/* Date */}
+                <span className="text-xs text-muted-foreground flex-shrink-0 hidden sm:block">
+                  {formatDate(ret.created_at)}
+                </span>
+
+                {/* Status + total */}
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <StatusBadge status={ret.status} />
+                  <span className="text-sm font-bold tabular-nums">{formatCurrency(ret.total)}</span>
+                </div>
+              </button>
+            );
+          })
+        )}
       </div>
 
       {/* Pagination */}

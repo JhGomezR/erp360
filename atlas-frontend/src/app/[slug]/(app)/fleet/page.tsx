@@ -26,12 +26,6 @@ import {
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
-} from '@/components/ui/tabs';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -461,26 +455,16 @@ function VehicleMaintenanceSheet({ vehicle, open, onClose }: {
               <p className="text-sm">Sin registros de mantenimiento</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tipo</TableHead><TableHead>Fecha</TableHead>
-                  <TableHead>Taller</TableHead><TableHead className="text-right">Costo</TableHead>
-                  <TableHead>Próx. servicio</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {logs.map((l: any) => (
-                  <TableRow key={l.id}>
-                    <TableCell className="capitalize">{l.type}</TableCell>
-                    <TableCell>{fmtDate(l.date)}</TableCell>
-                    <TableCell>{l.workshop ?? '—'}</TableCell>
-                    <TableCell className="text-right">{fmt(l.cost)}</TableCell>
-                    <TableCell>{l.next_maintenance_date ? fmtDate(l.next_maintenance_date) : '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="space-y-1">
+              {logs.map((l: any) => (
+                <div key={l.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border text-sm hover:bg-muted/30 transition-colors">
+                  <span className="capitalize font-medium w-24 shrink-0">{l.type}</span>
+                  <span className="text-muted-foreground flex-1">{fmtDate(l.date)} · {l.workshop ?? '—'}</span>
+                  <span className="font-medium shrink-0">{fmt(l.cost)}</span>
+                  {l.next_maintenance_date && <span className="text-xs text-muted-foreground shrink-0">Próx: {fmtDate(l.next_maintenance_date)}</span>}
+                </div>
+              ))}
+            </div>
           )}
         </DialogContent>
       </Dialog>
@@ -594,27 +578,16 @@ function VehicleFuelSheet({ vehicle, open, onClose }: {
               <p className="text-sm">Sin registros de combustible</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead><TableHead>Litros</TableHead>
-                  <TableHead>Precio/L</TableHead><TableHead className="text-right">Total</TableHead>
-                  <TableHead>Estación</TableHead><TableHead>Odómetro</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {logs.map((l: any) => (
-                  <TableRow key={l.id}>
-                    <TableCell>{fmtDate(l.date)}</TableCell>
-                    <TableCell>{Number(l.liters).toFixed(1)} L</TableCell>
-                    <TableCell>{fmt(l.price_per_liter)}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(l.liters * l.price_per_liter)}</TableCell>
-                    <TableCell>{l.station ?? '—'}</TableCell>
-                    <TableCell>{l.odometer_km ? `${Number(l.odometer_km).toLocaleString()} km` : '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="space-y-1">
+              {logs.map((l: any) => (
+                <div key={l.id} className="flex items-center gap-3 px-3 py-2 rounded-lg border text-sm hover:bg-muted/30 transition-colors">
+                  <span className="text-muted-foreground w-24 shrink-0">{fmtDate(l.date)}</span>
+                  <span className="flex-1">{Number(l.liters).toFixed(1)} L · {fmt(l.price_per_liter)}/L{l.station ? ` · ${l.station}` : ''}</span>
+                  <span className="font-medium shrink-0">{fmt(l.liters * l.price_per_liter)}</span>
+                  {l.odometer_km && <span className="text-xs text-muted-foreground shrink-0">{Number(l.odometer_km).toLocaleString()} km</span>}
+                </div>
+              ))}
+            </div>
           )}
         </DialogContent>
       </Dialog>
@@ -736,38 +709,27 @@ function FreightRatesTab() {
           <Plus className="size-3.5" />Nueva tarifa
         </Button>
       </div>
-      {isLoading ? <Skeleton className="h-32 w-full" /> : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Vehículo</TableHead>
-              <TableHead className="text-right">Base/km</TableHead>
-              <TableHead className="text-right">Combustible/km</TableHead>
-              <TableHead className="text-right">Peajes/km</TableHead>
-              <TableHead className="text-right">Mín. flete</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rates.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sin tarifas configuradas</TableCell></TableRow>
-            )}
-            {rates.map((r: any) => (
-              <TableRow key={r.id}>
-                <TableCell className="font-medium">{VEHICLE_LABELS[r.vehicle_type] ?? r.vehicle_type}</TableCell>
-                <TableCell className="text-right">{fmt(r.base_rate_per_km)}/km</TableCell>
-                <TableCell className="text-right">{fmt(r.fuel_rate_per_km)}/km</TableCell>
-                <TableCell className="text-right">{fmt(r.toll_estimate_per_km)}/km</TableCell>
-                <TableCell className="text-right">{fmt(r.min_freight)}</TableCell>
-                <TableCell>
-                  <Button size="sm" variant="ghost" className="h-7 gap-1" onClick={() => openEdit(r)}>
-                    <Pencil className="size-3" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      {isLoading ? (
+        <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-12 animate-pulse" />)}</div>
+      ) : rates.length === 0 ? (
+        <p className="text-center text-muted-foreground text-sm py-8">Sin tarifas configuradas</p>
+      ) : (
+        <div className="space-y-2">
+          {rates.map((r: any) => (
+            <div key={r.id} className="rounded-2xl border bg-card px-4 py-3 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <p className="font-medium text-sm flex-1">{VEHICLE_LABELS[r.vehicle_type] ?? r.vehicle_type}</p>
+              <div className="hidden sm:flex items-center gap-4 text-xs text-muted-foreground shrink-0">
+                <span>Base: <b className="text-foreground">{fmt(r.base_rate_per_km)}/km</b></span>
+                <span>Comb: <b className="text-foreground">{fmt(r.fuel_rate_per_km)}/km</b></span>
+                <span>Peajes: <b className="text-foreground">{fmt(r.toll_estimate_per_km)}/km</b></span>
+                <span>Mín: <b className="text-foreground">{fmt(r.min_freight)}</b></span>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 gap-1 shrink-0" onClick={() => openEdit(r)}>
+                <Pencil className="size-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Estimator */}
@@ -917,199 +879,169 @@ export default function FleetPage() {
         </div>
       )}
 
-      <Tabs value={mainTab} onValueChange={setMainTab}>
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="trips">Viajes</TabsTrigger>
-            <TabsTrigger value="vehicles">Vehículos</TabsTrigger>
-            <TabsTrigger value="drivers">Conductores</TabsTrigger>
-            <TabsTrigger value="freight">Tarifas</TabsTrigger>
-          </TabsList>
-          {mainTab === 'trips' && (
-            <Button size="sm" onClick={() => setCreateTrip(true)}>
-              <Plus className="size-3.5 mr-1" />Nuevo Viaje
-            </Button>
-          )}
-          {mainTab === 'vehicles' && (
-            <Button size="sm" onClick={() => setCreateVehicle(true)}>
-              <Plus className="size-3.5 mr-1" />Registrar Vehículo
-            </Button>
-          )}
-          {mainTab === 'drivers' && (
-            <Button size="sm" onClick={() => setCreateDriver(true)}>
-              <Plus className="size-3.5 mr-1" />Nuevo Conductor
-            </Button>
-          )}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+          {([
+            { key: 'trips', label: 'Viajes' },
+            { key: 'vehicles', label: 'Vehículos' },
+            { key: 'drivers', label: 'Conductores' },
+            { key: 'freight', label: 'Tarifas' },
+          ] as const).map(({ key, label }) => (
+            <button key={key} onClick={() => setMainTab(key)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${mainTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+              {label}
+            </button>
+          ))}
         </div>
+        <div>
+          {mainTab === 'trips' && <Button size="sm" onClick={() => setCreateTrip(true)}><Plus className="size-3.5 mr-1" />Nuevo Viaje</Button>}
+          {mainTab === 'vehicles' && <Button size="sm" onClick={() => setCreateVehicle(true)}><Plus className="size-3.5 mr-1" />Registrar Vehículo</Button>}
+          {mainTab === 'drivers' && <Button size="sm" onClick={() => setCreateDriver(true)}><Plus className="size-3.5 mr-1" />Nuevo Conductor</Button>}
+        </div>
+      </div>
 
-        {/* Trips */}
-        <TabsContent value="trips" className="mt-3">
-          {tripsQ.isPending ? <Skeleton className="h-48 w-full" /> : trips.length === 0 ? (
-            <div className="py-14 text-center text-muted-foreground">
-              <Navigation className="mx-auto size-8 mb-2 opacity-30" />
-              <p>Sin viajes registrados</p>
+      {/* Trips */}
+      {mainTab === 'trips' && (
+        <div className="space-y-2">
+          {tripsQ.isPending ? (
+            <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-16 animate-pulse" />)}</div>
+          ) : trips.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center"><Navigation className="size-7 opacity-40" /></div>
+              <p className="font-medium">Sin viajes registrados</p>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Ref</TableHead>
-                  <TableHead>Placa</TableHead>
-                  <TableHead>Conductor</TableHead>
-                  <TableHead>Ruta</TableHead>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead className="text-right">Costo</TableHead>
-                  <TableHead className="text-right">Flete</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {trips.map((trip) => (
-                  <TableRow key={trip.id}>
-                    <TableCell className="font-mono text-xs">{trip.trip_ref}</TableCell>
-                    <TableCell className="font-semibold">{trip.plate}</TableCell>
-                    <TableCell className="text-sm">{trip.driver_name ?? '—'}</TableCell>
-                    <TableCell className="text-sm">{trip.origin} → {trip.destination}</TableCell>
-                    <TableCell className="text-sm">{fmtDate(trip.scheduled_at)}</TableCell>
-                    <TableCell className="text-right text-sm">{fmt(trip.total_cost)}</TableCell>
-                    <TableCell className="text-right text-sm">{fmt(trip.freight_charge)}</TableCell>
-                    <TableCell>
-                      <Badge variant={TRIP_STATUS_COLORS[trip.status]} className="text-xs">
-                        {TRIP_STATUS_LABELS[trip.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {trip.status === 'scheduled' && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs"
-                            onClick={() => departMut.mutate(trip.id)}>
-                            Salir
-                          </Button>
-                        )}
-                        {trip.status === 'in_progress' && (
-                          <Button size="sm" className="h-7 text-xs"
-                            onClick={() => setArriveId(trip.id)}>
-                            Llegada
-                          </Button>
-                        )}
-                        {trip.status === 'scheduled' && (
-                          <Button size="icon" variant="ghost" className="size-7 text-destructive"
-                            onClick={() => { if (confirm('¿Cancelar viaje?')) cancelMut.mutate(trip.id); }}>
-                            <XCircle className="size-3.5" />
-                          </Button>
-                        )}
+          ) : trips.map((trip) => (
+            <div key={trip.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-xs text-muted-foreground">{trip.trip_ref}</span>
+                  <span className="font-semibold text-sm">{trip.plate}</span>
+                  {trip.driver_name && <span className="text-xs text-muted-foreground">{trip.driver_name}</span>}
+                </div>
+                <p className="text-sm mt-0.5">{trip.origin} → {trip.destination}</p>
+                <p className="text-xs text-muted-foreground">{fmtDate(trip.scheduled_at)}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Costo</p>
+                  <p className="font-medium">{fmt(trip.total_cost)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Flete</p>
+                  <p className="font-medium">{fmt(trip.freight_charge)}</p>
+                </div>
+              </div>
+              <Badge variant={TRIP_STATUS_COLORS[trip.status]} className="text-xs shrink-0">{TRIP_STATUS_LABELS[trip.status]}</Badge>
+              <div className="flex gap-1 shrink-0">
+                {trip.status === 'scheduled' && (
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => departMut.mutate(trip.id)}>Salir</Button>
+                )}
+                {trip.status === 'in_progress' && (
+                  <Button size="sm" className="h-7 text-xs" onClick={() => setArriveId(trip.id)}>Llegada</Button>
+                )}
+                {trip.status === 'scheduled' && (
+                  <Button size="icon" variant="ghost" className="size-7 text-destructive"
+                    onClick={() => { if (confirm('¿Cancelar viaje?')) cancelMut.mutate(trip.id); }}>
+                    <XCircle className="size-3.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Vehicles */}
+      {mainTab === 'vehicles' && (
+        vehiclesQ.isPending ? (
+          <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-24 animate-pulse" />)}</div>
+        ) : vehicles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+            <div className="size-14 rounded-full bg-muted flex items-center justify-center"><Car className="size-7 opacity-40" /></div>
+            <p className="font-medium">Sin vehículos registrados</p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {vehicles.map((v) => {
+              const soatExpiring = v.soat_expiry && new Date(v.soat_expiry) <= new Date(Date.now() + 30 * 86400000);
+              return (
+                <Card key={v.id} className="relative">
+                  <CardContent className="pt-4 pb-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-bold text-lg">{v.plate}</p>
+                        <p className="text-sm text-muted-foreground">{v.brand} {v.model} {v.year}</p>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </TabsContent>
-
-        {/* Vehicles */}
-        <TabsContent value="vehicles" className="mt-3">
-          {vehiclesQ.isPending ? <Skeleton className="h-48 w-full" /> : vehicles.length === 0 ? (
-            <div className="py-14 text-center text-muted-foreground">
-              <Car className="mx-auto size-8 mb-2 opacity-30" />
-              <p>Sin vehículos registrados</p>
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {vehicles.map((v) => {
-                const soatExpiring = v.soat_expiry && new Date(v.soat_expiry) <= new Date(Date.now() + 30 * 86400000);
-                return (
-                  <Card key={v.id} className="relative">
-                    <CardContent className="pt-4 pb-3">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-bold text-lg">{v.plate}</p>
-                          <p className="text-sm text-muted-foreground">{v.brand} {v.model} {v.year}</p>
+                      <Badge variant={v.status === 'active' ? 'default' : v.status === 'maintenance' ? 'secondary' : 'destructive'} className="text-xs">{v.status}</Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground space-y-0.5">
+                      <div>Odómetro: {Number(v.odometer_km).toLocaleString()} km</div>
+                      {v.soat_expiry && (
+                        <div className={soatExpiring ? 'text-orange-600 font-semibold' : ''}>
+                          SOAT vence: {fmtDate(v.soat_expiry)}{soatExpiring && ' ⚠'}
                         </div>
-                        <Badge variant={v.status === 'active' ? 'default' : v.status === 'maintenance' ? 'secondary' : 'destructive'} className="text-xs">
-                          {v.status}
-                        </Badge>
-                      </div>
-                      <div className="text-xs text-muted-foreground space-y-0.5">
-                        <div>Odómetro: {Number(v.odometer_km).toLocaleString()} km</div>
-                        {v.soat_expiry && (
-                          <div className={soatExpiring ? 'text-orange-600 font-semibold' : ''}>
-                            SOAT vence: {fmtDate(v.soat_expiry)}
-                            {soatExpiring && ' ⚠'}
-                          </div>
-                        )}
-                        {v.next_service_date && (
-                          <div>Próx. servicio: {fmtDate(v.next_service_date)}</div>
-                        )}
-                      </div>
-                      <div className="flex gap-1 mt-3">
-                        <Button size="sm" variant="outline" className="h-7 text-xs gap-1 flex-1"
-                          onClick={() => setMaintVehicle(v)}>
-                          <Wrench className="size-3" />Mantenim.
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs gap-1 flex-1"
-                          onClick={() => setFuelVehicle(v)}>
-                          <Fuel className="size-3" />Combustible
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
+                      )}
+                      {v.next_service_date && <div>Próx. servicio: {fmtDate(v.next_service_date)}</div>}
+                    </div>
+                    <div className="flex gap-1 mt-3">
+                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1 flex-1" onClick={() => setMaintVehicle(v)}>
+                        <Wrench className="size-3" />Mantenim.
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1 flex-1" onClick={() => setFuelVehicle(v)}>
+                        <Fuel className="size-3" />Combustible
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )
+      )}
 
-        {/* Drivers */}
-        <TabsContent value="drivers" className="mt-3">
-          {driversQ.isPending ? <Skeleton className="h-48 w-full" /> : drivers.length === 0 ? (
-            <div className="py-14 text-center text-muted-foreground">
-              <Users className="mx-auto size-8 mb-2 opacity-30" />
-              <p>Sin conductores registrados</p>
+      {/* Drivers */}
+      {mainTab === 'drivers' && (
+        <div className="space-y-2">
+          {driversQ.isPending ? (
+            <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="rounded-2xl border bg-card h-14 animate-pulse" />)}</div>
+          ) : drivers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center"><Users className="size-7 opacity-40" /></div>
+              <p className="font-medium">Sin conductores registrados</p>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Cédula</TableHead>
-                  <TableHead>Licencia</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead>Venc. Licencia</TableHead>
-                  <TableHead>Teléfono</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {drivers.map((d) => {
-                  const licExpiring = d.license_expiry && new Date(d.license_expiry) <= new Date(Date.now() + 30 * 86400000);
-                  return (
-                    <TableRow key={d.id}>
-                      <TableCell className="font-medium">{d.full_name}</TableCell>
-                      <TableCell className="text-sm">{d.document_number}</TableCell>
-                      <TableCell className="text-sm">{d.license_number ?? '—'}</TableCell>
-                      <TableCell className="text-sm">{d.license_category ?? '—'}</TableCell>
-                      <TableCell className={`text-sm ${licExpiring ? 'text-orange-600 font-semibold' : ''}`}>
-                        {d.license_expiry ? fmtDate(d.license_expiry) : '—'}
-                        {licExpiring && ' ⚠'}
-                      </TableCell>
-                      <TableCell className="text-sm">{d.phone ?? '—'}</TableCell>
-                      <TableCell>
-                        <Badge variant={d.status === 'active' ? 'default' : 'secondary'} className="text-xs">{d.status}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </TabsContent>
-        {/* Freight rates tab */}
-        <TabsContent value="freight" className="mt-3">
-          <FreightRatesTab />
-        </TabsContent>
-      </Tabs>
+          ) : drivers.map((d) => {
+            const licExpiring = d.license_expiry && new Date(d.license_expiry) <= new Date(Date.now() + 30 * 86400000);
+            return (
+              <div key={d.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm">{d.full_name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{d.document_number}{d.phone ? ` · ${d.phone}` : ''}</p>
+                </div>
+                <div className="hidden sm:flex items-center gap-4 text-sm shrink-0">
+                  {d.license_number && (
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Licencia</p>
+                      <p className="text-xs">{d.license_number}{d.license_category ? ` (${d.license_category})` : ''}</p>
+                    </div>
+                  )}
+                  {d.license_expiry && (
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Venc.</p>
+                      <p className={`text-xs ${licExpiring ? 'text-orange-600 font-semibold' : ''}`}>
+                        {fmtDate(d.license_expiry)}{licExpiring && ' ⚠'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <Badge variant={d.status === 'active' ? 'default' : 'secondary'} className="text-xs shrink-0">{d.status}</Badge>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Freight rates */}
+      {mainTab === 'freight' && <FreightRatesTab />}
 
       <CreateVehicleDialog open={createVehicle} onClose={() => setCreateVehicle(false)}
         onCreated={() => qc.invalidateQueries({ queryKey: [slug, 'fleet-vehicles'] })} />

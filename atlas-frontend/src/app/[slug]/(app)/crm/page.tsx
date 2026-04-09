@@ -31,9 +31,6 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
-} from '@/components/ui/tabs';
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
@@ -225,51 +222,52 @@ function LeadsTab({ slug }: { slug: string }) {
         </Button>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          {leadsQ.isPending ? (
-            <div className="p-4 space-y-2">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
-          ) : leads.length === 0 ? (
-            <div className="py-14 text-center text-muted-foreground"><Users className="mx-auto size-10 mb-3 opacity-30" /><p>No hay leads</p></div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Contacto</TableHead>
-                  <TableHead>Fuente</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Opor.</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leads.map((lead) => (
-                  <TableRow key={lead.id} className="cursor-pointer hover:bg-muted/40" onClick={() => setDetailId(lead.id)}>
-                    <TableCell className="font-medium">{lead.name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{lead.company ?? '—'}</TableCell>
-                    <TableCell className="text-sm">
-                      {lead.email && <div className="flex items-center gap-1"><Mail className="size-3 text-muted-foreground" />{lead.email}</div>}
-                      {lead.phone && <div className="flex items-center gap-1"><Phone className="size-3 text-muted-foreground" />{lead.phone}</div>}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{lead.source ?? '—'}</TableCell>
-                    <TableCell><Badge variant={LEAD_STATUS_COLORS[lead.status]}>{LEAD_STATUS_LABELS[lead.status]}</Badge></TableCell>
-                    <TableCell className="text-center">{lead.opportunities_count ?? 0}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex gap-1">
-                        <Button size="icon" variant="ghost" className="size-7" onClick={() => setDetailId(lead.id)}><Eye className="size-3.5" /></Button>
-                        <Button size="icon" variant="ghost" className="size-7 text-destructive"
-                          onClick={() => { if (confirm('¿Eliminar lead?')) deleteMut.mutate(lead.id); }}><Trash2 className="size-3.5" /></Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-3">
+        {leadsQ.isPending
+          ? Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 rounded-2xl bg-muted animate-pulse" />)
+          : leads.length === 0
+          ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <Users className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay leads</p>
+              <Button onClick={() => setCreateOpen(true)}><Plus className="mr-2 size-4" />Nuevo Lead</Button>
+            </div>
+          )
+          : leads.map((lead) => (
+            <button key={lead.id} onClick={() => setDetailId(lead.id)}
+              className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all text-left w-full">
+              <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <UserPlus className="size-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{lead.name}</p>
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+                  {lead.company && <span className="text-xs text-muted-foreground flex items-center gap-1"><Building2 className="size-2.5" />{lead.company}</span>}
+                  {lead.email && <span className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="size-2.5" />{lead.email}</span>}
+                  {lead.phone && <span className="text-xs text-muted-foreground flex items-center gap-1"><Phone className="size-2.5" />{lead.phone}</span>}
+                </div>
+              </div>
+              <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
+                {lead.source && <span className="text-xs text-muted-foreground">{lead.source}</span>}
+                {(lead.opportunities_count ?? 0) > 0 && (
+                  <span className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">
+                    {lead.opportunities_count} opor.
+                  </span>
+                )}
+              </div>
+              <Badge variant={LEAD_STATUS_COLORS[lead.status]} className="flex-shrink-0">{LEAD_STATUS_LABELS[lead.status]}</Badge>
+              <div onClick={(e) => e.stopPropagation()} className="flex gap-1 flex-shrink-0">
+                <Button size="icon" variant="ghost" className="size-8 text-destructive"
+                  onClick={() => { if (confirm('¿Eliminar lead?')) deleteMut.mutate(lead.id); }}>
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+            </button>
+          ))
+        }
+      </div>
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -1198,38 +1196,26 @@ export default function CRMPage() {
         <h1 className="text-2xl font-bold tracking-tight">CRM</h1>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="leads" className="gap-1.5">
-            <Users className="size-4" />Leads
-          </TabsTrigger>
-          <TabsTrigger value="pipeline" className="gap-1.5">
-            <TrendingUp className="size-4" />Pipeline
-          </TabsTrigger>
-          <TabsTrigger value="campaigns" className="gap-1.5">
-            <Megaphone className="size-4" />Campañas
-          </TabsTrigger>
-          <TabsTrigger value="segments" className="gap-1.5">
-            <Filter className="size-4" />Segmentos
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'leads',     icon: Users,      label: 'Leads'     },
+          { key: 'pipeline',  icon: TrendingUp, label: 'Pipeline'  },
+          { key: 'campaigns', icon: Megaphone,  label: 'Campañas'  },
+          { key: 'segments',  icon: Filter,     label: 'Segmentos' },
+        ] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => setActiveTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="size-3.5" />{label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="leads" className="mt-4">
-          <LeadsTab slug={slug} />
-        </TabsContent>
-
-        <TabsContent value="pipeline" className="mt-4">
-          <PipelineTab slug={slug} />
-        </TabsContent>
-
-        <TabsContent value="campaigns" className="mt-4">
-          <CampaignsTab slug={slug} />
-        </TabsContent>
-
-        <TabsContent value="segments" className="mt-4">
-          <SegmentsTab slug={slug} />
-        </TabsContent>
-      </Tabs>
+      <div className="mt-2">
+        {activeTab === 'leads'     && <LeadsTab slug={slug} />}
+        {activeTab === 'pipeline'  && <PipelineTab slug={slug} />}
+        {activeTab === 'campaigns' && <CampaignsTab slug={slug} />}
+        {activeTab === 'segments'  && <SegmentsTab slug={slug} />}
+      </div>
     </div>
     </AddonGate>
   );

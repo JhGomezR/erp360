@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
@@ -546,55 +545,40 @@ export default function PurchaseReturnsPage() {
         ))}
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50 text-muted-foreground">
-              <th className="px-4 py-3 text-left font-medium">#</th>
-              <th className="px-4 py-3 text-left font-medium">Número</th>
-              <th className="px-4 py-3 text-left font-medium">Proveedor</th>
-              <th className="px-4 py-3 text-left font-medium">Fecha</th>
-              <th className="px-4 py-3 text-left font-medium">Estado</th>
-              <th className="px-4 py-3 text-right font-medium">Total</th>
-              <th className="px-4 py-3 text-center font-medium">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b">
-                  {Array.from({ length: 7 }).map((__, j) => (
-                    <td key={j} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>
-                  ))}
-                </tr>
-              ))
-            ) : returns.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
-                  No hay devoluciones registradas
-                </td>
-              </tr>
-            ) : (
-              returns.map((ret) => (
-                <tr key={ret.id} className="border-b hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-mono text-muted-foreground">#{ret.id}</td>
-                  <td className="px-4 py-3 font-mono text-sm">{ret.return_number ?? '—'}</td>
-                  <td className="px-4 py-3 font-medium">{ret.supplier?.name ?? `Proveedor #${ret.supplier_id}`}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(ret.created_at)}</td>
-                  <td className="px-4 py-3"><StatusBadge status={ret.status} /></td>
-                  <td className="px-4 py-3 text-right font-medium">{formatCurrency(ret.total)}</td>
-                  <td className="px-4 py-3 text-center">
-                    <Button size="sm" variant="ghost" onClick={() => openDetail(ret)}>
-                      <Eye className="size-4" />
-                      <span className="sr-only">Ver detalle</span>
-                    </Button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      {/* List */}
+      <div className="flex flex-col gap-3">
+        {isLoading
+          ? Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)
+          : returns.length === 0
+          ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <RotateCcw className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">No hay devoluciones registradas</p>
+              <Button variant="outline" size="sm" onClick={() => setCreateOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" /> Nueva devolución
+              </Button>
+            </div>
+          )
+          : returns.map((ret) => (
+            <button key={ret.id} onClick={() => openDetail(ret)}
+              className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all text-left w-full">
+              <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <RotateCcw className="size-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm font-mono">{ret.return_number ?? `#${ret.id}`}</p>
+                <p className="text-xs text-muted-foreground">{ret.supplier?.name ?? `Proveedor #${ret.supplier_id}`}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(ret.created_at)}</p>
+              </div>
+              <div className="hidden sm:block flex-shrink-0 text-right">
+                <p className="font-semibold text-sm">{formatCurrency(ret.total)}</p>
+              </div>
+              <StatusBadge status={ret.status} />
+            </button>
+          ))
+        }
       </div>
 
       {/* Pagination */}

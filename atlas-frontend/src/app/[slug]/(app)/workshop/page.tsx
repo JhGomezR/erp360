@@ -37,9 +37,6 @@ import {
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import {
-  Tabs, TabsList, TabsTrigger, TabsContent,
-} from '@/components/ui/tabs';
 
 // ─── Meta ──────────────────────────────────────────────────────────────────────
 
@@ -963,60 +960,53 @@ function WarrantiesTab({ slug }: { slug: string }) {
         </Button>
       </div>
 
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>#</TableHead>
-              <TableHead>Cliente / Equipo</TableHead>
-              <TableHead>Serial</TableHead>
-              <TableHead>Emitida</TableHead>
-              <TableHead>Vence</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {listQ.isLoading && Array.from({ length: 4 }).map((_, i) => (
-              <TableRow key={i}><TableCell colSpan={7}><div className="h-4 bg-muted rounded animate-pulse" /></TableCell></TableRow>
-            ))}
-            {!listQ.isLoading && warranties.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">Sin garantías registradas</TableCell></TableRow>
-            )}
-            {warranties.map((w: any) => {
-              const expiring = w.expires_at <= new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0] && w.status === 'active';
-              return (
-                <TableRow key={w.id} className="cursor-pointer hover:bg-muted/30" onClick={() => setDetailId(w.id)}>
-                  <TableCell className="font-mono text-xs">{w.warranty_number}</TableCell>
-                  <TableCell>
-                    <p className="font-medium text-sm">{w.customer_name}</p>
-                    <p className="text-xs text-muted-foreground">{[w.device_brand, w.device_model].filter(Boolean).join(' ') || w.device_type}</p>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">{w.device_serial || '—'}</TableCell>
-                  <TableCell className="text-sm">{fmtDate(w.issued_at)}</TableCell>
-                  <TableCell className="text-sm">
-                    <span className={expiring ? 'text-amber-600 font-semibold' : ''}>
-                      {expiring && <AlertCircle className="size-3 inline mr-1" />}
-                      {fmtDate(w.expires_at)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[w.status] ?? ''}`}>
-                      {statusLabels[w.status] ?? w.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right" onClick={e => e.stopPropagation()}>
-                    {w.status === 'active' && w.expires_at >= today && (
-                      <Button size="sm" variant="outline" onClick={() => setClaimOpen(w.id)}>
-                        Reclamar
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+      <div className="space-y-2">
+        {listQ.isLoading && Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="rounded-2xl border bg-card h-16 animate-pulse" />
+        ))}
+        {!listQ.isLoading && warranties.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+            <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+              <ShieldCheck className="size-7 opacity-40" />
+            </div>
+            <p className="font-medium">Sin garantías registradas</p>
+          </div>
+        )}
+        {warranties.map((w: any) => {
+          const expiring = w.expires_at <= new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0] && w.status === 'active';
+          return (
+            <div key={w.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all cursor-pointer" onClick={() => setDetailId(w.id)}>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">{w.warranty_number}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[w.status] ?? ''}`}>
+                    {statusLabels[w.status] ?? w.status}
+                  </span>
+                </div>
+                <p className="font-semibold text-sm mt-0.5">{w.customer_name}</p>
+                <p className="text-xs text-muted-foreground">{[w.device_brand, w.device_model].filter(Boolean).join(' ') || w.device_type}{w.device_serial ? ` · ${w.device_serial}` : ''}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Emitida</p>
+                  <p className="text-xs">{fmtDate(w.issued_at)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Vence</p>
+                  <p className={`text-xs ${expiring ? 'text-amber-600 font-semibold' : ''}`}>
+                    {expiring && <AlertCircle className="size-3 inline mr-1" />}
+                    {fmtDate(w.expires_at)}
+                  </p>
+                </div>
+              </div>
+              {w.status === 'active' && w.expires_at >= today && (
+                <Button size="sm" variant="outline" className="shrink-0" onClick={e => { e.stopPropagation(); setClaimOpen(w.id); }}>
+                  Reclamar
+                </Button>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Create warranty dialog */}
@@ -1576,41 +1566,28 @@ export default function WorkshopPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="orders">Órdenes</TabsTrigger>
-          <TabsTrigger value="warranties" className="gap-1.5">
-            <ShieldCheck className="size-4" />Garantías
-          </TabsTrigger>
-          <TabsTrigger value="contracts" className="gap-1.5">
-            <FileSignature className="size-4" />Contratos
-          </TabsTrigger>
-          <TabsTrigger value="spare-parts" className="gap-1.5">
-            <DollarSign className="size-4" />Repuestos y Tarifas
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex flex-wrap gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'dashboard', label: 'Dashboard' },
+          { key: 'orders', label: 'Órdenes' },
+          { key: 'warranties', icon: ShieldCheck, label: 'Garantías' },
+          { key: 'contracts', icon: FileSignature, label: 'Contratos' },
+          { key: 'spare-parts', icon: DollarSign, label: 'Repuestos y Tarifas' },
+        ] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => setTab(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            {Icon && <Icon className="size-3.5" />}{label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="dashboard" className="mt-4">
-          <DashboardTab slug={slug} onOpenOrder={setDetailId} />
-        </TabsContent>
-
-        <TabsContent value="orders" className="mt-4">
-          <OrdersTab slug={slug} onOpenOrder={setDetailId} />
-        </TabsContent>
-
-        <TabsContent value="warranties" className="mt-4">
-          <WarrantiesTab slug={slug} />
-        </TabsContent>
-
-        <TabsContent value="contracts" className="mt-4">
-          <ContractsTab slug={slug} />
-        </TabsContent>
-
-        <TabsContent value="spare-parts" className="mt-4">
-          <SparePartsTab slug={slug} />
-        </TabsContent>
-      </Tabs>
+      <div className="mt-2">
+        {tab === 'dashboard' && <DashboardTab slug={slug} onOpenOrder={setDetailId} />}
+        {tab === 'orders' && <OrdersTab slug={slug} onOpenOrder={setDetailId} />}
+        {tab === 'warranties' && <WarrantiesTab slug={slug} />}
+        {tab === 'contracts' && <ContractsTab slug={slug} />}
+        {tab === 'spare-parts' && <SparePartsTab slug={slug} />}
+      </div>
 
       {/* Dialogs */}
       <NewOrderDialog open={newOpen} onOpenChange={setNewOpen} slug={slug} />

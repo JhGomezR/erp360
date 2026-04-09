@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, Wrench, Calendar, Plus, CheckCircle, Play, X, ClipboardList, Zap, Search } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -381,167 +380,144 @@ export default function MaintenancePage() {
         ))}
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => { setTab(v); setWoTypeFilter(v === 'corrective' ? 'corrective' : ''); setWoStatusFilter(''); setWoSearch(''); }}>
-        <TabsList>
-          <TabsTrigger value="schedules"><Calendar className="w-4 h-4 mr-2" />Planes preventivos</TabsTrigger>
-          <TabsTrigger value="work-orders"><ClipboardList className="w-4 h-4 mr-2" />Todas las OTs</TabsTrigger>
-          <TabsTrigger value="corrective"><Zap className="w-4 h-4 mr-2" />Correctivos</TabsTrigger>
-        </TabsList>
-
-        {/* Planes de mantenimiento */}
-        <TabsContent value="schedules">
-          <Card>
-            <CardHeader><CardTitle>Planes de Mantenimiento</CardTitle></CardHeader>
-            <CardContent>
-              {schedulesQ.isLoading ? (
-                <div className="text-center py-8 text-gray-400">Cargando...</div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-500">
-                      <th className="pb-2">Plan</th>
-                      <th>Activo</th>
-                      <th>Frecuencia</th>
-                      <th>Próximo</th>
-                      <th>Responsable</th>
-                      <th>Estado</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {schedules.map(s => (
-                      <tr key={s.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2 font-medium">{s.name}</td>
-                        <td className="text-gray-600">{s.asset_label}</td>
-                        <td>Cada {s.frequency_value} {s.frequency_type}</td>
-                        <td>
-                          {s.next_due_date ? (
-                            <span className={isOverdue(s.next_due_date) ? 'text-red-600 font-medium' : isDueSoon(s.next_due_date) ? 'text-orange-500' : ''}>
-                              {s.next_due_date}
-                            </span>
-                          ) : '—'}
-                        </td>
-                        <td className="text-gray-600">{s.assigned_to ?? '—'}</td>
-                        <td>
-                          <Badge variant={s.active ? 'default' : 'secondary'}>
-                            {s.active ? 'Activo' : 'Inactivo'}
-                          </Badge>
-                        </td>
-                        <td>
-                          <Button size="sm" variant="outline" onClick={() => {
-                            setShowCreateWo(true);
-                          }}>
-                            <Wrench className="w-3 h-3 mr-1" />OT
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Órdenes de trabajo */}
-        {(['work-orders', 'corrective'] as const).map((tabKey) => (
-          <TabsContent key={tabKey} value={tabKey}>
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <CardTitle>{tabKey === 'corrective' ? 'OTs Correctivas / Emergencias' : 'Órdenes de Trabajo'}</CardTitle>
-                  <div className="flex gap-2 flex-wrap">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-                      <Input className="pl-8 h-8 w-44 text-xs" placeholder="Buscar activo..." value={woSearch} onChange={(e) => setWoSearch(e.target.value)} />
-                    </div>
-                    {tabKey === 'work-orders' && (
-                      <select className="h-8 rounded-md border px-2 text-xs bg-background"
-                        value={woTypeFilter} onChange={(e) => setWoTypeFilter(e.target.value)}>
-                        <option value="">Todos los tipos</option>
-                        <option value="preventive">Preventivo</option>
-                        <option value="corrective">Correctivo</option>
-                        <option value="emergency">Emergencia</option>
-                      </select>
-                    )}
-                    <select className="h-8 rounded-md border px-2 text-xs bg-background"
-                      value={woStatusFilter} onChange={(e) => setWoStatusFilter(e.target.value)}>
-                      <option value="">Todos los estados</option>
-                      <option value="open">Abierta</option>
-                      <option value="in_progress">En progreso</option>
-                      <option value="completed">Completada</option>
-                      <option value="cancelled">Cancelada</option>
-                    </select>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {woQ.isLoading ? (
-                  <div className="text-center py-8 text-gray-400">Cargando...</div>
-                ) : (
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b text-left text-gray-500">
-                        <th className="pb-2">Ref</th>
-                        <th>Tipo</th>
-                        <th>Activo</th>
-                        <th>Prioridad</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {wos
-                        .filter((wo) => !woSearch || (wo.asset_label ?? '').toLowerCase().includes(woSearch.toLowerCase()) || (wo.description ?? '').toLowerCase().includes(woSearch.toLowerCase()))
-                        .map(wo => (
-                          <tr key={wo.id} className={`border-b hover:bg-gray-50 ${wo.priority === 'critical' ? 'bg-red-50/50' : ''}`}>
-                            <td className="py-2 font-mono text-xs">{wo.ref}</td>
-                            <td>
-                              <span className={`text-xs px-1.5 py-0.5 rounded capitalize font-medium ${
-                                wo.type === 'emergency' ? 'bg-red-100 text-red-700' :
-                                wo.type === 'corrective' ? 'bg-orange-100 text-orange-700' :
-                                'bg-blue-100 text-blue-700'
-                              }`}>{wo.type === 'emergency' ? 'Emergencia' : wo.type === 'corrective' ? 'Correctivo' : 'Preventivo'}</span>
-                            </td>
-                            <td>{wo.asset_label}</td>
-                            <td>{priorityBadge(wo.priority)}</td>
-                            <td>{wo.scheduled_date ?? '—'}</td>
-                            <td>{statusBadge(wo.status)}</td>
-                            <td>
-                              <div className="flex gap-1">
-                                {wo.status === 'open' && (
-                                  <Button size="sm" variant="outline" onClick={() => startWoMut.mutate(wo.id)}>
-                                    <Play className="w-3 h-3" />
-                                  </Button>
-                                )}
-                                {(wo.status === 'open' || wo.status === 'in_progress') && (
-                                  <Button size="sm" onClick={() => setCompleteWo(wo)}>
-                                    <CheckCircle className="w-3 h-3" />
-                                  </Button>
-                                )}
-                                {wo.status === 'open' && (
-                                  <Button size="sm" variant="destructive" onClick={() => cancelWoMut.mutate(wo.id)}>
-                                    <X className="w-3 h-3" />
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      {wos.length === 0 && (
-                        <tr><td colSpan={7} className="text-center py-8 text-gray-400">
-                          {tabKey === 'corrective' ? 'Sin OTs correctivas registradas' : 'Sin órdenes de trabajo'}
-                        </td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+      <div className="flex gap-0.5 p-1 rounded-lg bg-muted w-fit">
+        {([
+          { key: 'schedules', icon: Calendar, label: 'Planes preventivos' },
+          { key: 'work-orders', icon: ClipboardList, label: 'Todas las OTs' },
+          { key: 'corrective', icon: Zap, label: 'Correctivos' },
+        ] as const).map(({ key, icon: Icon, label }) => (
+          <button key={key} onClick={() => { setTab(key); setWoTypeFilter(key === 'corrective' ? 'corrective' : ''); setWoStatusFilter(''); setWoSearch(''); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${tab === key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="w-3.5 h-3.5" />{label}
+          </button>
         ))}
-      </Tabs>
+      </div>
+
+      {/* Planes de mantenimiento */}
+      {tab === 'schedules' && (
+        <div className="space-y-2">
+          {schedulesQ.isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Cargando...</div>
+          ) : schedules.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+              <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                <Calendar className="size-7 opacity-40" />
+              </div>
+              <p className="font-medium">Sin planes de mantenimiento</p>
+            </div>
+          ) : schedules.map(s => (
+            <div key={s.id} className="rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm hover:border-primary/20 transition-all">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{s.name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{s.asset_label} · Cada {s.frequency_value} {s.frequency_type}{s.assigned_to ? ` · ${s.assigned_to}` : ''}</p>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">Próximo</p>
+                  <p className={`font-medium text-xs ${isOverdue(s.next_due_date) ? 'text-red-600' : isDueSoon(s.next_due_date) ? 'text-orange-500' : ''}`}>
+                    {s.next_due_date ?? '—'}
+                  </p>
+                </div>
+              </div>
+              <Badge variant={s.active ? 'default' : 'secondary'}>{s.active ? 'Activo' : 'Inactivo'}</Badge>
+              <Button size="sm" variant="outline" onClick={() => setShowCreateWo(true)}>
+                <Wrench className="w-3 h-3 mr-1" />OT
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Órdenes de trabajo */}
+      {(tab === 'work-orders' || tab === 'corrective') && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <p className="text-sm font-medium text-muted-foreground">
+              {tab === 'corrective' ? 'OTs Correctivas / Emergencias' : 'Órdenes de Trabajo'}
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                <Input className="pl-8 h-8 w-44 text-xs" placeholder="Buscar activo..." value={woSearch} onChange={(e) => setWoSearch(e.target.value)} />
+              </div>
+              {tab === 'work-orders' && (
+                <select className="h-8 rounded-md border px-2 text-xs bg-background"
+                  value={woTypeFilter} onChange={(e) => setWoTypeFilter(e.target.value)}>
+                  <option value="">Todos los tipos</option>
+                  <option value="preventive">Preventivo</option>
+                  <option value="corrective">Correctivo</option>
+                  <option value="emergency">Emergencia</option>
+                </select>
+              )}
+              <select className="h-8 rounded-md border px-2 text-xs bg-background"
+                value={woStatusFilter} onChange={(e) => setWoStatusFilter(e.target.value)}>
+                <option value="">Todos los estados</option>
+                <option value="open">Abierta</option>
+                <option value="in_progress">En progreso</option>
+                <option value="completed">Completada</option>
+                <option value="cancelled">Cancelada</option>
+              </select>
+            </div>
+          </div>
+          {woQ.isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Cargando...</div>
+          ) : (
+            <div className="space-y-2">
+              {wos
+                .filter((wo) => !woSearch || (wo.asset_label ?? '').toLowerCase().includes(woSearch.toLowerCase()) || (wo.description ?? '').toLowerCase().includes(woSearch.toLowerCase()))
+                .map(wo => (
+                  <div key={wo.id} className={`rounded-2xl border bg-card p-4 flex items-center gap-4 hover:shadow-sm transition-all ${wo.priority === 'critical' ? 'border-red-200 bg-red-50/30' : 'hover:border-primary/20'}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-xs text-muted-foreground">{wo.ref}</span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded capitalize font-medium ${
+                          wo.type === 'emergency' ? 'bg-red-100 text-red-700' :
+                          wo.type === 'corrective' ? 'bg-orange-100 text-orange-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>{wo.type === 'emergency' ? 'Emergencia' : wo.type === 'corrective' ? 'Correctivo' : 'Preventivo'}</span>
+                        {priorityBadge(wo.priority)}
+                      </div>
+                      <p className="font-semibold text-sm mt-1">{wo.asset_label}</p>
+                      {wo.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{wo.description}</p>}
+                    </div>
+                    <div className="hidden sm:flex items-center gap-4 text-sm flex-shrink-0">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Fecha</p>
+                        <p className="text-xs">{wo.scheduled_date ?? '—'}</p>
+                      </div>
+                    </div>
+                    {statusBadge(wo.status)}
+                    <div className="flex gap-1 flex-shrink-0">
+                      {wo.status === 'open' && (
+                        <Button size="sm" variant="outline" onClick={() => startWoMut.mutate(wo.id)}>
+                          <Play className="w-3 h-3" />
+                        </Button>
+                      )}
+                      {(wo.status === 'open' || wo.status === 'in_progress') && (
+                        <Button size="sm" onClick={() => setCompleteWo(wo)}>
+                          <CheckCircle className="w-3 h-3" />
+                        </Button>
+                      )}
+                      {wo.status === 'open' && (
+                        <Button size="sm" variant="destructive" onClick={() => cancelWoMut.mutate(wo.id)}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              {wos.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-14 gap-3 text-muted-foreground">
+                  <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+                    <Wrench className="size-7 opacity-40" />
+                  </div>
+                  <p className="font-medium">{tab === 'corrective' ? 'Sin OTs correctivas registradas' : 'Sin órdenes de trabajo'}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {showCreateSchedule && <CreateScheduleDialog open onClose={() => setShowCreateSchedule(false)} />}
       {showCreateWo && <CreateWorkOrderDialog open onClose={() => setShowCreateWo(false)} />}
