@@ -116,11 +116,11 @@ services:
       context: ./atlas-frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL:          ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_REVERB_HOST:      ${NEXT_PUBLIC_REVERB_HOST}
-        NEXT_PUBLIC_REVERB_PORT:      ${NEXT_PUBLIC_REVERB_PORT}
-        NEXT_PUBLIC_REVERB_APP_KEY:   ${NEXT_PUBLIC_REVERB_APP_KEY}
-        NEXT_PUBLIC_REVERB_SCHEME:    ${NEXT_PUBLIC_REVERB_SCHEME}
+        NEXT_PUBLIC_API_URL:          ${NEXT_PUBLIC_API_URL:-https://atlaserp.com.co/api}
+        NEXT_PUBLIC_REVERB_HOST:      ${NEXT_PUBLIC_REVERB_HOST:-atlaserp.com.co}
+        NEXT_PUBLIC_REVERB_PORT:      ${NEXT_PUBLIC_REVERB_PORT:-443}
+        NEXT_PUBLIC_REVERB_APP_KEY:   ${NEXT_PUBLIC_REVERB_APP_KEY:-atlas-erp-prod}
+        NEXT_PUBLIC_REVERB_SCHEME:    ${NEXT_PUBLIC_REVERB_SCHEME:-https}
     restart: unless-stopped
     environment:
       NODE_ENV: production
