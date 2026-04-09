@@ -24,6 +24,10 @@ import {
   Store,
   DollarSign,
   CheckCircle2,
+  Banknote,
+  CreditCard,
+  ArrowLeftRight,
+  Smartphone,
 } from 'lucide-react';
 
 import { productsApi, categoriesApi, posApi, billingApi, fractionsApi, cashApi, setTenantSlug } from '@/lib/api/tenant.api';
@@ -168,6 +172,7 @@ export default function PosPage() {
   const [discount, setDiscount] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [amountPaid, setAmountPaid] = useState('');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [recentlyAdded, setRecentlyAdded] = useState<Set<number>>(new Set());
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -470,6 +475,7 @@ export default function PosPage() {
       unit_price: i.unit_price,
     })),
     payment_method: paymentMethod,
+    amount_paid: paymentMethod === 'cash' && amountPaid ? Number(amountPaid) : undefined,
     discount: discountValue > 0 ? discountValue : undefined,
     notes: notes.trim() || undefined,
   });
@@ -498,6 +504,7 @@ export default function PosPage() {
       setDiscount('');
       setNotes('');
       setPaymentMethod('cash');
+      setAmountPaid('');
       setCheckoutOpen(false);
     },
     onError: () => {
@@ -874,18 +881,52 @@ export default function PosPage() {
               </div>
 
               {/* Payment method */}
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2">
                 <Label className="text-xs text-muted-foreground">Método de pago</Label>
-                <Select value={paymentMethod} onValueChange={(v) => v && setPaymentMethod(v)}>
-                  <SelectTrigger className="w-full h-8 text-xs">
-                    <SelectValue placeholder="Selecciona..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cash">Efectivo</SelectItem>
-                    <SelectItem value="card">Tarjeta</SelectItem>
-                    <SelectItem value="transfer">Transferencia</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {([
+                    { value: 'cash',     label: 'Efectivo',      Icon: Banknote },
+                    { value: 'card',     label: 'Tarjeta',       Icon: CreditCard },
+                    { value: 'transfer', label: 'Transferencia', Icon: ArrowLeftRight },
+                    { value: 'nequi',    label: 'Nequi',         Icon: Smartphone },
+                  ] as const).map(({ value, label, Icon }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setPaymentMethod(value)}
+                      className={`flex flex-col items-center gap-1 py-2 px-1 rounded-xl border-2 transition-all text-[10px] font-medium leading-tight
+                        ${paymentMethod === value
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'}`}
+                    >
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-center">{label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Efectivo recibido + devuelta */}
+                {paymentMethod === 'cash' && (
+                  <div className="flex flex-col gap-1 mt-0.5">
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder={String(totalValue)}
+                        value={amountPaid}
+                        onChange={(e) => setAmountPaid(e.target.value)}
+                        className="pl-5 h-8 text-sm tabular-nums"
+                      />
+                    </div>
+                    {Number(amountPaid) > 0 && (
+                      <div className={`flex justify-between text-xs font-semibold px-1 ${Number(amountPaid) >= totalValue ? 'text-emerald-600' : 'text-destructive'}`}>
+                        <span>{Number(amountPaid) >= totalValue ? 'Devuelta' : 'Falta'}</span>
+                        <span>{formatCurrency(Math.abs(Number(amountPaid) - totalValue))}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Notes */}
@@ -956,14 +997,27 @@ export default function PosPage() {
             {/* Payment method */}
             <div className="flex justify-between text-muted-foreground">
               <span>Método de pago</span>
-              <span className="capitalize">
-                {paymentMethod === 'cash'
-                  ? 'Efectivo'
-                  : paymentMethod === 'card'
-                  ? 'Tarjeta'
+              <span>
+                {paymentMethod === 'cash' ? 'Efectivo'
+                  : paymentMethod === 'card' ? 'Tarjeta'
+                  : paymentMethod === 'nequi' ? 'Nequi'
                   : 'Transferencia'}
               </span>
             </div>
+
+            {/* Efectivo recibido + devuelta */}
+            {paymentMethod === 'cash' && Number(amountPaid) > 0 && (
+              <>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Recibido</span>
+                  <span className="tabular-nums">{formatCurrency(Number(amountPaid))}</span>
+                </div>
+                <div className={`flex justify-between font-semibold ${Number(amountPaid) >= totalValue ? 'text-emerald-600' : 'text-destructive'}`}>
+                  <span>{Number(amountPaid) >= totalValue ? 'Devuelta' : 'Falta'}</span>
+                  <span className="tabular-nums">{formatCurrency(Math.abs(Number(amountPaid) - totalValue))}</span>
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>
