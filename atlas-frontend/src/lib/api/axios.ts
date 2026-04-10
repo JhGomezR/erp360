@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-const API_URL  = process.env.NEXT_PUBLIC_API_URL  || 'http://localhost:8000/api';
+const API_URL  = process.env.NEXT_PUBLIC_API_URL  || 'https://atlaserp.com.co/api';
 // Base sin /api — para construir /{slug}/api/...
 const BASE_URL = API_URL.endsWith('/api') ? API_URL.slice(0, -4) : API_URL.replace(/\/api$/, '');
 

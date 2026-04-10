@@ -26,12 +26,12 @@ function getEcho(): Echo<'reverb'> | null {
     echoInstance = new Echo({
       broadcaster: 'reverb',
       key: process.env.NEXT_PUBLIC_REVERB_APP_KEY ?? '',
-      wsHost: process.env.NEXT_PUBLIC_REVERB_HOST ?? 'localhost',
-      wsPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 8081),
-      wssPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 8081),
-      forceTLS: (process.env.NEXT_PUBLIC_REVERB_SCHEME ?? 'http') === 'https',
+      wsHost: process.env.NEXT_PUBLIC_REVERB_HOST ?? 'atlaserp.com.co',
+      wsPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 443),
+      wssPort: Number(process.env.NEXT_PUBLIC_REVERB_PORT ?? 443),
+      forceTLS: (process.env.NEXT_PUBLIC_REVERB_SCHEME ?? 'https') === 'https',
       enabledTransports: ['ws', 'wss'],
-      authEndpoint: `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api'}/broadcasting/auth`,
+      authEndpoint: `${process.env.NEXT_PUBLIC_API_URL ?? 'https://atlaserp.com.co/api'}/broadcasting/auth`,
       auth: {
         headers: {
           Authorization: `Bearer ${token}`,
