@@ -92,6 +92,8 @@ case "$APP_MODE" in
         ;;
 
     reverb)
+        # Limpiar config cache para garantizar que se lean las env vars frescas
+        php artisan config:clear --quiet 2>/dev/null || true
         echo "[Atlas] Reverb WebSocket iniciado en :8080"
         exec php artisan reverb:start \
             --host=0.0.0.0 \
