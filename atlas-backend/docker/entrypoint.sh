@@ -55,19 +55,18 @@ if [ "$APP_MODE" = "fpm" ] || [ "$APP_MODE" = "queue" ] || [ "$APP_MODE" = "sche
     ensure_central_db
 fi
 
-# ── Optimizaciones de producción (solo en producción) ──────────────────────────
-if [ "${APP_ENV}" = "production" ]; then
-    echo "[Atlas] Cacheando configuración..."
-    php artisan config:cache  --quiet
-    php artisan route:cache   --quiet
-    php artisan view:cache    --quiet
-    php artisan event:cache   --quiet
-fi
-
 # ── Modos de inicio ────────────────────────────────────────────────────────────
 case "$APP_MODE" in
 
     fpm)
+        # Solo fpm cachea config — los demás servicios leen env vars directo
+        if [ "${APP_ENV}" = "production" ]; then
+            echo "[Atlas] Cacheando configuración..."
+            php artisan config:cache  --quiet
+            php artisan route:cache   --quiet
+            php artisan view:cache    --quiet
+            php artisan event:cache   --quiet
+        fi
         echo "[Atlas] Enlazando storage..."
         php artisan storage:link --force 2>/dev/null || true
         echo "[Atlas] Ejecutando migraciones..."
@@ -92,8 +91,6 @@ case "$APP_MODE" in
         ;;
 
     reverb)
-        # Limpiar config cache para garantizar que se lean las env vars frescas
-        php artisan config:clear --quiet 2>/dev/null || true
         echo "[Atlas] Reverb WebSocket iniciado en :8080"
         exec php artisan reverb:start \
             --host=0.0.0.0 \
