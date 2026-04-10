@@ -11,7 +11,7 @@ import {
   ChevronLeft, ChevronRight, Bell, Send, Mail, BellRing, AlertTriangle,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { standardSchemaResolver as zodResolver } from '@hookform/resolvers/standard-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { tenantsApi, plansApi, centralNotificationsApi } from '@/lib/api/central.api';

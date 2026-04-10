@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { standardSchemaResolver as zodResolver } from '@hookform/resolvers/standard-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -27,7 +27,7 @@ const schema = z
 
 type ResetForm = z.infer<typeof schema>;
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const params = useSearchParams();
   const token = params.get('token') ?? '';
   const email = params.get('email') ?? '';
@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ResetForm>({ resolver: zodResolver(schema) });
+  } = useForm<ResetForm>({ resolver: zodResolver(schema) as any }); // eslint-disable-line @typescript-eslint/no-explicit-any
 
   const onSubmit = async (data: ResetForm) => {
     setError('');
@@ -156,5 +156,13 @@ export default function ResetPasswordPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

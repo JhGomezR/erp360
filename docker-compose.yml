@@ -1,17 +1,12 @@
 services:
 
-  # ── Nginx (proxy reverso) ───────────────────────────────────────────────────
+  # ── Nginx (proxy interno → backend FPM + frontend) ─────────────────────────
+  # Traefik maneja 80/443 externamente; nginx no publica puertos.
   nginx:
     image: nginx:1.27-alpine
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
     volumes:
-      # Para primera puesta en marcha (sin SSL): usar atlas-http.conf
-      # Una vez con SSL: cambiar a atlas.conf
       - ./nginx/conf.d/atlas-http.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
       - backend_storage:/var/www/storage:ro
     depends_on:
       backend:
@@ -20,6 +15,21 @@ services:
         condition: service_started
     networks:
       - atlas_net
+      - traefik_net
+    labels:
+      - "traefik.enable=true"
+      # ── HTTP → redirigir a HTTPS
+      - "traefik.http.routers.atlas-http.rule=Host(`atlaserp.com.co`) || Host(`www.atlaserp.com.co`)"
+      - "traefik.http.routers.atlas-http.entrypoints=web"
+      - "traefik.http.routers.atlas-http.middlewares=atlas-https-redirect"
+      - "traefik.http.middlewares.atlas-https-redirect.redirectscheme.scheme=https"
+      # ── HTTPS (TLS termina en Traefik → Let's Encrypt)
+      - "traefik.http.routers.atlas.rule=Host(`atlaserp.com.co`) || Host(`www.atlaserp.com.co`)"
+      - "traefik.http.routers.atlas.entrypoints=websecure"
+      - "traefik.http.routers.atlas.tls=true"
+      - "traefik.http.routers.atlas.tls.certresolver=letsencrypt"
+      # ── Servicio interno: nginx escucha en :80
+      - "traefik.http.services.atlas.loadbalancer.server.port=80"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/nginx-health"]
       interval: 30s
@@ -152,7 +162,12 @@ networks:
   atlas_net:
     driver: bridge
 
-  # Red del PostgreSQL existente — cambiar el nombre según tu setup
+  # Red interna de Traefik (debe existir en el VPS: docker network create traefik_net)
+  traefik_net:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik_net}
+
+  # Red del PostgreSQL existente
   postgres_net:
     external: true
     name: ${POSTGRES_NETWORK:-postgres_default}

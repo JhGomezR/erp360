@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notify } from '@/lib/notify';
 import { useForm } from 'react-hook-form';
-import { standardSchemaResolver as zodResolver } from '@hookform/resolvers/standard-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   centralNotificationsApi,
@@ -249,7 +249,8 @@ function RuleFormDialog({
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } =
     useForm<RuleForm>({
-      resolver: zodResolver(ruleSchema),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      resolver: zodResolver(ruleSchema) as any,
       defaultValues: existing ? {
         name:              existing.name,
         description:       existing.description ?? '',

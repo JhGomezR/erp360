@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { standardSchemaResolver as zodResolver } from '@hookform/resolvers/standard-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notify } from '@/lib/notify';
 import {
