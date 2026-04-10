@@ -4,6 +4,11 @@ FROM php:8.3-fpm
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
+        build-essential \
+        autoconf \
+        pkg-config \
+        make \
+        g++ \
         libjpeg62-turbo-dev \
         libpng-dev \
         libfreetype6-dev \
