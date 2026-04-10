@@ -47,7 +47,7 @@ services:
     environment:
       APP_MODE: fpm
     env_file:
-      - ./atlas-backend/.env
+      - ./atlas-backend/.env.production.example
     volumes:
       - backend_storage:/var/www/html/storage
     depends_on:
@@ -72,7 +72,7 @@ services:
     environment:
       APP_MODE: queue
     env_file:
-      - ./atlas-backend/.env
+      - ./atlas-backend/.env.production.example
     volumes:
       - backend_storage:/var/www/html/storage
     depends_on:
@@ -93,7 +93,7 @@ services:
     environment:
       APP_MODE: scheduler
     env_file:
-      - ./atlas-backend/.env
+      - ./atlas-backend/.env.production.example
     volumes:
       - backend_storage:/var/www/html/storage
     depends_on:
@@ -112,7 +112,7 @@ services:
     environment:
       APP_MODE: reverb
     env_file:
-      - ./atlas-backend/.env
+      - ./atlas-backend/.env.production.example
     volumes:
       - backend_storage:/var/www/html/storage
     depends_on:
