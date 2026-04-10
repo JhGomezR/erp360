@@ -26,10 +26,15 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 # ── Extensiones PHP ────────────────────────────────────────────────────────────
+RUN set -eux; php -v
+
 RUN set -eux; \
-    php -v; \
-    docker-php-ext-configure gd --with-freetype --with-jpeg; \
-    docker-php-ext-install -j$(nproc) pdo pdo_pgsql pgsql bcmath gd intl zip pcntl mbstring xml curl opcache exif; \
+    docker-php-ext-configure gd --with-freetype --with-jpeg
+
+RUN set -eux; \
+    docker-php-ext-install -j$(nproc) pdo pdo_pgsql pgsql bcmath gd intl zip pcntl mbstring xml curl opcache exif
+
+RUN set -eux; \
     pecl install redis; \
     docker-php-ext-enable redis; \
     rm -rf /tmp/pear
