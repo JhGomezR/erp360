@@ -1,7 +1,9 @@
 FROM php:8.3-fpm
 
 # ── Dependencias del sistema ───────────────────────────────────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
         libjpeg62-turbo-dev \
         libpng-dev \
         libfreetype6-dev \
@@ -15,28 +17,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         zip \
         unzip \
         git \
-        bash \
-    && rm -rf /var/lib/apt/lists/*
+        bash; \
+    rm -rf /var/lib/apt/lists/*
 
 # ── Extensiones PHP ────────────────────────────────────────────────────────────
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-        pdo \
-        pdo_pgsql \
-        pgsql \
-        bcmath \
-        gd \
-        intl \
-        zip \
-        pcntl \
-        mbstring \
-        xml \
-        curl \
-        opcache \
-        exif \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && rm -rf /tmp/pear
+RUN set -eux; \
+    php -v; \
+    docker-php-ext-configure gd --with-freetype --with-jpeg; \
+    docker-php-ext-install -j$(nproc) pdo pdo_pgsql pgsql bcmath gd intl zip pcntl mbstring xml curl opcache exif; \
+    pecl install redis; \
+    docker-php-ext-enable redis; \
+    rm -rf /tmp/pear
 
 # ── PHP config ─────────────────────────────────────────────────────────────────
 COPY docker/php.ini /usr/local/etc/php/conf.d/atlas.ini
