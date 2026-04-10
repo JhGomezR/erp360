@@ -63,7 +63,8 @@ RUN composer install \
 # ── Código de la aplicación ────────────────────────────────────────────────────
 COPY . .
 
-RUN composer dump-autoload --optimize --no-dev --quiet \
+RUN composer dump-autoload --optimize --no-dev --no-scripts \
+    && mkdir -p storage/logs storage/framework/{sessions,views,cache} bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
