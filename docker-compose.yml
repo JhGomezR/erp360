@@ -170,4 +170,4 @@ networks:
   # Red del PostgreSQL existente
   postgres_net:
     external: true
-    name: ${POSTGRES_NETWORK:-postgres_default}
+    name: ${POSTGRES_NETWORK:-postgresql-ctu2_default}
