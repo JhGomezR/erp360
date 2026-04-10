@@ -18,6 +18,9 @@ RUN set -eux; \
         libxml2-dev \
         libcurl4-openssl-dev \
         libpq-dev \
+        icu-devtools \
+        libonig-dev \
+        libxslt1-dev \
         postgresql-client \
         zip \
         unzip \
@@ -32,7 +35,7 @@ RUN set -eux; \
     docker-php-ext-configure gd --with-freetype --with-jpeg
 
 RUN set -eux; \
-    docker-php-ext-install -j$(nproc) pdo pdo_pgsql pgsql bcmath gd intl zip pcntl mbstring xml curl opcache exif
+    docker-php-ext-install -j$(nproc) pdo pdo_pgsql pgsql bcmath gd intl zip pcntl mbstring xml opcache exif
 
 RUN set -eux; \
     pecl install redis; \
