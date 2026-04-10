@@ -41,6 +41,15 @@ ensure_central_db() {
     fi
 }
 
+# ── Garantizar directorios de storage (antes de cualquier artisan) ─────────────
+mkdir -p storage/logs \
+         storage/framework/sessions \
+         storage/framework/views \
+         storage/framework/cache \
+         bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
+chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+
 # Ejecutar solo en modos que requieren conexión a DB
 if [ "$APP_MODE" = "fpm" ] || [ "$APP_MODE" = "queue" ] || [ "$APP_MODE" = "scheduler" ]; then
     ensure_central_db
