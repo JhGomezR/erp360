@@ -113,6 +113,8 @@ services:
       APP_MODE: reverb
     env_file:
       - ./atlas-backend/.env
+    volumes:
+      - backend_storage:/var/www/html/storage
     depends_on:
       backend:
         condition: service_healthy
