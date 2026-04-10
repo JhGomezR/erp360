@@ -1,22 +1,22 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.3-fpm
 
 # ── Dependencias del sistema ───────────────────────────────────────────────────
-RUN apk add --no-cache \
-    postgresql-dev \
-    postgresql-client \
-    libzip-dev \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    icu-dev \
-    oniguruma-dev \
-    libxml2-dev \
-    curl-dev \
-    zip \
-    unzip \
-    git \
-    bash \
-    shadow
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libfreetype6-dev \
+        libicu-dev \
+        libzip-dev \
+        zlib1g-dev \
+        libxml2-dev \
+        libcurl4-openssl-dev \
+        libpq-dev \
+        postgresql-client \
+        zip \
+        unzip \
+        git \
+        bash \
+    && rm -rf /var/lib/apt/lists/*
 
 # ── Extensiones PHP ────────────────────────────────────────────────────────────
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
