@@ -162,10 +162,10 @@ networks:
   atlas_net:
     driver: bridge
 
-  # Red interna de Traefik (debe existir en el VPS: docker network create traefik_net)
+  # Red interna de Traefik (Hostinger la llama "traefik" por defecto)
   traefik_net:
     external: true
-    name: ${TRAEFIK_NETWORK:-traefik_net}
+    name: ${TRAEFIK_NETWORK:-traefik}
 
   # Red del PostgreSQL existente
   postgres_net:
