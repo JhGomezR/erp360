@@ -162,10 +162,10 @@ networks:
   atlas_net:
     driver: bridge
 
-  # Red interna de Traefik (Hostinger la llama "traefik" por defecto)
+  # Red de Traefik en Hostinger (comparte red con otros contenedores del panel)
   traefik_net:
     external: true
-    name: ${TRAEFIK_NETWORK:-traefik}
+    name: ${TRAEFIK_NETWORK:-root_default}
 
   # Red del PostgreSQL existente
   postgres_net:
