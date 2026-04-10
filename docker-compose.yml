@@ -111,7 +111,6 @@ services:
     restart: unless-stopped
     environment:
       APP_MODE: reverb
-      DB_CONNECTION: pgsql
     env_file:
       - ./atlas-backend/.env
     volumes:
