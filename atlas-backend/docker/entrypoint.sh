@@ -7,7 +7,7 @@ echo "[Atlas] Iniciando modo: $APP_MODE"
 
 # ── Verificar / crear base de datos central ────────────────────────────────────
 ensure_central_db() {
-    local host="${DB_HOST:-127.0.0.1}"
+    local host="${DB_HOST:-postgresql}"
     local port="${DB_PORT:-5432}"
     local user="${DB_USERNAME:-postgres}"
     local pass="${DB_PASSWORD:-}"
