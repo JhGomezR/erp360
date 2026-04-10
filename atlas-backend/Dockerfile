@@ -57,7 +57,8 @@ RUN composer install \
     --no-scripts \
     --no-autoloader \
     --no-interaction \
-    -vvv
+    --ignore-platform-reqs \
+    --no-cache
 
 # ── Código de la aplicación ────────────────────────────────────────────────────
 COPY . .
