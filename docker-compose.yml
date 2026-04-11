@@ -20,6 +20,7 @@ services:
       - traefik_net
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=root_default"
       # ── HTTP → redirigir a HTTPS
       - "traefik.http.routers.atlas-http.rule=Host(`atlaserp.com.co`) || Host(`www.atlaserp.com.co`)"
       - "traefik.http.routers.atlas-http.entrypoints=web"
