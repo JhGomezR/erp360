@@ -21,17 +21,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=root_default"
-      # ── HTTP → redirigir a HTTPS
-      - "traefik.http.routers.atlas-http.rule=Host(`atlaserp.com.co`) || Host(`www.atlaserp.com.co`)"
-      - "traefik.http.routers.atlas-http.entrypoints=web"
-      - "traefik.http.routers.atlas-http.middlewares=atlas-https-redirect"
-      - "traefik.http.middlewares.atlas-https-redirect.redirectscheme.scheme=https"
-      # ── HTTPS (TLS termina en Traefik → Let's Encrypt)
+      # Traefik ya maneja HTTP→HTTPS globalmente; solo definir el router HTTPS
       - "traefik.http.routers.atlas.rule=Host(`atlaserp.com.co`) || Host(`www.atlaserp.com.co`)"
       - "traefik.http.routers.atlas.entrypoints=websecure"
       - "traefik.http.routers.atlas.tls=true"
       - "traefik.http.routers.atlas.tls.certresolver=mytlschallenge"
-      # ── Servicio interno: nginx escucha en :80
       - "traefik.http.services.atlas.loadbalancer.server.port=80"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/nginx-health"]
