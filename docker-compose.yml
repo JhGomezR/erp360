@@ -16,11 +16,9 @@ services:
       frontend:
         condition: service_started
     networks:
-      - atlas_net
       - traefik_net
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=root_default"
       # Traefik ya maneja HTTP→HTTPS globalmente; solo definir el router HTTPS
       - "traefik.http.routers.atlas.rule=Host(`atlaserp.com.co`) || Host(`www.atlaserp.com.co`)"
       - "traefik.http.routers.atlas.entrypoints=websecure"
@@ -51,6 +49,7 @@ services:
     networks:
       - atlas_net
       - postgres_net
+      - traefik_net
     healthcheck:
       test: ["CMD", "php-fpm", "-t"]
       interval: 30s
@@ -135,6 +134,7 @@ services:
       NODE_ENV: production
     networks:
       - atlas_net
+      - traefik_net
 
   # ── Redis ────────────────────────────────────────────────────────────────────
   redis:
