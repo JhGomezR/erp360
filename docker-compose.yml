@@ -117,6 +117,7 @@ services:
     networks:
       - atlas_net
       - postgres_net
+      - traefik_net
 
   # ── Frontend Next.js ────────────────────────────────────────────────────────
   frontend:
