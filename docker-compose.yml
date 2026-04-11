@@ -29,7 +29,7 @@ services:
       - "traefik.http.routers.atlas.rule=Host(`atlaserp.com.co`) || Host(`www.atlaserp.com.co`)"
       - "traefik.http.routers.atlas.entrypoints=websecure"
       - "traefik.http.routers.atlas.tls=true"
-      - "traefik.http.routers.atlas.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.atlas.tls.certresolver=mytlschallenge"
       # ── Servicio interno: nginx escucha en :80
       - "traefik.http.services.atlas.loadbalancer.server.port=80"
     healthcheck:
