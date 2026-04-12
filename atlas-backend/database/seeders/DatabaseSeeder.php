@@ -30,5 +30,8 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('Atlas@Super2024!'),
             ]
         );
+
+        // 6. Tenants de demostración (uno por tipo de negocio)
+        $this->call(DemoTenantsSeeder::class);
     }
 }
