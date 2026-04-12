@@ -234,10 +234,12 @@ Route::middleware(['auth:api', 'role:super'])->group(function () {
 
     // ─── Backups de Base de Datos ─────────────────────────────────────────────
     Route::prefix('backups')->group(function () {
-        Route::get('/',           [\App\Central\Backups\Controllers\BackupController::class, 'index']);
-        Route::post('/',          [\App\Central\Backups\Controllers\BackupController::class, 'store']);
-        Route::get('/{id}/download', [\App\Central\Backups\Controllers\BackupController::class, 'download']);
-        Route::delete('/{id}',    [\App\Central\Backups\Controllers\BackupController::class, 'destroy']);
+        Route::get('/',                      [\App\Central\Backups\Controllers\BackupController::class, 'index']);
+        Route::post('/',                     [\App\Central\Backups\Controllers\BackupController::class, 'store']);
+        Route::get('/tenant/{slug}',         [\App\Central\Backups\Controllers\BackupController::class, 'indexTenant']);
+        Route::post('/tenant/{slug}',        [\App\Central\Backups\Controllers\BackupController::class, 'storeTenant']);
+        Route::get('/{id}/download',         [\App\Central\Backups\Controllers\BackupController::class, 'download']);
+        Route::delete('/{id}',               [\App\Central\Backups\Controllers\BackupController::class, 'destroy']);
     });
 });
 
