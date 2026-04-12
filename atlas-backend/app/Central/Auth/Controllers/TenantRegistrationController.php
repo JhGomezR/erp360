@@ -88,6 +88,26 @@ class TenantRegistrationController extends Controller
     }
 
     /**
+     * Estado de configuración de un tenant recién creado.
+     * El frontend hace polling a este endpoint hasta que status != 'setting_up'.
+     *
+     * GET /auth/setup-status/{slug}
+     */
+    public function setupStatus(string $slug): JsonResponse
+    {
+        $tenant = Tenant::where('slug', $slug)->first();
+
+        if (! $tenant) {
+            return response()->json(['status' => 'not_found'], 404);
+        }
+
+        return response()->json([
+            'status' => $tenant->status,
+            'ready'  => $tenant->status !== 'setting_up',
+        ]);
+    }
+
+    /**
      * Recuperación cuando el registro completó en el servidor pero la conexión
      * HTTP expiró antes de que el cliente recibiera la respuesta.
      *

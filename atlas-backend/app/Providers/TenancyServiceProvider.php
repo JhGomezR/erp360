@@ -31,7 +31,7 @@ class TenancyServiceProvider extends ServiceProvider
                     Jobs\SeedDatabase::class,    // Ejecuta TenantSeeder (roles iniciales)
                 ])->send(function (Events\TenantCreated $event) {
                     return $event->tenant;
-                })->shouldBeQueued(false), // false = síncrono en desarrollo; true en producción con Horizon
+                })->shouldBeQueued(true), // async: el request responde de inmediato; la cola procesa Create→Migrate→Seed
             ],
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],

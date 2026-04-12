@@ -18,14 +18,21 @@ export const authApi = {
     phone?: string;
     address?: string;
     seed_puc?: boolean;
-  }) => apiClient.post<RegisterResponse>('/auth/register', data, { timeout: 120_000 }),
+  }) => apiClient.post<RegisterResponse>('/auth/register', data, { timeout: 15_000 }),
 
   /**
    * Recuperación de registro incompleto por timeout.
    * Autentica al usuario y devuelve la misma estructura que /auth/register.
    */
   resumeRegistration: (data: { email: string; password: string; plan_id?: number }) =>
-    apiClient.post<RegisterResponse>('/auth/register/resume', data, { timeout: 30_000 }),
+    apiClient.post<RegisterResponse>('/auth/register/resume', data, { timeout: 15_000 }),
+
+  /**
+   * Polling: estado de configuración del tenant recién creado.
+   * Responde inmediatamente; el frontend hace polling hasta que ready === true.
+   */
+  setupStatus: (slug: string) =>
+    apiClient.get<{ status: string; ready: boolean }>(`/auth/setup-status/${slug}`),
 
   logout: () => apiClient.post('/auth/logout'),
 

@@ -44,6 +44,8 @@ class RegisterTenantAction
         // 4. Crear el tenant FUERA de la transacción para que el CREATE SCHEMA
         //    sea visible de inmediato para las conexiones de migración.
         //    TenantCreated dispara: CreateDatabase → MigrateDatabase → SeedDatabase
+        // El pipeline (CreateDatabase→MigrateDatabase→SeedDatabase) corre en la cola (async).
+        // El tenant inicia en 'setting_up'; SeedTenantSetupJob lo cambia a 'trial' al terminar.
         $tenant = Tenant::create([
             'slug'             => $slug,
             'name'             => $dto->business_name,
@@ -52,7 +54,7 @@ class RegisterTenantAction
             'business_type_id' => $businessType?->id,
             'plan_id'          => $dto->plan_id,
             'owner_id'         => $owner->id,
-            'status'           => 'trial',
+            'status'           => 'setting_up',
             'phone'            => $dto->phone,
             'address'          => $dto->address,
             'email'            => $dto->email,

@@ -141,6 +141,11 @@ class SeedTenantSetupJob implements ShouldQueue
             }
         }
 
+        // Marcar el tenant como listo: cambia 'setting_up' → 'trial'
+        Tenant::where('id', $this->tenantId)
+            ->where('status', 'setting_up')
+            ->update(['status' => 'trial']);
+
         Log::info("SeedTenantSetupJob completado", ['tenant_id' => $this->tenantId]);
     }
 
@@ -150,5 +155,10 @@ class SeedTenantSetupJob implements ShouldQueue
             'tenant_id' => $this->tenantId,
             'error'     => $e->getMessage(),
         ]);
+
+        // Aunque falló el setup, permitir que el tenant acceda (no quedarse en 'setting_up' para siempre)
+        Tenant::where('id', $this->tenantId)
+            ->where('status', 'setting_up')
+            ->update(['status' => 'trial']);
     }
 }

@@ -9,7 +9,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   Store, UtensilsCrossed, Pill, ShoppingBag, Wrench,
   Hammer, Scissors, PawPrint, Shirt, CheckCircle2,
-  ChevronRight, ChevronLeft,
+  ChevronRight, ChevronLeft, Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,7 +63,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
-type Step = 'type' | 'info' | 'plan';
+type Step = 'type' | 'info' | 'plan' | 'setting_up';
 
 interface Props {
   businessTypes: BusinessType[];
@@ -75,6 +75,7 @@ export default function RegisterClient({ businessTypes }: Props) {
   const { setAuth, setCurrentTenant } = useAuthStore();
   const [error, setError] = useState('');
   const [step, setStep] = useState<Step>('type');
+  const [pendingTenant, setPendingTenant] = useState<{ slug: string; checkoutRequired: boolean; planId: number } | null>(null);
   const [selectedType, setSelectedType] = useState<BusinessType | null>(null);
   const [billing, setBilling] = useState<'monthly' | 'annual'>(
     searchParams.get('billing') === 'annual' ? 'annual' : 'monthly'
@@ -143,6 +144,29 @@ export default function RegisterClient({ businessTypes }: Props) {
 
   const planId = watch('plan_id');
 
+  // Polling: espera hasta que el tenant termine de configurarse
+  useEffect(() => {
+    if (step !== 'setting_up' || !pendingTenant) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await authApi.setupStatus(pendingTenant.slug);
+        if (res.data.ready) {
+          clearInterval(interval);
+          if (pendingTenant.checkoutRequired && pendingTenant.planId) {
+            router.push(`/${pendingTenant.slug}/billing/checkout?type=plan&id=${pendingTenant.planId}&billing=${billing}`);
+          } else {
+            router.push(`/${pendingTenant.slug}/dashboard`);
+          }
+        }
+      } catch {
+        // Silencioso — seguimos reintentando
+      }
+    }, 3_000);
+
+    return () => clearInterval(interval);
+  }, [step, pendingTenant, billing, router]);
+
   const handleRegistrationSuccess = (res: {
     data: {
       token: string;
@@ -155,7 +179,12 @@ export default function RegisterClient({ businessTypes }: Props) {
     const { token, user, tenant, checkout_required, plan_id } = res.data;
     setAuth(token, user, [tenant]);
     setCurrentTenant(tenant);
-    if (checkout_required && plan_id) {
+
+    if (tenant.status === 'setting_up') {
+      // El setup corre en background — mostrar pantalla de espera con polling
+      setPendingTenant({ slug: tenant.slug, checkoutRequired: checkout_required, planId: plan_id });
+      setStep('setting_up');
+    } else if (checkout_required && plan_id) {
       router.push(`/${tenant.slug}/billing/checkout?type=plan&id=${plan_id}&billing=${billing}`);
     } else {
       router.push(`/${tenant.slug}/dashboard`);
@@ -228,6 +257,33 @@ export default function RegisterClient({ businessTypes }: Props) {
     const ok = await trigger(['owner_name', 'email', 'password', 'password_confirmation', 'business_name', 'phone']);
     if (ok) setStep('plan');
   };
+
+  // ─── Step: Setting Up ────────────────────────────────────────────────────────
+
+  if (step === 'setting_up') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-4 gap-8">
+        <div className="text-5xl font-black tracking-tight text-white">Atlas</div>
+        <div className="bg-card rounded-2xl shadow-xl p-10 flex flex-col items-center gap-6 w-full max-w-sm text-center">
+          <div className="size-16 rounded-full bg-blue-50 flex items-center justify-center">
+            <Loader2 className="size-8 text-blue-600 animate-spin" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">Configurando tu negocio</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Estamos preparando tu espacio de trabajo. Esto puede tardar unos segundos…
+            </p>
+          </div>
+          <div className="w-full space-y-2 text-left text-xs text-muted-foreground">
+            <div className="flex items-center gap-2"><CheckCircle2 className="size-3.5 text-green-500 shrink-0" /> Cuenta creada</div>
+            <div className="flex items-center gap-2"><Loader2 className="size-3.5 text-blue-500 animate-spin shrink-0" /> Inicializando base de datos…</div>
+            <div className="flex items-center gap-2"><Loader2 className="size-3.5 text-muted-foreground/40 shrink-0" /> Configurando módulos y permisos…</div>
+          </div>
+        </div>
+        <p className="text-slate-500 text-xs">No cierres esta ventana</p>
+      </div>
+    );
+  }
 
   // ─── Step: Type ─────────────────────────────────────────────────────────────
 
