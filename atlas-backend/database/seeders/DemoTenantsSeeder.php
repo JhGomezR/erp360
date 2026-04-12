@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Central\Auth\Actions\RegisterTenantAction;
-use App\Central\Auth\DTOs\RegisterTenantDTO;
 use App\Central\Modules\Models\BusinessType;
 use App\Central\Plans\Models\Plan;
 use App\Central\Tenants\Models\Tenant;
@@ -126,26 +124,37 @@ class DemoTenantsSeeder extends Seeder
         }
 
         try {
-            // Si el email ya existe en central (reintento), eliminarlo primero
-            User::where('email', $demo['email'])->delete();
-
-            $dto    = new RegisterTenantDTO(
-                owner_name:       $demo['owner_name'],
-                email:            $demo['email'],
-                password:         self::PASSWORD,
-                business_name:    $demo['business_name'],
-                plan_id:          $plan->id,
-                business_type_id: $businessType->id,
-                seed_puc:         false,
+            // Crear o reutilizar el usuario propietario en central
+            // (nunca eliminamos: podría estar referenciado por un tenant anterior)
+            $owner = User::firstOrCreate(
+                ['email' => $demo['email']],
+                [
+                    'name'     => $demo['owner_name'],
+                    'password' => Hash::make(self::PASSWORD),
+                ]
             );
-            $result = (new RegisterTenantAction())->execute($dto);
-            $tenant = $result['tenant'];
 
-            // Activar el tenant y extender el trial 1 año para demos
-            $tenant->update([
-                'status'        => 'active',
-                'trial_ends_at' => now()->addYear(),
+            // Crear el tenant directamente con el slug controlado.
+            // Esto dispara: CreateDatabase → MigrateDatabase → SeedDatabase (TenantSeeder)
+            $tenant = Tenant::create([
+                'slug'             => $demo['slug'],
+                'name'             => $demo['business_name'],
+                'schema_name'      => Tenant::generateSchemaName($demo['slug']),
+                'business_type'    => $businessType->slug,
+                'business_type_id' => $businessType->id,
+                'plan_id'          => $plan->id,
+                'owner_id'         => $owner->id,
+                'status'           => 'active',
+                'email'            => $demo['email'],
+                'trial_ends_at'    => now()->addYear(),
             ]);
+
+            // Sembrar módulos, settings y roles en el schema del tenant
+            \App\Jobs\SeedTenantSetupJob::dispatch(
+                $tenant->id,
+                $businessType->id,
+                false,
+            );
 
             // Sembrar datos en el schema del tenant
             TenantContext::run($tenant, function () use ($demo) {
