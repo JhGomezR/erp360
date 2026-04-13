@@ -1,5 +1,5 @@
 import apiClient from './axios';
-import type { AuthResponse, RegisterResponse, Plan, Addon, Tenant, PaymentGateway } from '@/types';
+import type { AuthResponse, RegisterResponse, Plan, Addon, Tenant, PaymentGateway, LegalDocument } from '@/types';
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -471,6 +471,38 @@ export interface CentralRole {
   users_count: number;
   permissions: string[];  // ["tenants.view", "plans.create", ...]
 }
+
+// ─── Legal ────────────────────────────────────────────────────────────────────
+
+export const legalApi = {
+  /** Obtiene el documento publicado y vigente (público, sin auth). */
+  getPublic: (type: string, language = 'es') =>
+    apiClient.get<LegalDocument>(`/legal/${type}/${language}`),
+
+  /** Lista todos los documentos (admin — requiere auth). */
+  list: (params?: { type?: string; status?: string; language?: string }) =>
+    apiClient.get<{ data: LegalDocument[] }>('/legal', { params }),
+
+  /** Crea un documento (admin). */
+  create: (data: Partial<LegalDocument> & { content: string }) =>
+    apiClient.post<LegalDocument>('/legal', data),
+
+  /** Actualiza un documento (admin). */
+  update: (id: number, data: Partial<LegalDocument>) =>
+    apiClient.put<LegalDocument>(`/legal/${id}`, data),
+
+  /** Publica un documento en draft (admin). */
+  publish: (id: number) =>
+    apiClient.patch<LegalDocument>(`/legal/${id}/publish`),
+
+  /** Despublica un documento (admin). */
+  unpublish: (id: number) =>
+    apiClient.patch<LegalDocument>(`/legal/${id}/unpublish`),
+
+  /** Elimina un documento en draft (admin). */
+  destroy: (id: number) =>
+    apiClient.delete(`/legal/${id}`),
+};
 
 export const centralRolesApi = {
   list: () =>

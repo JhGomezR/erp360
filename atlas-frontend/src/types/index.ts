@@ -45,13 +45,24 @@ export interface Tenant {
   slug: string;
   name: string;
   business_type: 'restaurant' | 'store';
-  status: 'active' | 'suspended' | 'trial' | 'cancelled';
+  status: 'active' | 'suspended' | 'trial' | 'cancelled' | 'setting_up';
   plan_id: number;
   plan?: Plan;
   url?: string;
   trial_ends_at?: string;
   activated_at?: string;
   created_at?: string;
+}
+
+export interface LegalDocument {
+  type: 'terms' | 'privacy' | 'refund' | 'cookies' | 'contract';
+  type_label: string;
+  title: string;
+  content: string;          // Markdown
+  version: string;
+  language: string;
+  effective_date: string | null;
+  published_at: string | null;
 }
 
 export interface AuthResponse {
