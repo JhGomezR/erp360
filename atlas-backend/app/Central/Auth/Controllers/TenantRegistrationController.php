@@ -31,6 +31,9 @@ class TenantRegistrationController extends Controller
             'phone'            => ['nullable', 'string', 'max:20'],
             'address'          => ['nullable', 'string', 'max:255'],
             'seed_puc'         => ['nullable', 'boolean'],
+            // Aceptación obligatoria de términos — validada en backend (OWASP A01: no confiar solo en frontend)
+            'terms_accepted'   => ['required', 'accepted'],
+            'terms_version'    => ['required', 'string', 'max:20'],
         ]);
 
         $dto = new RegisterTenantDTO(
@@ -43,7 +46,9 @@ class TenantRegistrationController extends Controller
             business_type:    $validated['business_type']    ?? null,
             phone:            $validated['phone']            ?? null,
             address:          $validated['address']          ?? null,
-            seed_puc:         (bool) ($validated['seed_puc'] ?? false),
+            seed_puc:         (bool) ($validated['seed_puc']       ?? false),
+            terms_accepted:   (bool) ($validated['terms_accepted'] ?? false),
+            terms_version:    $validated['terms_version']          ?? null,
         );
 
         try {

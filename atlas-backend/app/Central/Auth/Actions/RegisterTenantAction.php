@@ -47,18 +47,21 @@ class RegisterTenantAction
         // El pipeline (CreateDatabase→MigrateDatabase→SeedDatabase) corre en la cola (async).
         // El tenant inicia en 'setting_up'; SeedTenantSetupJob lo cambia a 'trial' al terminar.
         $tenant = Tenant::create([
-            'slug'             => $slug,
-            'name'             => $dto->business_name,
-            'schema_name'      => Tenant::generateSchemaName($slug),
-            'business_type'    => $businessType?->slug ?? $dto->business_type ?? 'store',
-            'business_type_id' => $businessType?->id,
-            'plan_id'          => $dto->plan_id,
-            'owner_id'         => $owner->id,
-            'status'           => 'setting_up',
-            'phone'            => $dto->phone,
-            'address'          => $dto->address,
-            'email'            => $dto->email,
-            'trial_ends_at'    => now()->addDays(14),
+            'slug'               => $slug,
+            'name'               => $dto->business_name,
+            'schema_name'        => Tenant::generateSchemaName($slug),
+            'business_type'      => $businessType?->slug ?? $dto->business_type ?? 'store',
+            'business_type_id'   => $businessType?->id,
+            'plan_id'            => $dto->plan_id,
+            'owner_id'           => $owner->id,
+            'status'             => 'setting_up',
+            'phone'              => $dto->phone,
+            'address'            => $dto->address,
+            'email'              => $dto->email,
+            'trial_ends_at'      => now()->addDays(14),
+            // Evidencia legal de aceptación de términos (timestamp + versión exacta del documento)
+            'terms_accepted_at'  => $dto->terms_accepted ? now() : null,
+            'terms_version'      => $dto->terms_version,
         ]);
 
         // 5. Despachar el job de setup (módulos, settings, roles, PUC).

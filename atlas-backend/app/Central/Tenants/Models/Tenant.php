@@ -33,13 +33,16 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'logo_url',
         'trial_ends_at',
         'activated_at',
+        'terms_accepted_at',
+        'terms_version',
         'data',
     ];
 
     protected $casts = [
-        'trial_ends_at' => 'datetime',
-        'activated_at'  => 'datetime',
-        'data'          => 'array',
+        'trial_ends_at'    => 'datetime',
+        'activated_at'     => 'datetime',
+        'terms_accepted_at'=> 'datetime',
+        'data'             => 'array',
     ];
 
     // ─── VirtualColumn: columnas reales en la tabla (NO van al JSON data) ────
@@ -62,6 +65,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'logo_url',
             'trial_ends_at',
             'activated_at',
+            'terms_accepted_at',
+            'terms_version',
             'created_at',
             'updated_at',
             'deleted_at',

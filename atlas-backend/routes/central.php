@@ -23,6 +23,7 @@ use App\Central\Params\Controllers\PublicSettingsController;
 use App\Shared\Media\MediaController;
 use App\Shared\Media\CentralMediaController;
 use App\Central\Auth\Controllers\CentralUserController;
+use App\Central\Legal\Controllers\LegalDocumentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -233,6 +234,17 @@ Route::middleware(['auth:api', 'role:super'])->group(function () {
         Route::get('/{key}',   [SystemParamController::class, 'show']);    // single param with cast value
     });
 
+    // ─── Documentos Legales (admin) ───────────────────────────────────────────
+    Route::prefix('legal')->group(function () {
+        Route::get('/',              [LegalDocumentController::class, 'index']);
+        Route::post('/',             [LegalDocumentController::class, 'store']);
+        Route::get('/{id}',          [LegalDocumentController::class, 'show']);
+        Route::put('/{id}',          [LegalDocumentController::class, 'update']);
+        Route::patch('/{id}/publish',   [LegalDocumentController::class, 'publish']);
+        Route::patch('/{id}/unpublish', [LegalDocumentController::class, 'unpublish']);
+        Route::delete('/{id}',       [LegalDocumentController::class, 'destroy']);
+    });
+
     // ─── Backups de Base de Datos ─────────────────────────────────────────────
     Route::prefix('backups')->group(function () {
         Route::get('/',                      [\App\Central\Backups\Controllers\BackupController::class, 'index']);
@@ -243,6 +255,18 @@ Route::middleware(['auth:api', 'role:super'])->group(function () {
         Route::delete('/{id}',               [\App\Central\Backups\Controllers\BackupController::class, 'destroy']);
     });
 });
+
+// ─── Documentos Legales (público) ────────────────────────────────────────────
+// Whitelist de tipos en ->where() previene enumeración de recursos (OWASP A01)
+// La caché Redis de 1 hora en el controller reduce la carga en BD
+Route::get('legal/{type}', [LegalDocumentController::class, 'showPublic'])
+    ->where('type', implode('|', \App\Central\Legal\Models\LegalDocument::TYPES))
+    ->middleware('throttle:60,1');
+
+Route::get('legal/{type}/{language}', [LegalDocumentController::class, 'showPublic'])
+    ->where('type', implode('|', \App\Central\Legal\Models\LegalDocument::TYPES))
+    ->where('language', '[a-z]{2}')
+    ->middleware('throttle:60,1');
 
 // ─── Monedas y tasas de cambio ────────────────────────────────────────────────
 

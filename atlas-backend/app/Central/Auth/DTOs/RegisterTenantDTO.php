@@ -12,10 +12,13 @@ class RegisterTenantDTO extends Data
         public readonly string  $password,
         public readonly string  $business_name,
         public readonly int     $plan_id,
-        public readonly ?int    $business_type_id = null, // FK al nuevo módulo de tipos de negocio
-        public readonly ?string $business_type    = null, // legacy string: restaurant | store
-        public readonly ?string $phone            = null,
-        public readonly ?string $address          = null,
-        public readonly bool    $seed_puc         = false,
+        public readonly ?int    $business_type_id  = null,
+        public readonly ?string $business_type     = null,
+        public readonly ?string $phone             = null,
+        public readonly ?string $address           = null,
+        public readonly bool    $seed_puc          = false,
+        // Aceptación de términos — validada en el backend con 'accepted' (OWASP A01)
+        public readonly bool    $terms_accepted    = false,
+        public readonly ?string $terms_version     = null,
     ) {}
 }
