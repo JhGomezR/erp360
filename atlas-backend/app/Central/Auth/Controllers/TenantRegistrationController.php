@@ -10,7 +10,9 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class TenantRegistrationController extends Controller
 {
@@ -54,13 +56,21 @@ class TenantRegistrationController extends Controller
         try {
             $result = $this->registerAction->execute($dto);
         } catch (\Exception $e) {
+            Log::error('register.failed', [
+                'email' => $validated['email'] ?? null,
+                'ip'    => $request->ip(),
+                'error' => $e->getMessage(),
+            ]);
+            $this->auditRegister('auth.register_failed', $validated['email'] ?? null, $request->ip());
             return response()->json([
-                'message' => 'Error al crear la cuenta: ' . $e->getMessage(),
+                'message' => 'No se pudo crear la cuenta. Por favor intenta de nuevo.',
             ], 500);
         }
 
         $owner  = $result['owner'];
         $tenant = $result['tenant'];
+
+        $this->auditRegister('auth.register', $owner->email, $request->ip(), $owner->id, $tenant->id);
 
         // Determinar si el plan seleccionado requiere pago
         $plan             = Plan::find($validated['plan_id']);
@@ -175,5 +185,31 @@ class TenantRegistrationController extends Controller
                 'plan'             => $plan,          // necesario para filtrar módulos en el sidebar
             ],
         ]);
+    }
+
+    private function auditRegister(string $action, ?string $email, ?string $ip, ?int $userId = null, ?string $tenantId = null): void
+    {
+        try {
+            DB::connection('pgsql')->table('audit_logs')->insert([
+                'user_id'     => $userId,
+                'user_email'  => $email,
+                'user_name'   => null,
+                'action'      => $action,
+                'level'       => str_contains($action, 'failed') ? 'warning' : 'info',
+                'module'      => 'auth',
+                'ip_address'  => $ip,
+                'user_agent'  => request()?->userAgent(),
+                'device_type' => null,
+                'device_name' => null,
+                'browser'     => null,
+                'os'          => null,
+                'description' => $action === 'auth.register'
+                    ? "Nuevo tenant registrado: {$email} (tenant: {$tenantId})"
+                    : "Registro fallido para: {$email}",
+                'created_at'  => now(),
+            ]);
+        } catch (\Throwable) {
+            // El audit log nunca debe romper el registro
+        }
     }
 }

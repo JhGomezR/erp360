@@ -1,0 +1,140 @@
+name: CI / CD
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+# Cancela runs anteriores del mismo branch/PR al hacer nuevo push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Backend: PHPUnit ───────────────────────────────────────────────────────
+  test-backend:
+    name: Backend (PHPUnit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: atlas-backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, json, mbstring, openssl, tokenizer, xml
+          coverage: none
+          ini-values: memory_limit=512M
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: atlas-backend/vendor
+          key: composer-${{ hashFiles('atlas-backend/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+
+      - name: Prepare .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+
+      - name: Run tests
+        run: php artisan test --parallel
+
+  # ── Frontend: ESLint + Build check ────────────────────────────────────────
+  lint-frontend:
+    name: Frontend (ESLint + Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: atlas-frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: atlas-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Build check
+        run: npm run build
+        env:
+          # Valores vacíos para que Next.js pueda hacer el build sin API real
+          NEXT_PUBLIC_API_URL: https://atlaserp.com.co/api
+          NEXT_PUBLIC_REVERB_HOST: atlaserp.com.co
+          NEXT_PUBLIC_REVERB_PORT: '443'
+          NEXT_PUBLIC_REVERB_SCHEME: https
+          NEXT_PUBLIC_REVERB_APP_KEY: ci-build
+
+  # ── Security Audit ─────────────────────────────────────────────────────────
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Composer audit (CVE check)
+        working-directory: atlas-backend
+        run: composer audit
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: NPM audit (high+)
+        working-directory: atlas-frontend
+        # Informativo: reporta pero no bloquea el deploy por advisories de deps
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  # ── Deploy to Production ───────────────────────────────────────────────────
+  deploy:
+    name: Deploy → Production
+    needs: [test-backend, lint-frontend]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production          # Requiere aprobación manual si se configura en GitHub
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script_stop: true          # Abort on first error
+          script: |
+            set -e
+            cd "${{ secrets.DEPLOY_PATH }}"
+            chmod +x deploy.sh
+
+            # pull ya está integrado en deploy.sh — reconstruye con cache Docker
+            ./deploy.sh
+
+            echo "Deploy completado: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"

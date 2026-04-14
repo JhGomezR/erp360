@@ -39,7 +39,7 @@ Route::get('health', \App\Central\Health\Controllers\HealthCheckController::clas
 Route::prefix('auth')->group(function () {
     Route::post('register',              [TenantRegistrationController::class, 'register'])->middleware('throttle:register');
     Route::post('register/resume',       [TenantRegistrationController::class, 'resume'])->middleware('throttle:register');
-    Route::get('setup-status/{slug}',    [TenantRegistrationController::class, 'setupStatus']);
+    Route::get('setup-status/{slug}',    [TenantRegistrationController::class, 'setupStatus'])->middleware('throttle:60,1');
     Route::post('login',           [AuthController::class, 'login'])->middleware('throttle:login');
     Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword'])->middleware('throttle:password-reset');
     Route::post('reset-password',  [PasswordResetController::class, 'resetPassword'])->middleware('throttle:password-reset');
