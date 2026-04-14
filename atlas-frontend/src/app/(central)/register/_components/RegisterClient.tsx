@@ -9,14 +9,14 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   Store, UtensilsCrossed, Pill, ShoppingBag, Wrench,
   Hammer, Scissors, PawPrint, Shirt, CheckCircle2,
-  ChevronRight, ChevronLeft, Loader2,
+  ChevronRight, ChevronLeft, Loader2, ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { FieldError, FieldHint, FormAlert } from '@/components/ui/field-error';
-import { authApi, plansApi, type BusinessType } from '@/lib/api/central.api';
+import { authApi, plansApi, legalApi, type BusinessType } from '@/lib/api/central.api';
 import { useAuthStore } from '@/store/authStore';
 import { parseApiError, parseFieldErrors } from '@/lib/notify';
 import type { Plan } from '@/types';
@@ -54,6 +54,11 @@ const registerSchema = z.object({
   plan_id:               z.number({ error: 'Selecciona un plan' }).positive('Debes seleccionar un plan para continuar'),
   phone:                 z.string().optional(),
   seed_puc:              z.boolean().optional(),
+  // Aceptación de términos — obligatoria, validada también en el backend (OWASP A01)
+  terms_accepted:        z.boolean().refine((v) => v === true, {
+    message: 'Debes aceptar los términos y condiciones para continuar',
+  }),
+  terms_version:         z.string().min(1),
 }).refine((d) => d.password === d.password_confirmation, {
   message: 'Las contraseñas no coinciden',
   path: ['password_confirmation'],
@@ -87,6 +92,14 @@ export default function RegisterClient({ businessTypes }: Props) {
     queryKey: ['plans-public'],
     queryFn: () => plansApi.list().then((r) => r.data),
     enabled: step === 'plan',
+  });
+
+  // Obtiene la versión vigente del documento de términos para incluirla en el registro
+  const { data: termsDoc } = useQuery({
+    queryKey: ['legal-terms-public'],
+    queryFn: () => legalApi.getPublic('terms').then((r) => r.data),
+    enabled: step === 'plan',
+    retry: false,
   });
 
   // Pre-select from landing URL params (?type=farmacia, ?plan=starter&plan_type=store)
@@ -131,6 +144,14 @@ export default function RegisterClient({ businessTypes }: Props) {
     if (match) setValue('plan_id', match.id as any);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plans]);
+
+  // Sincronizar la versión del documento de términos en el formulario
+  useEffect(() => {
+    if (termsDoc?.version) {
+      setValue('terms_version', termsDoc.version);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [termsDoc]);
 
   const {
     register,
@@ -477,6 +498,40 @@ export default function RegisterClient({ businessTypes }: Props) {
               )}
             </div>
             <FieldError message={errors.plan_id?.message} />
+
+            {/* Aceptación obligatoria de términos */}
+            <div className={cn(
+              'flex items-start gap-3 rounded-lg border p-3 mt-4 transition-colors',
+              errors.terms_accepted ? 'border-destructive bg-destructive/5' : 'border-dashed'
+            )}>
+              <input
+                id="terms_accepted"
+                type="checkbox"
+                {...register('terms_accepted')}
+                className="mt-0.5 size-4 rounded border-input accent-primary shrink-0"
+              />
+              <div>
+                <Label htmlFor="terms_accepted" className="cursor-pointer font-medium text-sm flex items-center gap-1.5">
+                  <ShieldCheck className="size-3.5 text-blue-500" />
+                  Acepto los términos y políticas <span className="text-destructive">*</span>
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  He leído y acepto los{' '}
+                  <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                    Términos y Condiciones
+                  </a>{' '}
+                  y la{' '}
+                  <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                    Política de Tratamiento de Datos
+                  </a>{' '}
+                  de Atlas ERP.
+                  {termsDoc?.version && (
+                    <span className="text-muted-foreground/60 ml-1">(v{termsDoc.version})</span>
+                  )}
+                </p>
+                <FieldError message={errors.terms_accepted?.message} />
+              </div>
+            </div>
 
             <FormAlert type="error" message={error} />
 
