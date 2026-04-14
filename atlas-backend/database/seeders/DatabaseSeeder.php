@@ -23,13 +23,23 @@ class DatabaseSeeder extends Seeder
         $this->call(PlansSeeder::class);
 
         // 5. Super admin (idempotente)
-        User::firstOrCreate(
+        $superAdmin = User::firstOrCreate(
             ['email' => 'super@atlas.dev'],
             [
                 'name'     => 'Super Admin',
                 'password' => Hash::make('Atlas@Super2024!'),
             ]
         );
+
+        // Asignar rol 'super' (guard api) — sin este rol el frontend redirige a /register
+        if (class_exists(\Spatie\Permission\Models\Role::class)) {
+            $superRole = \Spatie\Permission\Models\Role::firstOrCreate(
+                ['name' => 'super', 'guard_name' => 'api']
+            );
+            if (! $superAdmin->hasRole($superRole)) {
+                $superAdmin->assignRole($superRole);
+            }
+        }
 
         // 6. Tenants de demostración (uno por tipo de negocio)
         $this->call(DemoTenantsSeeder::class);

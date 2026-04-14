@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,11 +26,23 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuth, setCurrentTenant } = useAuthStore();
+  const { setAuth, setCurrentTenant, isAuthenticated, isSuperAdmin, tenants } = useAuthStore();
   const [requiresTotp, setRequiresTotp] = useState(false);
   const [error, setError] = useState('');
   const { branding } = usePublicSettings();
   const bg = useBgStyle(branding);
+
+  // Redirigir a usuarios ya autenticados para evitar loops y creación de tenants por error
+  useEffect(() => {
+    if (!isAuthenticated()) return;
+    if (isSuperAdmin()) {
+      router.replace('/atlas-mandragora/tenants');
+    } else if (tenants.length === 1) {
+      router.replace(`/${tenants[0].slug}/dashboard`);
+    } else if (tenants.length > 1) {
+      router.replace('/select-tenant');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     register,

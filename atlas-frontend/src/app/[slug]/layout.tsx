@@ -32,7 +32,7 @@ export default function TenantRootLayout({ children }: { children: React.ReactNo
       return;
     }
 
-    // Actualizar tenant activo si cambió
+    // Actualizar tenant activo si cambió de slug — también limpia el tenant token
     if (currentTenant?.slug !== slug) {
       setCurrentTenant(tenant);
     }
@@ -40,8 +40,11 @@ export default function TenantRootLayout({ children }: { children: React.ReactNo
     // Fijar slug para que tenant.api.ts construya las URLs correctas
     setTenantSlug(slug);
 
-    // Si no hay token tenant vigente, hacer exchange automático
-    if (!hasTenantToken()) {
+    // Si el tenant token guardado es de un slug distinto al actual,
+    // forzar exchange para obtener uno válido para este tenant.
+    const needsExchange = !hasTenantToken() || currentTenant?.slug !== slug;
+
+    if (needsExchange) {
       tenantAuthApi
         .exchange(slug)
         .then((res) => {
@@ -50,7 +53,7 @@ export default function TenantRootLayout({ children }: { children: React.ReactNo
           setReady(true);
         })
         .catch(() => {
-          // El usuario central no tiene cuenta en este tenant
+          // El usuario central no tiene cuenta activa en este tenant
           router.replace('/login');
         });
     } else {
