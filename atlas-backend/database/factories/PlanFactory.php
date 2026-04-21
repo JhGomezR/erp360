@@ -29,7 +29,6 @@ class PlanFactory extends Factory
             'price_annual'       => fake()->randomFloat(2, 100, 5000),
             'annual_discount_pct'=> fake()->numberBetween(5, 30),
             'max_users'          => fake()->randomElement([5, 10, 25, 50, 100]),
-            'max_products'       => fake()->randomElement([100, 500, 1000, null]),
             'modules'            => ['inventory', 'sales', 'reports'],
             'is_active'          => true,
             'is_featured'        => false,
