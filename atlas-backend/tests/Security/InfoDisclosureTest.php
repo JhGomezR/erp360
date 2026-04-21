@@ -26,7 +26,7 @@ class InfoDisclosureTest extends TestCase
 
     // ── Stack traces ──────────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function errores_500_no_exponen_stack_trace(): void
     {
         // Endpoint que podría generar error interno
@@ -40,7 +40,7 @@ class InfoDisclosureTest extends TestCase
         $this->assertStringNotContainsString('#0 ', $content); // Stack frame format
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function errores_de_validacion_no_revelan_estructura_interna(): void
     {
         $response = $this->postJson('/api/auth/login', []);
@@ -55,7 +55,7 @@ class InfoDisclosureTest extends TestCase
 
     // ── Headers de seguridad ──────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function x_powered_by_no_revela_version_de_php(): void
     {
         $response = $this->getJson('/api/plans');
@@ -65,7 +65,7 @@ class InfoDisclosureTest extends TestCase
             'X-Powered-By no debe revelar la versión de PHP');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function server_header_no_revela_version_de_servidor(): void
     {
         $response = $this->getJson('/api/plans');
@@ -78,7 +78,7 @@ class InfoDisclosureTest extends TestCase
 
     // ── User Enumeration ──────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function no_se_puede_enumerar_usuarios_por_mensaje_de_error(): void
     {
         User::factory()->create(['email' => 'existente@test.com']);
@@ -101,7 +101,7 @@ class InfoDisclosureTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function forgot_password_no_confirma_si_email_existe(): void
     {
         User::factory()->create(['email' => 'existe@test.com']);
@@ -121,7 +121,7 @@ class InfoDisclosureTest extends TestCase
 
     // ── Datos sensibles en respuestas ─────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function perfil_de_usuario_no_incluye_password_hash(): void
     {
         $user = User::factory()->create();
@@ -134,7 +134,7 @@ class InfoDisclosureTest extends TestCase
         $this->assertArrayNotHasKey('totp_secret', $response->json());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function lista_de_planes_no_expone_datos_internos_de_bd(): void
     {
         $response = $this->getJson('/api/plans');
@@ -146,7 +146,7 @@ class InfoDisclosureTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function ruta_no_existente_retorna_404_json_no_html(): void
     {
         $response = $this->getJson('/api/ruta-que-no-existe');
@@ -157,7 +157,7 @@ class InfoDisclosureTest extends TestCase
         $this->assertStringNotContainsString('<html', strtolower($response->getContent()));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function metodo_http_no_permitido_retorna_405(): void
     {
         // GET en lugar de POST en login

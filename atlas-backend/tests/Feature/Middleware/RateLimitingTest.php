@@ -28,7 +28,7 @@ class RateLimitingTest extends TestCase
 
     // ── Login rate limiting ───────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_permite_intentos_normales(): void
     {
         User::factory()->create([
@@ -44,7 +44,7 @@ class RateLimitingTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_bloquea_despues_de_demasiados_intentos_fallidos(): void
     {
         User::factory()->create([
@@ -70,7 +70,7 @@ class RateLimitingTest extends TestCase
             'El endpoint de login debe bloquear después de múltiples intentos fallidos (429)');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function respuesta_429_incluye_retry_after_header(): void
     {
         for ($i = 0; $i < 20; $i++) {
@@ -93,7 +93,7 @@ class RateLimitingTest extends TestCase
 
     // ── API pública no tiene rate limit agresivo ──────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function planes_publicos_pueden_ser_consultados_multiples_veces(): void
     {
         // La landing page hace múltiples refreshes — no debe ser bloqueada
@@ -102,7 +102,7 @@ class RateLimitingTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function business_types_publicos_no_bloquean_en_uso_normal(): void
     {
         for ($i = 0; $i < 10; $i++) {

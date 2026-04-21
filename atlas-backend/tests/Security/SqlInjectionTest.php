@@ -28,7 +28,7 @@ class SqlInjectionTest extends TestCase
 
     // ── Login SQLi — Authentication Bypass ───────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function sql_injection_en_email_no_autentica_sin_credenciales(): void
     {
         User::factory()->create(['email' => 'admin@atlas.dev']);
@@ -47,7 +47,7 @@ class SqlInjectionTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function sql_injection_en_password_no_autentica(): void
     {
         User::factory()->create([
@@ -75,7 +75,7 @@ class SqlInjectionTest extends TestCase
 
     // ── SQLi en parámetros GET ────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function sql_injection_en_id_de_plan_no_expone_datos(): void
     {
         Plan::factory()->count(3)->create(['type' => 'store']);
@@ -101,7 +101,7 @@ class SqlInjectionTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function respuesta_de_error_no_revela_estructura_de_bd(): void
     {
         // Error-based SQLi: si la BD lanza excepción, no debe revelar tabla/columna
@@ -123,7 +123,7 @@ class SqlInjectionTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function laravel_usa_prepared_statements_para_todas_las_queries(): void
     {
         // Prueba estructural: verificar que los modelos usan Eloquent (PDO)
@@ -143,7 +143,7 @@ class SqlInjectionTest extends TestCase
         $this->assertNotNull($real);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function sql_injection_en_filtros_de_planes_no_expone_usuarios(): void
     {
         User::factory()->count(5)->create();

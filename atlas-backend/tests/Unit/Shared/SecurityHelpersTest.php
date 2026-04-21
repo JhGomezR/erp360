@@ -15,7 +15,7 @@ class SecurityHelpersTest extends TestCase
 {
     // ── Sanitización de entrada ────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function json_no_serializa_objetos_con_datos_sensibles(): void
     {
         $data = [
@@ -35,7 +35,7 @@ class SecurityHelpersTest extends TestCase
         $this->assertArrayHasKey('email', $safe);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function tokens_sanctum_tienen_formato_id_pipe_raw(): void
     {
         // El formato Sanctum es: {id}|{rawToken}
@@ -47,7 +47,7 @@ class SecurityHelpersTest extends TestCase
         $this->assertGreaterThanOrEqual(40, strlen($parts[1]));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function hash_sha256_de_token_no_es_reversible(): void
     {
         $raw    = 'rawTokenValue123456789012345678901234567890';
@@ -59,7 +59,7 @@ class SecurityHelpersTest extends TestCase
         $this->assertFalse(function_exists('sha256_decode'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bcrypt_password_no_revela_password_original(): void
     {
         $password = 'MySecret@2024!';
@@ -73,7 +73,7 @@ class SecurityHelpersTest extends TestCase
 
     // ── Validación de entradas maliciosas ─────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function payload_xss_en_nombre_no_ejecuta_script(): void
     {
         foreach ($this->xssPayloads() as $payload) {
@@ -85,7 +85,7 @@ class SecurityHelpersTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function html_entities_encode_previene_xss_en_output(): void
     {
         $malicious = '<script>alert("xss")</script>';
@@ -95,7 +95,7 @@ class SecurityHelpersTest extends TestCase
         $this->assertStringContainsString('&lt;script&gt;', $encoded);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function longitud_maxima_de_campos_previene_buffer_overflow(): void
     {
         $maxLength = 100;
@@ -110,7 +110,7 @@ class SecurityHelpersTest extends TestCase
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function email_invalido_es_rechazado_por_validacion(): void
     {
         $invalids = [
@@ -132,7 +132,7 @@ class SecurityHelpersTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function null_byte_en_strings_no_trunca_campos(): void
     {
         $withNull  = "normal\0injection";

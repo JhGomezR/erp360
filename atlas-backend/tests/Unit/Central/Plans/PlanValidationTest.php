@@ -21,7 +21,7 @@ class PlanValidationTest extends TestCase
 
     // ── Modelo Plan ───────────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function plan_model_tiene_campos_fillable_correctos(): void
     {
         $plan = new Plan();
@@ -35,7 +35,7 @@ class PlanValidationTest extends TestCase
         $this->assertContains('is_active', $fillable);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function plan_acepta_todos_los_tipos_de_negocio_registrados(): void
     {
         $types = ['store', 'restaurant', 'pharmacy', 'supermarket', 'workshop',
@@ -53,7 +53,7 @@ class PlanValidationTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function plan_slug_debe_ser_unico(): void
     {
         Plan::factory()->create(['slug' => 'plan-basico', 'type' => 'store']);
@@ -66,7 +66,7 @@ class PlanValidationTest extends TestCase
         Plan::factory()->create(['slug' => 'plan-basico', 'type' => 'store']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function plan_price_no_puede_ser_negativo(): void
     {
         $validator = \Illuminate\Support\Facades\Validator::make(
@@ -78,7 +78,7 @@ class PlanValidationTest extends TestCase
         $this->assertArrayHasKey('price', $validator->errors()->toArray());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function plan_modules_debe_ser_array(): void
     {
         $validator = \Illuminate\Support\Facades\Validator::make(
@@ -89,7 +89,7 @@ class PlanValidationTest extends TestCase
         $this->assertTrue($validator->fails());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function plan_con_datos_validos_pasa_validacion(): void
     {
         BusinessType::factory()->create(['slug' => 'store']);
@@ -116,7 +116,7 @@ class PlanValidationTest extends TestCase
 
     // ── Caja Blanca: valores límite ───────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function plan_con_precio_cero_es_valido_plan_gratuito(): void
     {
         $validator = \Illuminate\Support\Facades\Validator::make(
@@ -127,7 +127,7 @@ class PlanValidationTest extends TestCase
         $this->assertFalse($validator->fails(), 'Precio 0 debe ser válido para planes gratuitos');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function plan_max_users_null_significa_ilimitado(): void
     {
         $plan = Plan::factory()->create(['max_users' => null, 'type' => 'store']);
@@ -135,7 +135,7 @@ class PlanValidationTest extends TestCase
         $this->assertNull($plan->max_users, 'null en max_users = usuarios ilimitados');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function plan_anual_descuento_no_puede_superar_100_pct(): void
     {
         $validator = \Illuminate\Support\Facades\Validator::make(

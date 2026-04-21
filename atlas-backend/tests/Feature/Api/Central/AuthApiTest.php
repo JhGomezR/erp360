@@ -28,7 +28,7 @@ class AuthApiTest extends TestCase
 
     // ── Login exitoso ─────────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_exitoso_retorna_200_con_token_y_usuario(): void
     {
         User::factory()->create([
@@ -51,7 +51,7 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('token_type', 'bearer');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_no_expone_password_en_respuesta(): void
     {
         User::factory()->create([
@@ -69,7 +69,7 @@ class AuthApiTest extends TestCase
         $this->assertArrayNotHasKey('totp_secret', $content['user'] ?? []);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_no_incluye_plan_completo_en_tenants(): void
     {
         User::factory()->create([
@@ -92,7 +92,7 @@ class AuthApiTest extends TestCase
 
     // ── Credenciales inválidas ────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_con_password_incorrecto_retorna_401(): void
     {
         User::factory()->create([
@@ -109,7 +109,7 @@ class AuthApiTest extends TestCase
         $this->assertArrayNotHasKey('token', $response->json());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_con_email_inexistente_retorna_401(): void
     {
         $response = $this->postJson('/api/auth/login', [
@@ -120,7 +120,7 @@ class AuthApiTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function mensaje_de_error_es_generico_no_revela_si_usuario_existe(): void
     {
         // Caja Negra: el mensaje de error debe ser el mismo para usuario
@@ -146,7 +146,7 @@ class AuthApiTest extends TestCase
 
     // ── Validación de entrada ─────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_sin_email_retorna_422(): void
     {
         $this->postJson('/api/auth/login', ['password' => 'Password123!'])
@@ -154,7 +154,7 @@ class AuthApiTest extends TestCase
             ->assertJsonValidationErrors(['email']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_sin_password_retorna_422(): void
     {
         $this->postJson('/api/auth/login', ['email' => 'test@test.com'])
@@ -162,7 +162,7 @@ class AuthApiTest extends TestCase
             ->assertJsonValidationErrors(['password']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_con_email_invalido_retorna_422(): void
     {
         $this->postJson('/api/auth/login', [
@@ -174,13 +174,13 @@ class AuthApiTest extends TestCase
 
     // ── Autenticación requerida ───────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function ruta_me_sin_token_retorna_401(): void
     {
         $this->getJson('/api/auth/me')->assertStatus(401);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function ruta_me_con_token_valido_retorna_200(): void
     {
         $user = User::factory()->create();
@@ -192,7 +192,7 @@ class AuthApiTest extends TestCase
 
     // ── Logout ────────────────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function logout_revoca_token_correctamente(): void
     {
         $user  = User::factory()->create();
@@ -212,7 +212,7 @@ class AuthApiTest extends TestCase
 
     // ── Super Admin ───────────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function super_admin_tiene_rol_super_en_respuesta(): void
     {
         $user = User::factory()->create([
@@ -231,7 +231,7 @@ class AuthApiTest extends TestCase
         $this->assertContains('super', $response->json('user.roles'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function usuario_normal_no_tiene_rol_super(): void
     {
         User::factory()->create([

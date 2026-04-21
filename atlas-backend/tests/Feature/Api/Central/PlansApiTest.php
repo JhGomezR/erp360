@@ -35,7 +35,7 @@ class PlansApiTest extends TestCase
 
     // ── GET /api/plans — Público ──────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function cualquier_usuario_puede_listar_planes_activos(): void
     {
         Plan::factory()->count(3)->create(['is_active' => true, 'type' => 'store']);
@@ -48,7 +48,7 @@ class PlansApiTest extends TestCase
         $this->assertCount(3, $data);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function listar_planes_sin_filtro_retorna_todos(): void
     {
         Plan::factory()->count(5)->create(['type' => 'store']);
@@ -59,7 +59,7 @@ class PlansApiTest extends TestCase
         $this->assertCount(5, $response->json());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function planes_publicos_no_requieren_autenticacion(): void
     {
         Plan::factory()->create(['is_active' => true, 'type' => 'store']);
@@ -69,7 +69,7 @@ class PlansApiTest extends TestCase
 
     // ── POST /api/plans — Solo super admin ────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function super_admin_puede_crear_plan(): void
     {
         $admin = $this->createSuperAdmin();
@@ -92,7 +92,7 @@ class PlansApiTest extends TestCase
         $this->assertDatabaseHas('plans', ['slug' => 'basico-test']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function usuario_sin_rol_super_no_puede_crear_plan(): void
     {
         $user = User::factory()->create();
@@ -106,7 +106,7 @@ class PlansApiTest extends TestCase
         ], $this->authHeader($user))->assertStatus(403);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function usuario_anonimo_no_puede_crear_plan(): void
     {
         $this->postJson('/api/plans', [
@@ -117,7 +117,7 @@ class PlansApiTest extends TestCase
         ])->assertStatus(401);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function crear_plan_con_tipo_de_negocio_invalido_retorna_422(): void
     {
         $admin = $this->createSuperAdmin();
@@ -135,7 +135,7 @@ class PlansApiTest extends TestCase
             ->assertJsonValidationErrors(['type']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function crear_plan_acepta_todos_los_tipos_de_negocio_registrados(): void
     {
         $admin = $this->createSuperAdmin();
@@ -160,7 +160,7 @@ class PlansApiTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function crear_plan_con_slug_duplicado_retorna_422(): void
     {
         $admin = $this->createSuperAdmin();
@@ -179,7 +179,7 @@ class PlansApiTest extends TestCase
 
     // ── PUT /api/plans/{id} ───────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function super_admin_puede_actualizar_plan(): void
     {
         $admin = $this->createSuperAdmin();
@@ -192,7 +192,7 @@ class PlansApiTest extends TestCase
         ->assertJsonPath('price', 75000);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function usuario_sin_rol_no_puede_actualizar_plan(): void
     {
         $user = User::factory()->create();
@@ -204,7 +204,7 @@ class PlansApiTest extends TestCase
 
     // ── DELETE /api/plans/{id} ────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function eliminar_plan_lo_desactiva_no_lo_borra(): void
     {
         $admin = $this->createSuperAdmin();

@@ -30,7 +30,7 @@ class LoginActionTest extends TestCase
 
     // ── Flujo exitoso ─────────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_con_credenciales_validas_retorna_token_y_usuario(): void
     {
         $user = User::factory()->create([
@@ -48,7 +48,7 @@ class LoginActionTest extends TestCase
         $this->assertEquals($user->email, $result['user']['email']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function la_respuesta_del_login_no_expone_password_ni_datos_sensibles(): void
     {
         User::factory()->create([
@@ -64,7 +64,7 @@ class LoginActionTest extends TestCase
         $this->assertArrayNotHasKey('remember_token', $result['user']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function la_respuesta_no_incluye_plan_completo_en_tenants(): void
     {
         User::factory()->create([
@@ -86,7 +86,7 @@ class LoginActionTest extends TestCase
 
     // ── Flujos de error ───────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_con_password_incorrecto_lanza_excepcion(): void
     {
         User::factory()->create([
@@ -100,7 +100,7 @@ class LoginActionTest extends TestCase
         $this->action->execute($dto);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_con_email_inexistente_lanza_excepcion(): void
     {
         $this->expectException(\Exception::class);
@@ -109,7 +109,7 @@ class LoginActionTest extends TestCase
         $this->action->execute($dto);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function login_con_usuario_sin_totp_requerido_pasa_sin_codigo(): void
     {
         $user = User::factory()->create([
@@ -126,7 +126,7 @@ class LoginActionTest extends TestCase
 
     // ── Caja Blanca: casos límite ─────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function emails_con_diferente_case_no_autentican_al_mismo_usuario(): void
     {
         User::factory()->create([
@@ -140,7 +140,7 @@ class LoginActionTest extends TestCase
         $this->action->execute($dto);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function password_vacio_no_autentica(): void
     {
         User::factory()->create([

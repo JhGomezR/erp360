@@ -25,7 +25,7 @@ class XssInjectionTest extends TestCase
 
     // ── Stored XSS — Campos de registro ──────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function campo_nombre_en_registro_rechaza_o_escapa_xss(): void
     {
         foreach ($this->xssPayloads() as $payload) {
@@ -59,7 +59,7 @@ class XssInjectionTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function api_retorna_content_type_json_no_html(): void
     {
         // Verificar que la API siempre retorna JSON, nunca HTML (previene reflected XSS)
@@ -74,7 +74,7 @@ class XssInjectionTest extends TestCase
         $this->assertStringNotContainsString('text/html', $contentType);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function payloads_xss_en_query_params_no_son_reflejados(): void
     {
         foreach ($this->xssPayloads() as $payload) {
@@ -90,7 +90,7 @@ class XssInjectionTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function nombre_de_plan_almacenado_con_xss_no_ejecuta_en_api(): void
     {
         $admin = $this->actingAsSuperAdmin();
@@ -124,7 +124,7 @@ class XssInjectionTest extends TestCase
 
     // ── Security Headers ──────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function api_incluye_header_x_content_type_options(): void
     {
         $response = $this->getJson('/api/plans');
@@ -136,7 +136,7 @@ class XssInjectionTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function api_no_retorna_server_version_en_headers(): void
     {
         $response = $this->getJson('/api/plans');

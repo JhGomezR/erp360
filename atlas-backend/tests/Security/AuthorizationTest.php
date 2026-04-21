@@ -29,7 +29,7 @@ class AuthorizationTest extends TestCase
 
     // ── IDOR — Insecure Direct Object Reference ───────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function usuario_no_puede_ver_datos_de_otro_usuario(): void
     {
         $userA = User::factory()->create();
@@ -43,7 +43,7 @@ class AuthorizationTest extends TestCase
             'Un usuario no debe poder ver datos de otro usuario por ID');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function usuario_normal_no_puede_acceder_a_panel_super_admin(): void
     {
         $user = User::factory()->create();
@@ -63,7 +63,7 @@ class AuthorizationTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function token_invalido_o_expirado_retorna_401(): void
     {
         $fakeTokens = [
@@ -84,7 +84,7 @@ class AuthorizationTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function token_de_otro_usuario_no_puede_usarse_para_acceder(): void
     {
         $userA = User::factory()->create();
@@ -106,7 +106,7 @@ class AuthorizationTest extends TestCase
 
     // ── Privilege Escalation ──────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function usuario_no_puede_asignarse_rol_super_a_si_mismo(): void
     {
         $user = User::factory()->create();
@@ -123,7 +123,7 @@ class AuthorizationTest extends TestCase
         $this->assertFalse($user->fresh()->hasRole('super'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function crear_plan_sin_autenticacion_retorna_401(): void
     {
         $this->postJson('/api/plans', [
@@ -137,7 +137,7 @@ class AuthorizationTest extends TestCase
         $this->assertDatabaseMissing('plans', ['slug' => 'intruso']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function modificar_plan_de_otro_sin_ser_super_admin_retorna_403(): void
     {
         $user = User::factory()->create();
@@ -152,7 +152,7 @@ class AuthorizationTest extends TestCase
 
     // ── Broken Access Control ─────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function endpoints_sensibles_requieren_autenticacion(): void
     {
         $sensitiveEndpoints = [
@@ -172,13 +172,13 @@ class AuthorizationTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function endpoint_salud_es_publico(): void
     {
         $this->getJson('/health')->assertStatus(200);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function endpoint_planes_get_es_publico(): void
     {
         $this->getJson('/api/plans')->assertStatus(200);
@@ -186,7 +186,7 @@ class AuthorizationTest extends TestCase
 
     // ── Mass Assignment ───────────────────────────────────────────────────────
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function registro_no_permite_asignar_rol_via_mass_assignment(): void
     {
         $response = $this->postJson('/api/auth/register', [
