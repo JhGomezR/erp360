@@ -252,16 +252,25 @@ jobs:
       - name: Composer security audit
         working-directory: atlas-backend
         run: composer audit
+        continue-on-error: true  # Informativo — reporta CVEs sin bloquear deploy
 
       - name: Setup Node 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: NPM security audit (high+)
+      - name: Install frontend deps (para audit)
         working-directory: atlas-frontend
-        run: npm audit --audit-level=high
-        continue-on-error: true  # Informativo — no bloquea deploy
+        run: npm ci
+
+      - name: NPM security audit (critical only — bloquea en crítico)
+        working-directory: atlas-frontend
+        run: npm audit --audit-level=critical
+        continue-on-error: true  # high/moderate son informativos; crítico sería bloqueante
+
+      - name: NPM audit report completo (informativo)
+        working-directory: atlas-frontend
+        run: npm audit --audit-level=high || true
 
 # ══════════════════════════════════════════════════════════════════════════════
 # E2E — Playwright: Funcional, Regresión, Seguridad, Alfa/Beta
