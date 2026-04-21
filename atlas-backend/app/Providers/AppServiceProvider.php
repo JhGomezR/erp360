@@ -26,7 +26,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Forzar conexión PostgreSQL a usar el schema public por defecto (central)
-        DB::statement("SET search_path TO public");
+        // Guard: no ejecutar en SQLite (tests) — evita error en CI
+        if (config('database.default') === 'pgsql') {
+            DB::statement("SET search_path TO public");
+        }
 
         // ── Rate Limiters ──────────────────────────────────────────────────────
         $this->configureRateLimiters();
