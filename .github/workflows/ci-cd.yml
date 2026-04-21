@@ -78,6 +78,21 @@ jobs:
       run:
         working-directory: atlas-backend
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: atlas_test
+          POSTGRES_USER: atlas
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -85,7 +100,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: pdo, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, json, mbstring, openssl, tokenizer, xml
+          extensions: pdo, pdo_pgsql, pgsql, bcmath, ctype, fileinfo, json, mbstring, openssl, tokenizer, xml
           coverage: none
           ini-values: memory_limit=512M
 
@@ -102,16 +117,26 @@ jobs:
       - name: Prepare .env
         run: |
           cp .env.example .env
-          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
-          sed -i 's|^DB_DATABASE=.*|DB_DATABASE=:memory:|' .env
-          sed -i 's|^DB_HOST=.*|DB_HOST=|' .env
+          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|' .env
+          sed -i 's|^DB_DATABASE=.*|DB_DATABASE=atlas_test|' .env
+          sed -i 's|^DB_HOST=.*|DB_HOST=127.0.0.1|' .env
+          sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env
+          sed -i 's|^DB_USERNAME=.*|DB_USERNAME=atlas|' .env
+          sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=secret|' .env
           php artisan key:generate --no-interaction
+
+      - name: Run migrations
+        run: php artisan migrate --force
 
       - name: Run Feature Tests (Rate Limiting + API)
         run: php artisan test --testsuite=Feature
         env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
+          DB_CONNECTION: pgsql
+          DB_DATABASE: atlas_test
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_USERNAME: atlas
+          DB_PASSWORD: secret
 
   # ─────────────────────────────────────────────────────────────────────────
   test-security-phpunit:
@@ -121,6 +146,21 @@ jobs:
       run:
         working-directory: atlas-backend
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: atlas_test
+          POSTGRES_USER: atlas
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -128,7 +168,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: pdo, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, json, mbstring, openssl, tokenizer, xml
+          extensions: pdo, pdo_pgsql, pgsql, bcmath, ctype, fileinfo, json, mbstring, openssl, tokenizer, xml
           coverage: none
           ini-values: memory_limit=512M
 
@@ -145,16 +185,26 @@ jobs:
       - name: Prepare .env
         run: |
           cp .env.example .env
-          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
-          sed -i 's|^DB_DATABASE=.*|DB_DATABASE=:memory:|' .env
-          sed -i 's|^DB_HOST=.*|DB_HOST=|' .env
+          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|' .env
+          sed -i 's|^DB_DATABASE=.*|DB_DATABASE=atlas_test|' .env
+          sed -i 's|^DB_HOST=.*|DB_HOST=127.0.0.1|' .env
+          sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env
+          sed -i 's|^DB_USERNAME=.*|DB_USERNAME=atlas|' .env
+          sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=secret|' .env
           php artisan key:generate --no-interaction
+
+      - name: Run migrations
+        run: php artisan migrate --force
 
       - name: Run Security Tests
         run: php artisan test --testsuite=Security
         env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
+          DB_CONNECTION: pgsql
+          DB_DATABASE: atlas_test
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_USERNAME: atlas
+          DB_PASSWORD: secret
 
       - name: Upload security test results
         uses: actions/upload-artifact@v4
@@ -171,6 +221,21 @@ jobs:
       run:
         working-directory: atlas-backend
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: atlas_test
+          POSTGRES_USER: atlas
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -178,7 +243,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: pdo, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, json, mbstring, openssl, tokenizer, xml
+          extensions: pdo, pdo_pgsql, pgsql, bcmath, ctype, fileinfo, json, mbstring, openssl, tokenizer, xml
           coverage: none
           ini-values: memory_limit=512M
 
@@ -195,16 +260,26 @@ jobs:
       - name: Prepare .env
         run: |
           cp .env.example .env
-          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
-          sed -i 's|^DB_DATABASE=.*|DB_DATABASE=:memory:|' .env
-          sed -i 's|^DB_HOST=.*|DB_HOST=|' .env
+          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|' .env
+          sed -i 's|^DB_DATABASE=.*|DB_DATABASE=atlas_test|' .env
+          sed -i 's|^DB_HOST=.*|DB_HOST=127.0.0.1|' .env
+          sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env
+          sed -i 's|^DB_USERNAME=.*|DB_USERNAME=atlas|' .env
+          sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=secret|' .env
           php artisan key:generate --no-interaction
+
+      - name: Run migrations
+        run: php artisan migrate --force
 
       - name: Run Performance Tests (SLA thresholds)
         run: php artisan test --testsuite=Performance
         env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
+          DB_CONNECTION: pgsql
+          DB_DATABASE: atlas_test
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_USERNAME: atlas
+          DB_PASSWORD: secret
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FRONTEND — ESLint + TypeScript + Build
