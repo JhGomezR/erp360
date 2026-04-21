@@ -40,9 +40,16 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 /* ─── Data fetching (server-side) ──────────────────────────────────────────── */
+// En SSR usamos la URL interna Docker para evitar hairpin NAT (el contenedor
+// no puede resolver el dominio público desde dentro de la red de Docker).
+// INTERNAL_API_URL apunta a http://nginx/api (red atlas_net / traefik_net).
+// En desarrollo local cae al fallback NEXT_PUBLIC_API_URL.
+const internalApiBase =
+  process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL;
+
 async function fetchPlans(): Promise<Plan[]> {
   try {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/plans?active_only=true`;
+    const url = `${internalApiBase}/plans?active_only=true`;
     const res = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const json = await res.json();
@@ -54,7 +61,7 @@ async function fetchPlans(): Promise<Plan[]> {
 
 async function fetchBusinessTypes(): Promise<BusinessType[]> {
   try {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/business-types`;
+    const url = `${internalApiBase}/business-types`;
     const res = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const json = await res.json();

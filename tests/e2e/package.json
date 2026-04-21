@@ -1,0 +1,24 @@
+{
+  "name": "atlas-erp-e2e",
+  "version": "1.0.0",
+  "description": "Atlas ERP — Suite de Pruebas E2E con Playwright",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:mobile": "playwright test --project=mobile-android --project=mobile-ios",
+    "test:functional": "playwright test --grep @functional",
+    "test:security": "playwright test --grep @security",
+    "test:regression": "playwright test --grep @regression",
+    "test:alpha": "playwright test --grep @alpha",
+    "test:beta": "playwright test --grep @beta",
+    "test:auth": "playwright test auth/",
+    "test:tenant": "playwright test tenant/",
+    "test:admin": "playwright test admin/",
+    "report": "playwright show-report results/html"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0"
+  }
+}

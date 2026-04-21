@@ -70,10 +70,13 @@ class LoginCentralUserAction
         }
 
         // ── 5. Obtener los tenants del usuario ─────────────────────────────────
+        // with('plan') se mantiene para lógica interna (ej: validar límites del plan).
+        // En la respuesta al frontend solo se envían campos de navegación —
+        // el objeto plan completo NO se serializa para no exponer precios ni módulos en localStorage.
         $tenants = Tenant::where('owner_id', $user->id)
             ->with('plan')
             ->where('status', '!=', 'cancelled')
-            ->get(['id', 'slug', 'name', 'business_type', 'status', 'plan_id']);
+            ->get();
 
         $this->centralAudit('auth.login', 'info', "Inicio de sesión central: {$user->name} ({$user->email})", $user->email, $user->id);
 
@@ -91,7 +94,15 @@ class LoginCentralUserAction
                 'email' => $user->email,
                 'roles' => $user->getRoleNames(),
             ],
-            'tenants' => $tenants,
+            // Solo campos de navegación — sin plan completo en la respuesta
+            'tenants' => $tenants->map(fn($t) => [
+                'id'            => $t->id,
+                'slug'          => $t->slug,
+                'name'          => $t->name,
+                'business_type' => $t->business_type,
+                'status'        => $t->status,
+                'plan_id'       => $t->plan_id,
+            ]),
         ];
     }
 

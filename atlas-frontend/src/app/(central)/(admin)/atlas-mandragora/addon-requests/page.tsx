@@ -235,8 +235,8 @@ export default function AddonHistoryPage() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmAction?.action === 'deactivate'
-                ? <>¿Desactivar <strong>"{confirmAction?.record.addon_name}"</strong> para <strong>{confirmAction?.record.tenant_name}</strong>? El tenant perderá acceso inmediatamente al módulo.</>
-                : <>¿Reactivar <strong>"{confirmAction?.record.addon_name}"</strong> para <strong>{confirmAction?.record.tenant_name}</strong>? El tenant recuperará acceso al módulo.</>}
+                ? <>¿Desactivar <strong>&ldquo;{confirmAction?.record.addon_name}&rdquo;</strong> para <strong>{confirmAction?.record.tenant_name}</strong>? El tenant perderá acceso inmediatamente al módulo.</>
+                : <>¿Reactivar <strong>&ldquo;{confirmAction?.record.addon_name}&rdquo;</strong> para <strong>{confirmAction?.record.tenant_name}</strong>? El tenant recuperará acceso al módulo.</>}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

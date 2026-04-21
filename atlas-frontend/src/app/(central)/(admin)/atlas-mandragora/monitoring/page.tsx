@@ -150,7 +150,7 @@ export default function MonitoringPage() {
         <StatCard
           icon={AlertCircle}
           label="Add-ons Activos"
-          value={(data as any).active_addons ?? (data as any).addon_requests_pending ?? 0}
+          value={data.addon_requests_pending ?? 0}
           sub="En todos los tenants"
         />
       </div>

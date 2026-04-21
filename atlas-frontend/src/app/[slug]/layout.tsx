@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, type TenantUser } from '@/store/authStore';
 import { setTenantSlug, tenantAuthApi } from '@/lib/api/tenant.api';
 
 export default function TenantRootLayout({ children }: { children: React.ReactNode }) {
@@ -15,9 +15,10 @@ export default function TenantRootLayout({ children }: { children: React.ReactNo
     isAuthenticated,
     tenants,
     setCurrentTenant,
-    setTenantAuthToken,
+    setTenantAuth,
     currentTenant,
     hasTenantToken,
+    logout,
   } = useAuthStore();
 
   useEffect(() => {
@@ -48,12 +49,17 @@ export default function TenantRootLayout({ children }: { children: React.ReactNo
       tenantAuthApi
         .exchange(slug)
         .then((res) => {
-          const { token } = res.data as { token: string };
-          setTenantAuthToken(token);
+          const { token, user } = res.data as { token: string; user: TenantUser };
+          setTenantAuth(token, user);
           setReady(true);
         })
-        .catch(() => {
-          // El usuario central no tiene cuenta activa en este tenant
+        .catch((err: { response?: { status?: number } }) => {
+          const status = err?.response?.status;
+          if (status === 403) {
+            // El usuario central no tiene cuenta en este tenant.
+            // Hacer logout completo para que el login no redirija de vuelta → evita loop.
+            logout();
+          }
           router.replace('/login');
         });
     } else {

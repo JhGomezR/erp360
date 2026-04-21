@@ -61,7 +61,9 @@ abstract class DemoTenantBaseSeeder extends Seeder
             );
 
             // Crear el tenant con el slug controlado.
-            // Dispara: CreateDatabase → MigrateDatabase → SeedDatabase (TenantSeeder)
+            // La pipeline TenantCreated (CreateDatabase→MigrateDatabase→SeedDatabase) es
+            // async (cola). En el seeder necesitamos que el schema exista ANTES de llamar
+            // TenantContext::run(), así que ejecutamos los pasos de forma síncrona.
             $tenant = Tenant::create([
                 'slug'             => $demo['slug'],
                 'name'             => $demo['business_name'],
@@ -75,8 +77,14 @@ abstract class DemoTenantBaseSeeder extends Seeder
                 'trial_ends_at'    => now()->addYear(),
             ]);
 
-            // Sembrar módulos, settings y roles
-            \App\Jobs\SeedTenantSetupJob::dispatch($tenant->id, $businessType->id, false);
+            // Forzar setup síncrono del schema — la cola puede procesar el mismo
+            // evento después pero updateOrCreate/idempotencia lo maneja sin duplicar.
+            \Stancl\Tenancy\Jobs\CreateDatabase::dispatchSync($tenant);
+            \Stancl\Tenancy\Jobs\MigrateDatabase::dispatchSync($tenant);
+            \Stancl\Tenancy\Jobs\SeedDatabase::dispatchSync($tenant);
+
+            // Sembrar módulos, settings y roles (síncrono para el seeder)
+            \App\Jobs\SeedTenantSetupJob::dispatchSync($tenant->id, $businessType->id, false);
 
             // Sembrar datos demo dentro del schema del tenant
             TenantContext::run($tenant, function () use ($demo) {

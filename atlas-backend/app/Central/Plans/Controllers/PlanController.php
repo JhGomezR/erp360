@@ -2,11 +2,13 @@
 
 namespace App\Central\Plans\Controllers;
 
+use App\Central\Modules\Models\BusinessType;
 use App\Central\Plans\Models\Plan;
 use App\Central\Shared\Traits\HasCentralAudit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\Rule;
 
 class PlanController extends Controller
 {
@@ -39,7 +41,7 @@ class PlanController extends Controller
             'slug'                => ['required', 'string', 'unique:plans,slug'],
             'description'         => ['nullable', 'string'],
             'price'               => ['required', 'integer', 'min:0'],
-            'type'                => ['required', 'in:restaurant,store'],
+            'type'                => ['required', Rule::in(BusinessType::pluck('slug')->all())],
             'modules'             => ['required', 'array'],
             'modules.*'           => ['string'],
             'price_annual'        => ['nullable', 'integer', 'min:0'],
@@ -51,6 +53,8 @@ class PlanController extends Controller
             'badge_text'          => ['nullable', 'string', 'max:60'],
             'features'            => ['nullable', 'array'],
             'features.*'          => ['string', 'max:200'],
+            'is_active'           => ['sometimes', 'boolean'],
+            'is_featured'         => ['sometimes', 'boolean'],
         ]);
 
         $plan = Plan::create($data);

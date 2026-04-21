@@ -31,7 +31,7 @@ class TenancyServiceProvider extends ServiceProvider
                     Jobs\SeedDatabase::class,    // Ejecuta TenantSeeder (roles iniciales)
                 ])->send(function (Events\TenantCreated $event) {
                     return $event->tenant;
-                })->shouldBeQueued(true), // async: el request responde de inmediato; la cola procesa Create→Migrate→Seed
+                })->shouldBeQueued(false), // sync: el schema debe existir antes de que el usuario intente hacer exchange
             ],
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],

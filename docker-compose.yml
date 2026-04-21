@@ -133,6 +133,9 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
+      # URL interna Docker para fetches SSR — evita hairpin NAT en producción.
+      # El contenedor frontend llama a nginx directamente sin salir a internet.
+      INTERNAL_API_URL: http://nginx/api
     networks:
       - atlas_net
       - traefik_net

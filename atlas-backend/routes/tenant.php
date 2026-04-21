@@ -19,7 +19,7 @@ Route::prefix('auth')->group(function () {
     Route::post('logout',   [\App\Tenant\Auth\Controllers\TenantAuthController::class, 'logout'])->middleware('auth:tenant');
     Route::get('me',        [\App\Tenant\Auth\Controllers\TenantAuthController::class, 'me'])->middleware('auth:tenant');
     // Exchange: JWT central -> JWT tenant (sin re-ingresar credenciales)
-    Route::post('exchange', [\App\Tenant\Auth\Controllers\TenantAuthController::class, 'exchange'])->middleware(['auth:api', 'throttle:10,1']);
+    Route::post('exchange', [\App\Tenant\Auth\Controllers\TenantAuthController::class, 'exchange'])->middleware(['auth:api', 'throttle:60,1']);
 });
 
 // ─── Media pública del tenant (sin auth — solo lectura) ───────────────────────
