@@ -123,6 +123,7 @@ jobs:
           sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env
           sed -i 's|^DB_USERNAME=.*|DB_USERNAME=atlas|' .env
           sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=secret|' .env
+          sed -i 's|^CACHE_STORE=.*|CACHE_STORE=array|' .env
           php artisan key:generate --no-interaction
 
       - name: Run migrations
@@ -191,6 +192,7 @@ jobs:
           sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env
           sed -i 's|^DB_USERNAME=.*|DB_USERNAME=atlas|' .env
           sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=secret|' .env
+          sed -i 's|^CACHE_STORE=.*|CACHE_STORE=array|' .env
           php artisan key:generate --no-interaction
 
       - name: Run migrations
@@ -266,6 +268,7 @@ jobs:
           sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env
           sed -i 's|^DB_USERNAME=.*|DB_USERNAME=atlas|' .env
           sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=secret|' .env
+          sed -i 's|^CACHE_STORE=.*|CACHE_STORE=array|' .env
           php artisan key:generate --no-interaction
 
       - name: Run migrations
