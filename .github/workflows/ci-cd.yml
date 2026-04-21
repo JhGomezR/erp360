@@ -52,10 +52,10 @@ jobs:
       - name: Prepare .env
         run: |
           cp .env.example .env
-          php artisan key:generate --no-interaction
           sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
           sed -i 's|^DB_DATABASE=.*|DB_DATABASE=:memory:|' .env
           sed -i 's|^DB_HOST=.*|DB_HOST=|' .env
+          php artisan key:generate --no-interaction
 
       - name: Run Unit Tests
         run: php artisan test --testsuite=Unit --coverage-clover=coverage/unit.xml
@@ -102,10 +102,10 @@ jobs:
       - name: Prepare .env
         run: |
           cp .env.example .env
-          php artisan key:generate --no-interaction
           sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
           sed -i 's|^DB_DATABASE=.*|DB_DATABASE=:memory:|' .env
           sed -i 's|^DB_HOST=.*|DB_HOST=|' .env
+          php artisan key:generate --no-interaction
 
       - name: Run Feature Tests (Rate Limiting + API)
         run: php artisan test --testsuite=Feature
@@ -145,10 +145,10 @@ jobs:
       - name: Prepare .env
         run: |
           cp .env.example .env
-          php artisan key:generate --no-interaction
           sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
           sed -i 's|^DB_DATABASE=.*|DB_DATABASE=:memory:|' .env
           sed -i 's|^DB_HOST=.*|DB_HOST=|' .env
+          php artisan key:generate --no-interaction
 
       - name: Run Security Tests
         run: php artisan test --testsuite=Security
@@ -195,10 +195,10 @@ jobs:
       - name: Prepare .env
         run: |
           cp .env.example .env
-          php artisan key:generate --no-interaction
           sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
           sed -i 's|^DB_DATABASE=.*|DB_DATABASE=:memory:|' .env
           sed -i 's|^DB_HOST=.*|DB_HOST=|' .env
+          php artisan key:generate --no-interaction
 
       - name: Run Performance Tests (SLA thresholds)
         run: php artisan test --testsuite=Performance
