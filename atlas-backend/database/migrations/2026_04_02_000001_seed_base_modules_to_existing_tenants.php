@@ -18,6 +18,11 @@ return new class extends Migration
 
     public function up(): void
     {
+        // Migración de datos específica de PostgreSQL — omitir en SQLite (tests unitarios)
+        if (config('database.default') !== 'pgsql') {
+            return;
+        }
+
         $tenants = DB::connection('pgsql')->table('tenants')
             ->whereNull('deleted_at')
             ->get(['id', 'schema_name']);
