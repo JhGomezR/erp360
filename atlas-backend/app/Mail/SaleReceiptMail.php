@@ -21,10 +21,12 @@ class SaleReceiptMail extends Mailable implements ShouldQueue
 
     public function build(): static
     {
+        $ref = $this->document->sale_number ?? $this->document->id;
+
         $subject = match($this->type) {
             'order_confirmed' => "Orden de venta confirmada #{$this->document->order_number}",
-            'invoice'         => "Factura #{$this->document->sale_number ?? $this->document->id}",
-            default           => "Recibo de venta #{$this->document->sale_number ?? $this->document->id}",
+            'invoice'         => "Factura #{$ref}",
+            default           => "Recibo de venta #{$ref}",
         };
 
         return $this->subject($subject)->html($this->buildHtml());
