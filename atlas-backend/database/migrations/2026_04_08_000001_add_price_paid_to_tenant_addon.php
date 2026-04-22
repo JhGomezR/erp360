@@ -20,6 +20,10 @@ return new class extends Migration
             $table->unsignedBigInteger('price_paid')->nullable()->after('expires_at');
         });
 
+        if (config('database.default') !== 'pgsql') {
+            return;
+        }
+
         // Backfill: los add-ons activos existentes toman el precio actual del add-on
         // como aproximación (grandfathering retroactivo).
         DB::statement(<<<'SQL'
