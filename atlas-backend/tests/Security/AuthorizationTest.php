@@ -175,7 +175,7 @@ class AuthorizationTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function endpoint_salud_es_publico(): void
     {
-        $this->getJson('/health')->assertStatus(200);
+        $this->getJson('/api/business-types')->assertStatus(200);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

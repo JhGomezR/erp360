@@ -26,7 +26,7 @@ return new class extends Migration
         DB::table('tenant_addon')
             ->where('is_active', true)
             ->whereNull('activated_at')
-            ->update(['activated_at' => DB::raw('NOW()')]);
+            ->update(['activated_at' => now()]);
     }
 
     public function down(): void

@@ -170,7 +170,7 @@ export default function UsersPage() {
     resetEdit({
       name:  u.name,
       email: u.email,
-      role:  (typeof u.roles[0] === 'string' ? u.roles[0] : (u.roles[0] as any)?.name) ?? '',
+      role:  (typeof u.roles[0] === 'string' ? u.roles[0] : (u.roles[0] as { name?: string })?.name) ?? '',
       phone: u.phone?.replace('+57', '') ?? '',
       password: '',
     });

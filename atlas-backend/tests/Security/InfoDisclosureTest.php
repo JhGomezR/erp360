@@ -72,8 +72,8 @@ class InfoDisclosureTest extends TestCase
 
         $server = $response->headers->get('Server', '');
         // No debe revelar versión específica
-        $this->assertDoesNotMatch('/Apache\/\d+/', $server);
-        $this->assertDoesNotMatch('/nginx\/\d+/', $server);
+        $this->assertDoesNotMatchRegularExpression('/Apache\/\d+/', $server);
+        $this->assertDoesNotMatchRegularExpression('/nginx\/\d+/', $server);
     }
 
     // ── User Enumeration ──────────────────────────────────────────────────────

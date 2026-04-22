@@ -116,10 +116,7 @@ class LoginCentralUserAction
             DB::connection('pgsql')->table('audit_logs')->insert([
                 'user_id'     => $userId,
                 'user_email'  => $email,
-                'user_name'   => $userId ? (User::find($userId)?->name) : null,
                 'action'      => $action,
-                'level'       => $level,
-                'module'      => 'auth',
                 'ip_address'  => request()?->ip(),
                 'user_agent'  => $ua,
                 'device_type' => $device['device_type'],

@@ -77,7 +77,7 @@ function PermissionMatrix({
       setDirty(false);
       onClose();
     },
-    onError: (e: any) => notify.error(e?.response?.data?.message ?? 'Error al guardar permisos'),
+    onError: (e: unknown) => notify.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al guardar permisos'),
   });
 
   const toggle = (permName: string) => {
@@ -274,7 +274,7 @@ function RoleDialog({
       onOpenChange(false);
       setName('');
     },
-    onError: (e: any) => notify.error(e?.response?.data?.message ?? 'Error'),
+    onError: (e: unknown) => notify.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error'),
   });
 
   return (
@@ -340,7 +340,7 @@ export default function RolesPage() {
       notify.success('Rol eliminado');
       setDeleteRole(null);
     },
-    onError: (e: any) => notify.error(e?.response?.data?.message ?? 'Error al eliminar rol'),
+    onError: (e: unknown) => notify.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al eliminar rol'),
   });
 
   return (
@@ -467,7 +467,7 @@ export default function RolesPage() {
       <AlertDialog open={!!deleteRole} onOpenChange={(v) => !v && setDeleteRole(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar rol "{deleteRole?.name}"?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar rol &ldquo;{deleteRole?.name}&rdquo;?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteRole?.users_count
                 ? `Este rol tiene ${deleteRole.users_count} usuario(s) asignados. Reasígnalos antes de eliminar.`
