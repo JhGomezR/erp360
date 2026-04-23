@@ -94,6 +94,23 @@ function SortIcon({ col, sortBy, sortDir }: { col: string; sortBy: string; sortD
     : <ChevronDown className="size-3 ml-1 text-primary" />;
 }
 
+function SortTh({ col, label, className, sortBy, sortDir, onSort }: {
+  col: string; label: string; className?: string;
+  sortBy: string; sortDir: 'asc' | 'desc'; onSort: (col: string) => void;
+}) {
+  return (
+    <th
+      className={cn('px-4 py-3 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors', className)}
+      onClick={() => onSort(col)}
+    >
+      <span className="flex items-center">
+        {label}
+        <SortIcon col={col} sortBy={sortBy} sortDir={sortDir} />
+      </span>
+    </th>
+  );
+}
+
 // ─── Change Plan Dialog ───────────────────────────────────────────────────────
 
 function ChangePlanDialog({ tenant, onClose }: { tenant: Tenant | null; onClose: () => void }) {
@@ -391,18 +408,6 @@ export default function TenantsPage() {
     { value: 'cancelled', label: 'Cancelados' },
   ];
 
-  const SortTh = ({ col, label, className }: { col: string; label: string; className?: string }) => (
-    <th
-      className={cn('px-4 py-3 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors', className)}
-      onClick={() => handleSort(col)}
-    >
-      <span className="flex items-center">
-        {label}
-        <SortIcon col={col} sortBy={sortBy} sortDir={sortDir} />
-      </span>
-    </th>
-  );
-
   return (
     <div className="space-y-5">
       <div>
@@ -447,13 +452,13 @@ export default function TenantsPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 border-b">
             <tr>
-              <SortTh col="name"         label="Negocio"      className="text-left" />
+              <SortTh col="name"         label="Negocio"      className="text-left" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Slug</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Tipo</th>
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">Plan</th>
-              <SortTh col="status"       label="Estado"       className="text-left" />
-              <SortTh col="created_at"   label="F. Registro"  className="text-left" />
-              <SortTh col="activated_at" label="F. Activación" className="text-left" />
+              <SortTh col="status"       label="Estado"       className="text-left" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+              <SortTh col="created_at"   label="F. Registro"  className="text-left" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+              <SortTh col="activated_at" label="F. Activación" className="text-left" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
               <th className="text-left px-4 py-3 font-medium text-muted-foreground">F. Corte</th>
               <th className="text-right px-4 py-3 font-medium text-muted-foreground">Acciones</th>
             </tr>
