@@ -347,7 +347,7 @@ export function FractionsManager({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Layers className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Fracciones de "{productName}"</span>
+          <span className="text-sm font-medium">Fracciones de &ldquo;{productName}&rdquo;</span>
         </div>
         {!adding && (
           <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setAdding(true)}>

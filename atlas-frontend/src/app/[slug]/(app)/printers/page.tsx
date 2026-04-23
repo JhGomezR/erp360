@@ -577,7 +577,7 @@ function PrinterCard({ printer, onEdit, onDelete, onTest, testing }: PrinterCard
 
         {printer.header_text && (
           <p className="text-[11px] text-muted-foreground italic truncate border-t pt-1.5 mt-0.5">
-            "{printer.header_text}"
+            &ldquo;{printer.header_text}&rdquo;
           </p>
         )}
       </div>

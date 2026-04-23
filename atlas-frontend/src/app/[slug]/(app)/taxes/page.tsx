@@ -183,7 +183,7 @@ function TaxesTab() {
             <div className="py-16 text-center text-muted-foreground space-y-2">
               <Percent className="size-10 mx-auto opacity-20" />
               <p className="text-sm">No hay impuestos configurados.</p>
-              <p className="text-xs">Usa "Cargar colombianos" para los impuestos estándar (IVA 19%, IVA 5%, Exento 0%).</p>
+              <p className="text-xs">Usa &ldquo;Cargar colombianos&rdquo; para los impuestos estándar (IVA 19%, IVA 5%, Exento 0%).</p>
             </div>
           ) : (
             <Table>
@@ -426,7 +426,7 @@ function RetentionsTab() {
             <div className="py-16 text-center text-muted-foreground space-y-2">
               <ShieldCheck className="size-10 mx-auto opacity-20" />
               <p className="text-sm">No hay retenciones configuradas.</p>
-              <p className="text-xs">Usa "Cargar colombianas" para Retefte, Reteiva y Reteica estándar.</p>
+              <p className="text-xs">Usa &ldquo;Cargar colombianas&rdquo; para Retefte, Reteiva y Reteica estándar.</p>
             </div>
           ) : (
             <Table>

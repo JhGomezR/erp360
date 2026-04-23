@@ -2085,7 +2085,7 @@ export default function HRMPage() {
             !generatingNe && (
               <div className="py-10 text-center text-muted-foreground text-sm">
                 <p>No hay documentos NE-DIAN generados.</p>
-                <p className="text-xs mt-1">Haz clic en "Generar XMLs" para crear los documentos individuales.</p>
+                <p className="text-xs mt-1">Haz clic en &ldquo;Generar XMLs&rdquo; para crear los documentos individuales.</p>
               </div>
             )
           )}

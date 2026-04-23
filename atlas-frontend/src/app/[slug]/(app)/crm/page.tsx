@@ -999,7 +999,7 @@ function SegmentDetailSheet({
               <Users className="size-8 opacity-30" />
               <p className="text-sm">Este segmento no tiene clientes aún.</p>
               {segment?.type === 'dynamic' && (
-                <p className="text-xs">Pulsa "Sincronizar" para aplicar las reglas.</p>
+                <p className="text-xs">Pulsa &ldquo;Sincronizar&rdquo; para aplicar las reglas.</p>
               )}
             </div>
           ) : (
