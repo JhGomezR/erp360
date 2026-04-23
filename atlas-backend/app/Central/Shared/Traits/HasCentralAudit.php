@@ -35,21 +35,28 @@ trait HasCentralAudit
             $ua     = request()?->userAgent();
             $device = DeviceParser::parse($ua);
 
-            DB::connection('pgsql')->table('audit_logs')->insert([
-                'user_id'     => $user?->id,
-                'user_email'  => $user?->email,
-                'action'      => $action,
-                'ip_address'  => request()?->ip(),
-                'user_agent'  => $ua,
-                'device_type' => $device['device_type'],
-                'device_name' => $device['device_name'],
-                'browser'     => $device['browser'],
-                'os'          => $device['os'],
-                'description' => $description,
-                'before'      => $before ? json_encode($before) : null,
-                'after'       => $after  ? json_encode($after)  : null,
-                'created_at'  => now(),
-            ]);
+            $conn = DB::connection('pgsql');
+            $conn->statement('SAVEPOINT audit_central');
+            try {
+                $conn->table('audit_logs')->insert([
+                    'user_id'     => $user?->id,
+                    'user_email'  => $user?->email,
+                    'action'      => $action,
+                    'ip_address'  => request()?->ip(),
+                    'user_agent'  => $ua,
+                    'device_type' => $device['device_type'],
+                    'device_name' => $device['device_name'],
+                    'browser'     => $device['browser'],
+                    'os'          => $device['os'],
+                    'description' => $description,
+                    'before'      => $before ? json_encode($before) : null,
+                    'after'       => $after  ? json_encode($after)  : null,
+                    'created_at'  => now(),
+                ]);
+            } catch (\Throwable) {
+                // Recover from failed INSERT so the outer pgsql transaction stays valid
+                try { $conn->statement('ROLLBACK TO SAVEPOINT audit_central'); } catch (\Throwable) {}
+            }
         } catch (\Throwable) {
             // El audit jamás debe romper el flujo principal
         }

@@ -2,6 +2,7 @@
 
 namespace App\Central\Modules\Models;
 
+use Database\Factories\BusinessTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class BusinessType extends Model
 {
     use HasFactory;
+
+    protected static function newFactory(): BusinessTypeFactory
+    {
+        return BusinessTypeFactory::new();
+    }
     protected $fillable = [
         'name',
         'slug',
