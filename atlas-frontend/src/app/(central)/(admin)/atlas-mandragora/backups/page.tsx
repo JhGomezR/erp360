@@ -93,10 +93,9 @@ export default function BackupsPage() {
     }
   };
 
-  const downloadBackup = (id: number, filename: string) => {
+  const downloadBackup = (id: number, _filename: string) => {
     const base = process.env.NEXT_PUBLIC_API_URL ?? '/api';
     window.open(`${base}/backups/${id}/download`, '_blank');
-    void filename;
   };
 
   return (

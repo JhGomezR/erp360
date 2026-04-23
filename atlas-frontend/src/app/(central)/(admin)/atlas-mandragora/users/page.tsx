@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { notify } from '@/lib/notify';
 import {
-  Plus, Search, Pencil, Trash2, ShieldCheck, UserPlus, X,
+  Search, Pencil, Trash2, ShieldCheck, UserPlus,
 } from 'lucide-react';
 import { centralUsersApi, type CentralUser } from '@/lib/api/central.api';
 import { PhoneInput } from '@/components/ui/phone-input';

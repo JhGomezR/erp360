@@ -588,6 +588,7 @@ export interface DianConfig {
   consecutive_from?: number | null;
   consecutive_to?: number | null;
   prefix?: string | null;
+  cert_path?: string | null;
   enabled?: boolean;
   is_valid?: boolean;
 }

@@ -27,6 +27,11 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive'> = 
   draft: 'secondary', issued: 'default', accepted: 'default', rejected: 'destructive',
 };
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface CreditNote { id: number; note_number: string; sale_id: number; reason: string; amount: number; status: string; cude?: string | null; }
+interface CreditNotePage { data: CreditNote[]; last_page: number; }
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CreditNotesPage() {
@@ -60,8 +65,9 @@ export default function CreditNotesPage() {
     onError: () => notify.error('Error al eliminar.'),
   });
 
-  const notes: any[] = (data as any)?.data ?? [];
-  const lastPage: number = (data as any)?.last_page ?? 1;
+  const paged = data as CreditNotePage | undefined;
+  const notes = paged?.data ?? [];
+  const lastPage: number = paged?.last_page ?? 1;
 
   return (
     <div className="p-6 space-y-6">

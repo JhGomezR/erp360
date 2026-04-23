@@ -128,7 +128,7 @@ export default function DianPage() {
     onError: (err) => notify.error(err, 'Error al eliminar certificado'),
   });
 
-  const hasCert = !!(config as any)?.cert_path;
+  const hasCert = !!config?.cert_path;
 
   return (
     <div className="space-y-6">

@@ -141,7 +141,7 @@ export default function RegisterClient({ businessTypes }: Props) {
     const planSlug = searchParams.get('plan');
     if (!planSlug) return;
     const match = plans.find((p) => p.slug === planSlug);
-    if (match) setValue('plan_id', match.id as any);
+    if (match) setValue('plan_id', match.id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plans]);
 
@@ -270,7 +270,7 @@ export default function RegisterClient({ businessTypes }: Props) {
   const handleSelectType = (bt: BusinessType) => {
     setSelectedType(bt);
     setValue('business_type_id', bt.id);
-    setValue('plan_id', 0 as any);
+    setValue('plan_id', 0);
     setStep('info');
   };
 

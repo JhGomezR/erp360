@@ -24,7 +24,6 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -94,7 +93,7 @@ function EditorDialog({ open, onOpenChange, editing }: EditorDialogProps) {
   };
 
   const createMutation = useMutation({
-    mutationFn: (data: DocForm) => legalApi.create(data as any),
+    mutationFn: (data: DocForm) => legalApi.create(data as Partial<LegalDocument> & { content: string }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['legal-admin'] });
       notify.success('Documento creado');
@@ -104,7 +103,7 @@ function EditorDialog({ open, onOpenChange, editing }: EditorDialogProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: DocForm) => legalApi.update((editing as any).id, data as any),
+    mutationFn: (data: DocForm) => legalApi.update((editing as LegalDocument & { id: number }).id, data as Partial<LegalDocument>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['legal-admin'] });
       notify.success('Documento actualizado');
@@ -243,7 +242,7 @@ export default function LegalAdminPage() {
       }).then((r) => r.data.data ?? r.data),
   });
 
-  const documents: (LegalDocument & { id: number })[] = (data as any) ?? [];
+  const documents = (data as (LegalDocument & { id: number })[] | undefined) ?? [];
 
   const publishMutation = useMutation({
     mutationFn: (id: number) => legalApi.publish(id),

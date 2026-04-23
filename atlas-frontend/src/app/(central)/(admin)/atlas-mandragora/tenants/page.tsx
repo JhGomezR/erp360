@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   Search, Shield, ShieldOff, RefreshCcw, ExternalLink,
   ChevronUp, ChevronDown, ChevronsUpDown,
-  ChevronLeft, ChevronRight, Bell, Send, Mail, BellRing, AlertTriangle,
+  ChevronLeft, ChevronRight, Bell, Send, Mail, BellRing,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -84,13 +84,6 @@ const STATUS_TRANSITIONS: Record<string, { value: string; label: string; icon: t
   suspended: [{ value: 'active', label: 'Reactivar', icon: Shield },       { value: 'cancelled', label: 'Cancelar', icon: ShieldOff }],
   cancelled: [{ value: 'active', label: 'Reactivar', icon: Shield }],
 };
-
-const SORTABLE_COLS: { key: string; label: string }[] = [
-  { key: 'name',         label: 'Negocio' },
-  { key: 'status',       label: 'Estado' },
-  { key: 'created_at',   label: 'F. Registro' },
-  { key: 'activated_at', label: 'F. Activación' },
-];
 
 // ─── Sort Icon ────────────────────────────────────────────────────────────────
 

@@ -192,7 +192,7 @@ function PlanDialog({ open, onOpenChange, editingPlan, businessTypes, allModules
         });
       }
     }
-  }, [open, editingPlan, reset]);
+  }, [open, editingPlan, reset, businessTypes]);
 
   // Auto-generate slug from name
   useEffect(() => {

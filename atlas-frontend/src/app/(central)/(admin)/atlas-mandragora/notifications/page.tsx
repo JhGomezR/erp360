@@ -275,7 +275,6 @@ function RuleFormDialog({
   const notifType        = watch('notification_type');
   const channel          = watch('channel');
   const displayType      = watch('display_type');
-  const runAt            = watch('run_at');
   const runDays          = watch('run_days') ?? null;
   const needsDays        = ['trial_expiring', 'payment_due'].includes(trigger);
 
@@ -413,7 +412,6 @@ function RuleFormDialog({
                   <Label className="text-xs">Días <span className="text-muted-foreground">(vacío = todos)</span></Label>
                   <div className="flex gap-1 flex-wrap">
                     {WEEK_DAYS.map((d) => {
-                      const active = runDays ? runDays.includes(d.num) : true;
                       return (
                         <button
                           key={d.num}
