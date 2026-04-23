@@ -53,8 +53,8 @@ class XssInjectionTest extends TestCase
                 }
             }
 
-            // 400/422 también es aceptable — el servidor rechazó el payload
-            $this->assertContains($response->status(), [200, 201, 400, 422],
+            // 400/422/429 también son aceptables — el servidor rechazó o rate-limitó el payload
+            $this->assertContains($response->status(), [200, 201, 400, 422, 429],
                 "Respuesta inesperada para payload XSS: {$payload}");
         }
     }

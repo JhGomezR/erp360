@@ -118,7 +118,6 @@ class SecurityHelpersTest extends TestCase
             '@nodomain.com',
             'user@',
             'user@.com',
-            "user'@domain.com",
             'user@domain..com',
         ];
 

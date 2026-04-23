@@ -38,10 +38,7 @@ trait HasCentralAudit
             DB::connection('pgsql')->table('audit_logs')->insert([
                 'user_id'     => $user?->id,
                 'user_email'  => $user?->email,
-                'user_name'   => $user?->name,
                 'action'      => $action,
-                'level'       => $level,
-                'module'      => $module,
                 'ip_address'  => request()?->ip(),
                 'user_agent'  => $ua,
                 'device_type' => $device['device_type'],
