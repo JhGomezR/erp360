@@ -55,12 +55,14 @@ export interface Tenant {
 }
 
 export interface LegalDocument {
+  id?: number;
   type: 'terms' | 'privacy' | 'refund' | 'cookies' | 'contract';
   type_label: string;
   title: string;
   content: string;          // Markdown
   version: string;
   language: string;
+  status: 'draft' | 'published';
   effective_date: string | null;
   published_at: string | null;
 }

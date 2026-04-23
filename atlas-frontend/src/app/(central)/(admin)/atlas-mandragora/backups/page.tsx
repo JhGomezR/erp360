@@ -93,7 +93,7 @@ export default function BackupsPage() {
     }
   };
 
-  const downloadBackup = (id: number, _filename: string) => {
+  const downloadBackup = (id: number) => {
     const base = process.env.NEXT_PUBLIC_API_URL ?? '/api';
     window.open(`${base}/backups/${id}/download`, '_blank');
   };
@@ -178,7 +178,7 @@ export default function BackupsPage() {
                         variant="ghost"
                         size="icon"
                         className="size-8"
-                        onClick={() => downloadBackup(backup.id, backup.filename)}
+                        onClick={() => downloadBackup(backup.id)}
                         title="Descargar"
                       >
                         <Download className="size-4" />

@@ -82,7 +82,7 @@ export default function RegisterClient({ businessTypes }: Props) {
   const [step, setStep] = useState<Step>('type');
   const [pendingTenant, setPendingTenant] = useState<{ slug: string; checkoutRequired: boolean; planId: number } | null>(null);
   const [selectedType, setSelectedType] = useState<BusinessType | null>(null);
-  const [billing, setBilling] = useState<'monthly' | 'annual'>(
+  const [billing] = useState<'monthly' | 'annual'>(
     searchParams.get('billing') === 'annual' ? 'annual' : 'monthly'
   );
 

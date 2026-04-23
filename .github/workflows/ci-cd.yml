@@ -16,6 +16,8 @@ concurrency:
 
 env:
   BASE_URL: https://atlaserp.com.co
+  # Opt-in a Node 24 para acciones JavaScript (Node 20 deprecated 2026-09-16)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BACKEND — PHPUnit: Unit + Feature + Security + Performance

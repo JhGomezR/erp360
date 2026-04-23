@@ -44,7 +44,7 @@ const docSchema = z.object({
   title:          z.string().min(3, 'El título debe tener al menos 3 caracteres'),
   content:        z.string().min(10, 'El contenido no puede estar vacío'),
   version:        z.string().min(1, 'Indica la versión').regex(/^[\d\w.\-]+$/, 'Solo letras, números, puntos y guiones'),
-  language:       z.string().length(2, 'Código de 2 letras (ej: es, en)').default('es'),
+  language:       z.string().length(2, 'Código de 2 letras (ej: es, en)'),
   status:         z.enum(['draft', 'published']),
   effective_date: z.string().optional(),
 });
@@ -56,7 +56,7 @@ type DocForm = z.infer<typeof docSchema>;
 interface EditorDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  editing: (LegalDocument & { id?: number }) | null;
+  editing: LegalDocument | null;
 }
 
 function EditorDialog({ open, onOpenChange, editing }: EditorDialogProps) {
@@ -103,7 +103,7 @@ function EditorDialog({ open, onOpenChange, editing }: EditorDialogProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: DocForm) => legalApi.update((editing as LegalDocument & { id: number }).id, data as Partial<LegalDocument>),
+    mutationFn: (data: DocForm) => legalApi.update(editing!.id!, data as Partial<LegalDocument>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['legal-admin'] });
       notify.success('Documento actualizado');
@@ -130,7 +130,7 @@ function EditorDialog({ open, onOpenChange, editing }: EditorDialogProps) {
               <Label>Tipo de documento <span className="text-destructive">*</span></Label>
               <Select
                 defaultValue={editing?.type ?? ''}
-                onValueChange={(v) => setValue('type', v)}
+                onValueChange={(v) => setValue('type', v ?? '')}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona tipo…" />
@@ -170,7 +170,7 @@ function EditorDialog({ open, onOpenChange, editing }: EditorDialogProps) {
               <Label>Estado</Label>
               <Select
                 defaultValue={editing?.status ?? 'draft'}
-                onValueChange={(v) => setValue('status', v as 'draft' | 'published')}
+                onValueChange={(v) => setValue('status', (v ?? 'draft') as 'draft' | 'published')}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -229,7 +229,7 @@ function EditorDialog({ open, onOpenChange, editing }: EditorDialogProps) {
 export default function LegalAdminPage() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen]   = useState(false);
-  const [editing, setEditing]         = useState<(LegalDocument & { id?: number }) | null>(null);
+  const [editing, setEditing]         = useState<LegalDocument | null>(null);
   const [filterType, setFilterType]   = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
@@ -242,7 +242,7 @@ export default function LegalAdminPage() {
       }).then((r) => r.data.data ?? r.data),
   });
 
-  const documents = (data as (LegalDocument & { id: number })[] | undefined) ?? [];
+  const documents = (data as Array<LegalDocument & { id: number }> | undefined) ?? [];
 
   const publishMutation = useMutation({
     mutationFn: (id: number) => legalApi.publish(id),
@@ -272,7 +272,7 @@ export default function LegalAdminPage() {
   });
 
   const openCreate = () => { setEditing(null); setDialogOpen(true); };
-  const openEdit   = (doc: LegalDocument & { id: number }) => { setEditing(doc); setDialogOpen(true); };
+  const openEdit   = (doc: LegalDocument) => { setEditing(doc); setDialogOpen(true); };
 
   return (
     <div className="space-y-6">
@@ -291,7 +291,7 @@ export default function LegalAdminPage() {
 
       {/* Filtros */}
       <div className="flex gap-3 flex-wrap">
-        <Select value={filterType} onValueChange={setFilterType}>
+        <Select value={filterType} onValueChange={(v) => setFilterType(v ?? '')}>
           <SelectTrigger className="w-52">
             <SelectValue placeholder="Todos los tipos" />
           </SelectTrigger>
@@ -303,7 +303,7 @@ export default function LegalAdminPage() {
           </SelectContent>
         </Select>
 
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
+        <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v ?? '')}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Todos los estados" />
           </SelectTrigger>

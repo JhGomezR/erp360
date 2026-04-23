@@ -56,9 +56,6 @@ const STATUS_META: Record<string, { label: string; variant: 'default' | 'seconda
 const fmt = (n: number, currency = 'COP') =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency, maximumFractionDigits: 2 }).format(n);
 
-const fmtDate = (d?: string | null) =>
-  d ? new Date(d).toLocaleDateString('es-CO') : '—';
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DebitNotesPage() {
