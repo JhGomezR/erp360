@@ -42,7 +42,10 @@ class PlanValidationTest extends TestCase
                   'hardware', 'clothing', 'petstore', 'salon'];
 
         foreach ($types as $type) {
-            BusinessType::factory()->create(['slug' => $type, 'name' => ucfirst($type)]);
+            BusinessType::firstOrCreate(
+                ['slug' => $type],
+                ['name' => ucfirst($type), 'icon' => 'store', 'is_active' => true],
+            );
         }
 
         $validSlugs = BusinessType::pluck('slug')->all();

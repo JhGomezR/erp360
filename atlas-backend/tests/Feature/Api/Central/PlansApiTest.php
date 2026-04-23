@@ -30,7 +30,10 @@ class PlansApiTest extends TestCase
 
     private function createBusinessType(string $slug): BusinessType
     {
-        return BusinessType::factory()->create(['slug' => $slug, 'name' => ucfirst($slug)]);
+        return BusinessType::firstOrCreate(
+            ['slug' => $slug],
+            ['name' => ucfirst($slug), 'icon' => 'store', 'is_active' => true],
+        );
     }
 
     // ── GET /api/plans — Público ──────────────────────────────────────────────

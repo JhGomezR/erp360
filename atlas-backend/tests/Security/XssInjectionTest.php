@@ -94,7 +94,7 @@ class XssInjectionTest extends TestCase
     public function nombre_de_plan_almacenado_con_xss_no_ejecuta_en_api(): void
     {
         $admin = $this->actingAsSuperAdmin();
-        BusinessType::factory()->create(['slug' => 'store']);
+        BusinessType::firstOrCreate(['slug' => 'store'], ['name' => 'Store', 'icon' => 'store', 'is_active' => true]);
 
         foreach ($this->xssPayloads() as $idx => $payload) {
             $response = $this->postJson('/api/plans', [

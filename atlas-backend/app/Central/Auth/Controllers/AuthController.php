@@ -125,21 +125,25 @@ class AuthController extends Controller
             $ua     = request()?->userAgent();
             $device = DeviceParser::parse($ua);
 
-            DB::connection('pgsql')->table('audit_logs')->insert([
-                'user_id'     => $userId,
-                'user_email'  => $email,
-                'action'      => $action,
-                'level'       => $level,
-                'module'      => 'auth',
-                'ip_address'  => request()?->ip(),
-                'user_agent'  => $ua,
-                'device_type' => $device['device_type'],
-                'device_name' => $device['device_name'],
-                'browser'     => $device['browser'],
-                'os'          => $device['os'],
-                'description' => $description,
-                'created_at'  => now(),
-            ]);
+            $conn = DB::connection('pgsql');
+            $conn->statement('SAVEPOINT audit_auth');
+            try {
+                $conn->table('audit_logs')->insert([
+                    'user_id'     => $userId,
+                    'user_email'  => $email,
+                    'action'      => $action,
+                    'ip_address'  => request()?->ip(),
+                    'user_agent'  => $ua,
+                    'device_type' => $device['device_type'],
+                    'device_name' => $device['device_name'],
+                    'browser'     => $device['browser'],
+                    'os'          => $device['os'],
+                    'description' => $description,
+                    'created_at'  => now(),
+                ]);
+            } catch (\Throwable) {
+                try { $conn->statement('ROLLBACK TO SAVEPOINT audit_auth'); } catch (\Throwable) {}
+            }
         } catch (\Throwable) {}
     }
 }
