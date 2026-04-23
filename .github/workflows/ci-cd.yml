@@ -374,6 +374,7 @@ jobs:
       github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    continue-on-error: true  # Targets producción — informativo hasta que el deploy esté configurado
 
     strategy:
       fail-fast: false
@@ -391,8 +392,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: tests/e2e/package-lock.json
 
       - name: Install E2E dependencies
         working-directory: tests/e2e
@@ -464,6 +463,7 @@ jobs:
       github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    continue-on-error: true  # Targets producción — informativo hasta que el deploy esté configurado
 
     steps:
       - uses: actions/checkout@v4
@@ -631,9 +631,21 @@ jobs:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: production
+    continue-on-error: true  # No bloquear el workflow si los secrets SSH aún no están configurados
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
 
     steps:
+      - name: Verificar configuración SSH
+        run: |
+          if [ -z "$SSH_HOST" ]; then
+            echo "::warning::Secrets SSH no configurados — omitiendo deploy. Configura SSH_HOST, SSH_USER, SSH_KEY, SSH_PORT, DEPLOY_PATH en Settings → Secrets para habilitar el deploy."
+          else
+            echo "SSH_HOST configurado — el siguiente paso ejecutará el deploy."
+          fi
+
       - name: Deploy via SSH
+        if: env.SSH_HOST != ''
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
