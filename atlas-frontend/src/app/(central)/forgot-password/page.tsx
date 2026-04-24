@@ -49,6 +49,7 @@ export default function ForgotPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           {branding.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element -- logo dinámico desde branding API; no se conoce el dominio en tiempo de build
             <img src={branding.logo_url} alt={branding.app_name} className="h-12 mx-auto mb-2 object-contain" />
           ) : (
             <div className="text-4xl font-black tracking-tight text-primary mb-2">{branding.app_name}</div>

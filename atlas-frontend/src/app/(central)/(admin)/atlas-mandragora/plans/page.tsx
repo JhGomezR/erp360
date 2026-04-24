@@ -78,14 +78,14 @@ const planSchema = z.object({
   annual_discount_pct: z.number().min(0).max(100).optional(),
   max_users:           z.number().int().min(1).nullable().optional(),
   max_pos:             z.number().int().min(1).nullable().optional(),
-  sort_order:          z.number().min(0).default(0),
+  sort_order:          z.number().min(0),
   color:               z.string().optional(),
   badge_text:          z.string().optional(),
   type:                z.string().min(1, 'Selecciona el tipo de negocio'),
   modules:             z.array(z.string()).min(1, 'Selecciona al menos un módulo'),
-  features:            z.array(z.string()).default([]),
+  features:            z.array(z.string()),
   is_active:           z.boolean(),
-  is_featured:         z.boolean().default(false),
+  is_featured:         z.boolean(),
 });
 
 type PlanFormValues = z.infer<typeof planSchema>;
@@ -242,7 +242,7 @@ function PlanDialog({ open, onOpenChange, editingPlan, businessTypes, allModules
       sort_order:          values.sort_order,
       color:               values.color,
       badge_text:          values.badge_text,
-      type:                values.type,
+      type:                values.type as Plan['type'],
       modules:             values.modules,
       features:            values.features,
       is_active:           values.is_active,

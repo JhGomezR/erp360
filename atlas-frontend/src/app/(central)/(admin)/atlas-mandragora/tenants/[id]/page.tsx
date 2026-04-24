@@ -53,7 +53,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 // ─── Modules Tab ─────────────────────────────────────────────────────────────
 
-function ModulesTab({ tenantId }: { tenantId: number }) {
+function ModulesTab({ tenantId }: { tenantId: string }) {
   const queryClient = useQueryClient();
   const { data: modules, isLoading } = useQuery({
     queryKey: ['tenant-modules', tenantId],
@@ -123,7 +123,7 @@ function ModulesTab({ tenantId }: { tenantId: number }) {
 
 // ─── Users Tab ────────────────────────────────────────────────────────────────
 
-function UsersTab({ tenantId }: { tenantId: number }) {
+function UsersTab({ tenantId }: { tenantId: string }) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['tenant-users-admin', tenantId],
@@ -225,10 +225,10 @@ function UsersTab({ tenantId }: { tenantId: number }) {
 
 // ─── Billing Tab ──────────────────────────────────────────────────────────────
 
-function BillingTab({ tenantId }: { tenantId: number }) {
+function BillingTab({ tenantId }: { tenantId: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ['tenant-billing-history', tenantId],
-    queryFn: () => subscriptionsApi.tenantHistory(tenantId).then((r) => r.data),
+    queryFn: () => subscriptionsApi.tenantHistory(Number(tenantId)).then((r) => r.data),
   });
 
   const history = (data as { data?: unknown[] })?.data ?? (Array.isArray(data) ? data : []) as {

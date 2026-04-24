@@ -113,7 +113,8 @@ function EditorDialog({ open, onOpenChange, editing }: EditorDialogProps) {
   });
 
   const onSubmit = (data: DocForm) => {
-    isEdit ? updateMutation.mutate(data) : createMutation.mutate(data);
+    if (isEdit) updateMutation.mutate(data);
+    else createMutation.mutate(data);
   };
 
   return (

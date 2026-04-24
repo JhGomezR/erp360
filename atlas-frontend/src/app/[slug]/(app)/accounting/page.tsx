@@ -38,6 +38,19 @@ interface AccountingPeriod {
   date_from: string; date_to: string; status: 'open' | 'closed';
   closed_at?: string;
 }
+interface FinancialReport {
+  rows?: Array<{
+    code: string; name: string;
+    debit?: number; credit?: number; balance?: number;
+    total_debit?: number; total_credit?: number;
+  }>;
+  total_revenue?: number;
+  total_costs?: number;
+  net_income?: number;
+  total_assets?: number;
+  total_liabilities_equity?: number;
+  [key: string]: unknown;
+}
 interface TaxRetention {
   id: number; name: string; type: string; type_label: string;
   rate: number; base_minimum: number; concept_code?: string;
@@ -95,7 +108,7 @@ export default function AccountingPage() {
     queryKey: ['chart-of-accounts', slug],
     queryFn: async () => {
       const r = await accountingApi.accounts();
-      return (r.data as any)?.data ?? (r.data as Account[]) ?? [];
+      return (r.data as { data?: Account[] })?.data ?? (r.data as Account[]) ?? [];
     },
     enabled: tab === 'accounts',
   });
@@ -104,7 +117,7 @@ export default function AccountingPage() {
     queryKey: ['journal-entries', slug],
     queryFn: async () => {
       const r = await accountingApi.journalEntries();
-      return (r.data as any)?.data ?? (r.data as JournalEntry[]) ?? [];
+      return (r.data as { data?: JournalEntry[] })?.data ?? (r.data as JournalEntry[]) ?? [];
     },
     enabled: tab === 'journal',
   });
@@ -116,7 +129,7 @@ export default function AccountingPage() {
         ? { date_from: reportFrom, date_to: reportTo }
         : { date: reportDate };
       const r = await accountingApi.financialReport(reportType, params);
-      return r.data as any;
+      return r.data as FinancialReport;
     },
     enabled: tab === 'reports',
   });
@@ -125,7 +138,7 @@ export default function AccountingPage() {
     queryKey: ['accounting-periods', slug],
     queryFn: async () => {
       const r = await accountingApi.periods();
-      return (r.data as any)?.data ?? (r.data as AccountingPeriod[]) ?? [];
+      return (r.data as { data?: AccountingPeriod[] })?.data ?? (r.data as AccountingPeriod[]) ?? [];
     },
     enabled: tab === 'periods',
   });
@@ -366,13 +379,13 @@ export default function AccountingPage() {
                       <th className="text-right px-4 py-3 font-medium">Saldo</th>
                     </tr></thead>
                     <tbody className="divide-y">
-                      {report.rows.map((r: any) => (
+                      {report.rows.map((r) => (
                         <tr key={r.code} className="hover:bg-muted/30">
                           <td className="px-4 py-2 font-mono text-xs">{r.code}</td>
                           <td className="px-4 py-2">{r.name}</td>
-                          <td className="px-4 py-2 text-right font-mono">{fmt(r.total_debit)}</td>
-                          <td className="px-4 py-2 text-right font-mono">{fmt(r.total_credit)}</td>
-                          <td className="px-4 py-2 text-right font-mono font-medium">{fmt(r.balance)}</td>
+                          <td className="px-4 py-2 text-right font-mono">{fmt(r.total_debit ?? r.debit ?? 0)}</td>
+                          <td className="px-4 py-2 text-right font-mono">{fmt(r.total_credit ?? r.credit ?? 0)}</td>
+                          <td className="px-4 py-2 text-right font-mono font-medium">{fmt(r.balance ?? 0)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -389,7 +402,7 @@ export default function AccountingPage() {
                   ].map(({ label, value }) => (
                     <Card key={label}>
                       <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{label}</CardTitle></CardHeader>
-                      <CardContent><div className={`text-xl font-bold ${value < 0 ? 'text-destructive' : ''}`}>{fmt(value ?? 0)}</div></CardContent>
+                      <CardContent><div className={`text-xl font-bold ${(value ?? 0) < 0 ? 'text-destructive' : ''}`}>{fmt(value ?? 0)}</div></CardContent>
                     </Card>
                   ))}
                 </div>

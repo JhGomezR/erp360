@@ -434,6 +434,7 @@ export default function ProfilePage() {
                     <p className="text-sm font-medium">
                       Escanea este código QR con tu app de autenticación
                     </p>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- QR generado dinámicamente, no es candidato a optimización de imagen */}
                     <img
                       src={totpSetup.qr_code_url}
                       alt="QR Code"
