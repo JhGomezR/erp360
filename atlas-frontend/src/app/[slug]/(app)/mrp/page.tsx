@@ -124,7 +124,7 @@ function BomTab({ slug }: { slug: string }) {
 
   const boms: Bom[] = (bomsQ.data as { data?: Bom[] })?.data ?? [];
   const detail = detailQ.data as Bom | undefined;
-  const products: Product[] = (productsQ.data as { data?: Product[] })?.data ?? [];
+  const products: Product[] = (productsQ.data as unknown as { data?: Product[] })?.data ?? [];
 
   function inv() { qc.invalidateQueries({ queryKey: [slug, 'mrp-boms'] }); }
 
@@ -511,7 +511,7 @@ function RequirementsTab({ slug }: { slug: string }) {
 
   const calcMut = useMutation({
     mutationFn: (payload: Array<{ product_id: number; quantity: number }>) => mrpApi.requirements(payload),
-    onSuccess: (data) => setResults(data as Requirement[]),
+    onSuccess: (data) => setResults(data as unknown as Requirement[]),
     onError: (e: unknown) => notify.error((e as { message?: string }).message ?? 'Error'),
   });
 

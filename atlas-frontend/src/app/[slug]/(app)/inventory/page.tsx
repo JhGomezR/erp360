@@ -1131,8 +1131,8 @@ async function downloadBulkTemplate(products: Product[]) {
     id: p.id,
     sku: p.sku,
     name: p.name,
-    sale_price: Number(p.sale_price),
-    cost_price: Number(p.cost_price),
+    sale_price: Number(p.price),
+    cost_price: Number(p.cost),
     min_stock: Number(p.min_stock ?? 0),
   }));
   const ws = XLSX.utils.json_to_sheet(rows, { header: UPDATE_COLS });
@@ -1381,8 +1381,10 @@ export default function InventoryPage() {
     queryFn: () => billingApi.addons().then((r) => r.data),
     staleTime: 5 * 60_000,
   });
-  const addonsArray: any[] = addonsData?.available ?? (Array.isArray(addonsData) ? addonsData : []);
-  const hasFractionsAddon = addonsArray.some((a: any) => a.module_key === 'fractions' && a.is_owned === true);
+  const addonsArray: Array<{ module_key?: string; is_owned?: boolean }> =
+    (addonsData as { available?: unknown[] })?.available as Array<{ module_key?: string; is_owned?: boolean }>
+      ?? (Array.isArray(addonsData) ? (addonsData as Array<{ module_key?: string; is_owned?: boolean }>) : []);
+  const hasFractionsAddon = addonsArray.some((a) => a.module_key === 'fractions' && a.is_owned === true);
 
   // Delete mutation
   const deleteMutation = useMutation({

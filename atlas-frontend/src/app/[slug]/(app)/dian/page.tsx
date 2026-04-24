@@ -827,7 +827,7 @@ export default function DianPage() {
   // Verificar si el tenant tiene el add-on fe_dian activo
   const { data: billingData, isLoading: loadingAddon } = useQuery({
     queryKey: ['billing-addons', slug],
-    queryFn: () => billingApi.addons(slug).then((r) => r.data),
+    queryFn: () => billingApi.addons().then((r) => r.data),
   });
 
   const feDianAddon = (billingData as any)?.available?.find(

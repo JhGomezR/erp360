@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notify } from '@/lib/notify';
-import { purchasesApi, invoiceOcrApi } from '@/lib/api/tenant.api';
+import { purchasesApi, invoiceOcrApi, suppliersApi } from '@/lib/api/tenant.api';
 import {
   FileText, Plus, AlertCircle, CheckCircle, Clock, DollarSign, ScanLine,
 } from 'lucide-react';
@@ -120,7 +120,7 @@ function CreateInvoiceDialog({
   // Load supplier list for selector
   const suppliersQ = useQuery({
     queryKey: [slug, 'suppliers-list'],
-    queryFn: () => purchasesApi.suppliers(),
+    queryFn: () => suppliersApi.list().then((r) => r.data),
     enabled: open,
   });
   const suppliers = ((suppliersQ.data as { data?: unknown[] })?.data ?? []) as { id: number; name: string }[];
@@ -614,7 +614,11 @@ export function VendorInvoiceTab() {
                   <TableCell><Badge variant={STATUS_COLORS[inv.status]} className="text-xs">{STATUS_LABELS[inv.status]}</Badge></TableCell>
                   <TableCell className={`text-xs font-semibold ${PAY_COLORS[inv.payment_status]}`}>{inv.payment_status}</TableCell>
                   <TableCell>
-                    {inv.attachment_name && <FileText className="size-4 text-muted-foreground" title={inv.attachment_name} />}
+                    {inv.attachment_name && (
+                      <span title={inv.attachment_name}>
+                        <FileText className="size-4 text-muted-foreground" />
+                      </span>
+                    )}
                   </TableCell>
                 </TableRow>
               );

@@ -6,7 +6,27 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+// Wrapper para coercionar el `value: string | null` que envía @base-ui a `string`,
+// permitiendo que los callers pasen `setStateString` o `(v: string) => void`
+// directamente sin lidiar con el `null` (que en práctica nunca emite el primitive
+// para selects no-multiple sin valor null explícito).
+type RootProps = React.ComponentProps<typeof SelectPrimitive.Root>
+type SelectProps = Omit<RootProps, "onValueChange"> & {
+  onValueChange?: (value: string) => void
+}
+
+function Select({ onValueChange, ...props }: SelectProps) {
+  return (
+    <SelectPrimitive.Root
+      {...props}
+      onValueChange={
+        onValueChange
+          ? (value: unknown) => onValueChange((value as string | null) ?? "")
+          : undefined
+      }
+    />
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (

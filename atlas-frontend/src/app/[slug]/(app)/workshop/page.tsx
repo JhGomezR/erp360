@@ -1568,8 +1568,8 @@ export default function WorkshopPage() {
       {/* Tabs */}
       <div className="flex flex-wrap gap-0.5 p-1 rounded-lg bg-muted w-fit">
         {([
-          { key: 'dashboard', label: 'Dashboard' },
-          { key: 'orders', label: 'Órdenes' },
+          { key: 'dashboard', icon: undefined, label: 'Dashboard' },
+          { key: 'orders', icon: undefined, label: 'Órdenes' },
           { key: 'warranties', icon: ShieldCheck, label: 'Garantías' },
           { key: 'contracts', icon: FileSignature, label: 'Contratos' },
           { key: 'spare-parts', icon: DollarSign, label: 'Repuestos y Tarifas' },

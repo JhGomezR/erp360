@@ -56,7 +56,7 @@ function ReferrersTab() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['referrers', slug, page, search],
-    queryFn: () => referralsApi.listReferrers({ page, search: search || undefined }),
+    queryFn: () => referralsApi.listReferrers({ page, search: search || undefined }).then((r) => r.data),
   });
 
   const save = useMutation({
@@ -207,12 +207,12 @@ function AgreementsTab() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['referral-agreements', slug, page],
-    queryFn: () => referralsApi.listAgreements({ page }),
+    queryFn: () => referralsApi.listAgreements({ page }).then((r) => r.data),
   });
 
   const { data: referrers } = useQuery({
     queryKey: ['referrers-all', slug],
-    queryFn: () => referralsApi.listReferrers({ per_page: 200, active: true }),
+    queryFn: () => referralsApi.listReferrers({ per_page: 200, active: true }).then((r) => r.data),
   });
 
   const save = useMutation({
@@ -369,12 +369,12 @@ function CommissionsTab() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['referral-commissions', slug, page, statusFilter],
-    queryFn: () => referralsApi.listCommissions({ page, status: statusFilter || undefined }),
+    queryFn: () => referralsApi.listCommissions({ page, status: statusFilter || undefined }).then((r) => r.data),
   });
 
   const { data: summary } = useQuery({
     queryKey: ['referral-commissions-summary', slug],
-    queryFn: () => referralsApi.commissionsSummary(),
+    queryFn: () => referralsApi.commissionsSummary().then((r) => r.data),
   });
 
   const approve = useMutation({

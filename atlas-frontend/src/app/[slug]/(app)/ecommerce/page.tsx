@@ -592,7 +592,7 @@ function IntegrationsTab({ slug }: { slug: string }) {
     enabled: selectedId !== null,
   });
 
-  const integrations = (listQ.data as unknown[]) ?? [];
+  const integrations = (listQ.data as unknown as unknown[]) ?? [];
   const logs = ((logsQ.data as { data?: unknown[] })?.data ?? []) as {
     id: number; event_type: string; external_id: string | null;
     status: string; error_message: string | null; created_at: string;

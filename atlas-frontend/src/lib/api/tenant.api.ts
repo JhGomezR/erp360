@@ -1546,6 +1546,14 @@ export const referralsApi = {
 };
 
 // ─── Documento Soporte Electrónico ───────────────────────────────────────────
+type SupportDocPayload = {
+  supplier_id: number;
+  purchase_order_id?: number;
+  doc_date: string;
+  notes?: string;
+  items: import('@/types').ElectronicSupportDocItem[];
+};
+
 export const supportDocsApi = {
   list: (params?: { status?: string; supplier_id?: number; from?: string; to?: string; page?: number }) =>
     t<import('@/types').PaginatedResponse<import('@/types').ElectronicSupportDoc>>(
@@ -1553,14 +1561,9 @@ export const supportDocsApi = {
     ),
   get: (id: number) =>
     t<import('@/types').ElectronicSupportDoc>('get', `/accounting/support-docs/${id}`),
-  create: (data: {
-    supplier_id: number;
-    purchase_order_id?: number;
-    doc_date: string;
-    notes?: string;
-    items: import('@/types').ElectronicSupportDocItem[];
-  }) => t<import('@/types').ElectronicSupportDoc>('post', '/accounting/support-docs', data),
-  update: (id: number, data: Parameters<typeof supportDocsApi.create>[0]) =>
+  create: (data: SupportDocPayload) =>
+    t<import('@/types').ElectronicSupportDoc>('post', '/accounting/support-docs', data),
+  update: (id: number, data: SupportDocPayload) =>
     t<import('@/types').ElectronicSupportDoc>('put', `/accounting/support-docs/${id}`, data),
   issue: (id: number) =>
     t<{ message: string; doc: import('@/types').ElectronicSupportDoc; cuds: string }>(

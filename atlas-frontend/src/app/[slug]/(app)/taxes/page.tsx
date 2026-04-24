@@ -53,8 +53,8 @@ const taxSchema = z.object({
   type:         z.enum(['iva', 'ico', 'ipc', 'other']),
   rate:         z.string().min(1, 'Requerido'),
   account_code: z.string().optional(),
-  is_active:    z.boolean().default(true),
-  is_default:   z.boolean().default(false),
+  is_active:    z.boolean(),
+  is_default:   z.boolean(),
 });
 type TaxForm = z.infer<typeof taxSchema>;
 
@@ -65,9 +65,9 @@ const retentionSchema = z.object({
   concept_name:         z.string().optional(),
   rate:                 z.string().min(1, 'Requerido'),
   base_minimum:         z.string().optional(),
-  applies_to_purchases: z.boolean().default(true),
-  applies_to_sales:     z.boolean().default(false),
-  is_active:            z.boolean().default(true),
+  applies_to_purchases: z.boolean(),
+  applies_to_sales:     z.boolean(),
+  is_active:            z.boolean(),
   notes:                z.string().optional(),
 });
 type RetentionForm = z.infer<typeof retentionSchema>;

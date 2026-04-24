@@ -30,7 +30,7 @@ export function useNotifications(tenantSlug: string) {
       ]);
       return {
         list: (listRes.data as { data: AppNotification[] }).data ?? [],
-        unread: (countRes.data as { unread: number }).unread ?? 0,
+        unread: (countRes.data as unknown as { unread: number }).unread ?? 0,
       };
     },
     enabled: !!tenantSlug,
