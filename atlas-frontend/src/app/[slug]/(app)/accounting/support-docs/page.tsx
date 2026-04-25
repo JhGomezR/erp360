@@ -7,7 +7,7 @@ import {
   FileText, Plus, Eye, Trash2, Send, X, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { notify } from '@/lib/notify';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,7 +64,7 @@ export default function SupportDocsPage() {
 
   const { data: suppliersData } = useQuery({
     queryKey: ['suppliers-simple', slug],
-    queryFn: () => suppliersApi.list().then((r) => (r.data as any)?.data ?? r.data),
+    queryFn: () => suppliersApi.list().then((r) => (r.data as { data?: Supplier[] })?.data ?? r.data),
   });
 
   // ─── Mutations ──────────────────────────────────────────────────────────────
@@ -83,9 +83,9 @@ export default function SupportDocsPage() {
     onError: () => notify.error('Error al eliminar el documento.'),
   });
 
-  const docs: ElectronicSupportDoc[] = (docsData as any)?.data ?? [];
-  const lastPage: number = (docsData as any)?.last_page ?? 1;
-  const suppliers: Supplier[] = suppliersData ?? [];
+  const docs: ElectronicSupportDoc[] = (docsData as { data?: ElectronicSupportDoc[] })?.data ?? [];
+  const lastPage: number = (docsData as { last_page?: number })?.last_page ?? 1;
+  const suppliers: Supplier[] = (suppliersData as Supplier[] | undefined) ?? [];
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
@@ -152,7 +152,7 @@ export default function SupportDocsPage() {
                       <td className="px-4 py-3">{doc.doc_date}</td>
                       <td className="px-4 py-3 text-right">{fmt(doc.total)}</td>
                       <td className="px-4 py-3">
-                        <Badge variant={STATUS_COLOR[doc.status] as any}>
+                        <Badge variant={STATUS_COLOR[doc.status] as 'secondary' | 'default' | 'destructive'}>
                           {STATUS_LABEL[doc.status]}
                         </Badge>
                       </td>

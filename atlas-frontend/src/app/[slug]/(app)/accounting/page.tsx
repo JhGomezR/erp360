@@ -354,7 +354,7 @@ export default function AccountingPage() {
                     ? { date_from: reportFrom, date_to: reportTo }
                     : { date: reportDate };
                   await downloadBlob(
-                    () => accountingApi.exportFinancialReport(reportType, p) as any,
+                    () => accountingApi.exportFinancialReport(reportType, p) as unknown as Promise<{ data: Blob }>,
                     `${reportType}_${reportDate}.csv`,
                   );
                 } finally { setExporting(false); }
