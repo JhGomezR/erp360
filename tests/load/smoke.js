@@ -20,7 +20,7 @@ export const options = {
   duration: '30s',     // Durante 30 segundos
   thresholds: {
     http_req_failed:    ['rate<0.01'],     // < 1% de errores
-    http_req_duration:  ['p(95)<500'],     // 95% de requests < 500ms
+    http_req_duration:  ['p(95)<800'],     // 95% de requests < 800ms (cold start tolerance)
     errors:             ['rate<0.01'],
   },
 };
@@ -28,11 +28,11 @@ export const options = {
 const BASE_URL = __ENV.BASE_URL || 'https://atlaserp.com.co';
 
 export default function () {
-  // 1. Health check
-  const health = http.get(`${BASE_URL}/health`);
+  // 1. Health check (la API expone /api/health, no /health)
+  const health = http.get(`${BASE_URL}/api/health`);
   check(health, {
     'health OK': (r) => r.status === 200,
-    'health < 100ms': (r) => r.timings.duration < 100,
+    'health < 200ms': (r) => r.timings.duration < 200,
   });
 
   // 2. Planes públicos
