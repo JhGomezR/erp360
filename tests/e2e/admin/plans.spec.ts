@@ -13,13 +13,14 @@
  */
 
 import { test, expect, type Page } from '@playwright/test';
+import { SUPER_ADMIN, TENANT_DEMO } from '../_credentials';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                              */
 /* ------------------------------------------------------------------ */
 
-const SUPER_ADMIN_EMAIL    = 'super@atlas.dev';
-const SUPER_ADMIN_PASSWORD = 'SuperAtlas@2025!';
+const SUPER_ADMIN_EMAIL    = SUPER_ADMIN.email;
+const SUPER_ADMIN_PASSWORD = SUPER_ADMIN.password;
 const ADMIN_URL            = '/admin';
 
 async function loginAsSuperAdmin(page: Page) {
@@ -223,8 +224,8 @@ test.describe('@security Admin — Control de Acceso', () => {
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
-    await page.getByLabel(/correo|email/i).fill('admin@tienda-demo.com');
-    await page.getByLabel(/contraseña|password/i).fill('Atlas@2025!');
+    await page.getByLabel(/correo|email/i).fill(TENANT_DEMO.email);
+    await page.getByLabel(/contraseña|password/i).fill(TENANT_DEMO.password);
     await page.getByRole('button', { name: /iniciar|login|ingresar/i }).click();
     await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 20_000 });
 

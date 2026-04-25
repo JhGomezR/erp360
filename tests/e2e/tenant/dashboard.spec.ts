@@ -12,14 +12,15 @@
  */
 
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
+import { TENANT_DEMO } from '../_credentials';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                              */
 /* ------------------------------------------------------------------ */
 
-const DEMO_TENANT_SLUG = 'tienda-demo';
-const DEMO_EMAIL       = 'admin@tienda-demo.com';
-const DEMO_PASSWORD    = 'Atlas@2025!';
+const DEMO_TENANT_SLUG = TENANT_DEMO.slug;
+const DEMO_EMAIL       = TENANT_DEMO.email;
+const DEMO_PASSWORD    = TENANT_DEMO.password;
 
 async function loginAndGetToDashboard(page: Page, slug = DEMO_TENANT_SLUG) {
   await page.goto('/login');
@@ -90,8 +91,8 @@ test.describe('@security Aislamiento entre Tenants', () => {
     // Login como admin de tienda-demo
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
-    await page.getByLabel(/correo|email/i).fill('admin@tienda-demo.com');
-    await page.getByLabel(/contraseña|password/i).fill('Atlas@2025!');
+    await page.getByLabel(/correo|email/i).fill(TENANT_DEMO.email);
+    await page.getByLabel(/contraseña|password/i).fill(TENANT_DEMO.password);
     await page.getByRole('button', { name: /iniciar|login|ingresar/i }).click();
     await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 20_000 });
 

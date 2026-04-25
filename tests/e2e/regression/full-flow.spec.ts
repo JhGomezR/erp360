@@ -18,15 +18,16 @@
  */
 
 import { test, expect, type Page } from '@playwright/test';
+import { TENANT_DEMO, TENANT_REST, TENANT_PHARMACY } from '../_credentials';
 
 /* ------------------------------------------------------------------ */
 /*  Constantes                                                           */
 /* ------------------------------------------------------------------ */
 
 const TENANTS = [
-  { slug: 'tienda-demo',    email: 'admin@tienda-demo.com',  password: 'Atlas@2025!', type: 'store'      },
-  { slug: 'rest-demo',      email: 'admin@rest-demo.com',    password: 'Atlas@2025!', type: 'restaurant'  },
-  { slug: 'drug-demo',      email: 'admin@drug-demo.com',    password: 'Atlas@2025!', type: 'pharmacy'    },
+  { ...TENANT_DEMO,     type: 'store'      },
+  { ...TENANT_REST,     type: 'restaurant' },
+  { ...TENANT_PHARMACY, type: 'pharmacy'   },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -208,7 +209,7 @@ test.describe('@regression LocalStorage — Solo datos de navegación', () => {
     await page.waitForTimeout(2000);
 
     const allStorage = await page.evaluate(() => JSON.stringify(localStorage));
-    expect(allStorage).not.toContain('Atlas@2025!');
+    expect(allStorage).not.toContain(TENANT_DEMO.password);
     expect(allStorage).not.toContain('password');
     expect(allStorage).not.toContain('pass');
   });

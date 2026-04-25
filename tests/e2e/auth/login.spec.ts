@@ -14,6 +14,7 @@
  */
 
 import { test, expect, type Page } from '@playwright/test';
+import { TENANT_DEMO } from '../_credentials';
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                              */
@@ -45,7 +46,7 @@ test.describe('@functional Login Central', () => {
 
   test('login válido redirige al dashboard o selector de tenant', async ({ page }) => {
     await gotoLogin(page);
-    await fillLogin(page, 'admin@tienda-demo.com', 'Atlas@2025!');
+    await fillLogin(page, TENANT_DEMO.email, TENANT_DEMO.password);
 
     // Debe salir del /login — puede ir a /dashboard o al slug del tenant
     await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15_000 });
@@ -54,7 +55,7 @@ test.describe('@functional Login Central', () => {
 
   test('login inválido muestra error y no redirige', async ({ page }) => {
     await gotoLogin(page);
-    await fillLogin(page, 'admin@tienda-demo.com', 'ContrasenaMal!');
+    await fillLogin(page, TENANT_DEMO.email, 'ContrasenaMal!');
 
     // Debe permanecer en /login
     await page.waitForTimeout(2000);
@@ -77,7 +78,7 @@ test.describe('@functional Login Central', () => {
 
   test('solo email vacío muestra validación', async ({ page }) => {
     await gotoLogin(page);
-    await page.getByLabel(/contraseña|password/i).fill('Atlas@2025!');
+    await page.getByLabel(/contraseña|password/i).fill(TENANT_DEMO.password);
     await page.getByRole('button', { name: /iniciar|login|ingresar/i }).click();
 
     await page.waitForTimeout(500);
@@ -92,13 +93,13 @@ test.describe('@functional Login Central', () => {
 test.describe('@security Login — Seguridad', () => {
   test('no revela si el email existe (enumeración de usuarios)', async ({ page }) => {
     await gotoLogin(page);
-    await fillLogin(page, 'noexiste_xyz_abc@example.com', 'Atlas@2025!');
+    await fillLogin(page, 'noexiste_xyz_abc@example.com', TENANT_DEMO.password);
     await page.waitForTimeout(2000);
     const errorNoExiste = await page.locator('[role="alert"], [data-testid="error"], .error, .alert')
       .first().textContent().catch(() => '');
 
     await gotoLogin(page);
-    await fillLogin(page, 'admin@tienda-demo.com', 'ContrasenaMalísima123');
+    await fillLogin(page, TENANT_DEMO.email, 'ContrasenaMalísima123');
     await page.waitForTimeout(2000);
     const errorMalPass = await page.locator('[role="alert"], [data-testid="error"], .error, .alert')
       .first().textContent().catch(() => '');
@@ -137,7 +138,7 @@ test.describe('@security Login — Seguridad', () => {
 
   test('no expone token ni datos sensibles en la URL después del login', async ({ page }) => {
     await gotoLogin(page);
-    await fillLogin(page, 'admin@tienda-demo.com', 'Atlas@2025!');
+    await fillLogin(page, TENANT_DEMO.email, TENANT_DEMO.password);
     await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15_000 }).catch(() => {});
 
     const url = page.url();
@@ -148,17 +149,17 @@ test.describe('@security Login — Seguridad', () => {
 
   test('no almacena password en localStorage', async ({ page }) => {
     await gotoLogin(page);
-    await fillLogin(page, 'admin@tienda-demo.com', 'Atlas@2025!');
+    await fillLogin(page, TENANT_DEMO.email, TENANT_DEMO.password);
     await page.waitForTimeout(3000);
 
     const storage = await page.evaluate(() => JSON.stringify(localStorage));
-    expect(storage).not.toContain('Atlas@2025!');
+    expect(storage).not.toContain(TENANT_DEMO.password);
     expect(storage).not.toContain('password');
   });
 
   test('localStorage no contiene datos sensibles del plan', async ({ page }) => {
     await gotoLogin(page);
-    await fillLogin(page, 'admin@tienda-demo.com', 'Atlas@2025!');
+    await fillLogin(page, TENANT_DEMO.email, TENANT_DEMO.password);
     await page.waitForTimeout(3000);
 
     const storage = await page.evaluate(() => {
@@ -181,7 +182,7 @@ test.describe('@security Login — Seguridad', () => {
 test.describe('@functional Logout', () => {
   test.beforeEach(async ({ page }) => {
     await gotoLogin(page);
-    await fillLogin(page, 'admin@tienda-demo.com', 'Atlas@2025!');
+    await fillLogin(page, TENANT_DEMO.email, TENANT_DEMO.password);
     await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15_000 });
   });
 
@@ -231,7 +232,7 @@ test.describe('@functional Logout', () => {
 test.describe('@regression Persistencia de sesión', () => {
   test('recargar la página mantiene la sesión activa', async ({ page }) => {
     await gotoLogin(page);
-    await fillLogin(page, 'admin@tienda-demo.com', 'Atlas@2025!');
+    await fillLogin(page, TENANT_DEMO.email, TENANT_DEMO.password);
     await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15_000 });
 
     const urlAntes = page.url();

@@ -14,6 +14,7 @@
  */
 
 import { test, expect, type Page } from '@playwright/test';
+import { TENANT_DEMO } from '../_credentials';
 
 /* ------------------------------------------------------------------ */
 /*  Payloads XSS                                                         */
@@ -162,8 +163,8 @@ test.describe('@security Open Redirect', () => {
     await page.waitForLoadState('networkidle');
 
     // Si hay login y redirige al parámetro — verificar que no va a evil.com
-    await page.getByLabel(/correo|email/i).fill('admin@tienda-demo.com').catch(() => {});
-    await page.getByLabel(/contraseña|password/i).fill('Atlas@2025!').catch(() => {});
+    await page.getByLabel(/correo|email/i).fill(TENANT_DEMO.email).catch(() => {});
+    await page.getByLabel(/contraseña|password/i).fill(TENANT_DEMO.password).catch(() => {});
     await page.getByRole('button', { name: /iniciar|login|ingresar/i }).click().catch(() => {});
 
     await page.waitForTimeout(3000);

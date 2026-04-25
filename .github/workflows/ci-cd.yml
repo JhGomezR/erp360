@@ -425,6 +425,18 @@ jobs:
         env:
           BASE_URL: ${{ env.BASE_URL }}
           TEST_TYPE: ""
+          # Credenciales contra producción — defaults en tests/e2e/_credentials.ts
+          E2E_SUPER_EMAIL:              ${{ secrets.E2E_SUPER_EMAIL }}
+          E2E_SUPER_PASSWORD:           ${{ secrets.E2E_SUPER_PASSWORD }}
+          E2E_TENANT_DEMO_SLUG:         ${{ secrets.E2E_TENANT_DEMO_SLUG }}
+          E2E_TENANT_DEMO_EMAIL:        ${{ secrets.E2E_TENANT_DEMO_EMAIL }}
+          E2E_TENANT_DEMO_PASSWORD:     ${{ secrets.E2E_TENANT_DEMO_PASSWORD }}
+          E2E_TENANT_REST_SLUG:         ${{ secrets.E2E_TENANT_REST_SLUG }}
+          E2E_TENANT_REST_EMAIL:        ${{ secrets.E2E_TENANT_REST_EMAIL }}
+          E2E_TENANT_REST_PASSWORD:     ${{ secrets.E2E_TENANT_REST_PASSWORD }}
+          E2E_TENANT_PHARMACY_SLUG:     ${{ secrets.E2E_TENANT_PHARMACY_SLUG }}
+          E2E_TENANT_PHARMACY_EMAIL:    ${{ secrets.E2E_TENANT_PHARMACY_EMAIL }}
+          E2E_TENANT_PHARMACY_PASSWORD: ${{ secrets.E2E_TENANT_PHARMACY_PASSWORD }}
 
       - name: Run E2E — Seguridad (@security)
         working-directory: tests/e2e
@@ -436,6 +448,8 @@ jobs:
             --output=results/security/
         env:
           BASE_URL: ${{ env.BASE_URL }}
+          E2E_TENANT_DEMO_EMAIL:    ${{ secrets.E2E_TENANT_DEMO_EMAIL }}
+          E2E_TENANT_DEMO_PASSWORD: ${{ secrets.E2E_TENANT_DEMO_PASSWORD }}
         continue-on-error: true  # Seguridad: documenta sin bloquear siempre
 
       - name: Upload E2E results
