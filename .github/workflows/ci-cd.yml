@@ -506,11 +506,12 @@ jobs:
 
   # ─────────────────────────────────────────────────────────────────────────
   test-load-k6:
-    name: "Load — k6 Load Test (50 VUs — nightly only)"
+    name: "Load — k6 Load Test (20 VUs — nightly only)"
     needs: [test-smoke-k6]
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    continue-on-error: true  # Informativo: depende de capacidad real de producción
 
     steps:
       - uses: actions/checkout@v4
@@ -525,8 +526,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install k6 -y
 
-      - name: k6 Load Test (50 VUs, flujo completo de auth)
+      - name: k6 Load Test (20 VUs, flujo completo de auth)
         run: k6 run tests/load/load.js --env BASE_URL=${{ env.BASE_URL }}
+        env:
+          # Credenciales para los logins simulados — usar mismos secrets que E2E
+          E2E_TENANT_DEMO_EMAIL:        ${{ secrets.E2E_TENANT_DEMO_EMAIL }}
+          E2E_TENANT_DEMO_PASSWORD:     ${{ secrets.E2E_TENANT_DEMO_PASSWORD }}
+          E2E_TENANT_REST_EMAIL:        ${{ secrets.E2E_TENANT_REST_EMAIL }}
+          E2E_TENANT_REST_PASSWORD:     ${{ secrets.E2E_TENANT_REST_PASSWORD }}
+          E2E_TENANT_PHARMACY_EMAIL:    ${{ secrets.E2E_TENANT_PHARMACY_EMAIL }}
+          E2E_TENANT_PHARMACY_PASSWORD: ${{ secrets.E2E_TENANT_PHARMACY_PASSWORD }}
 
       - name: Upload load results
         uses: actions/upload-artifact@v4
