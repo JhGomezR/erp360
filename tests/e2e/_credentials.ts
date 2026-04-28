@@ -21,9 +21,11 @@
 
 const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
 
+// Defaults verificados contra producción (atlaserp.com.co) el 2026-04-27.
+// Si producción cambia, actualizar aquí o sobreescribir vía secrets E2E_*.
 export const SUPER_ADMIN = {
   email:    env.E2E_SUPER_EMAIL    ?? 'super@atlas.dev',
-  password: env.E2E_SUPER_PASSWORD ?? 'SuperAtlas@2025!',
+  password: env.E2E_SUPER_PASSWORD ?? 'Atlas@Super2024!',
 };
 
 export const TENANT_DEMO = {
@@ -33,13 +35,13 @@ export const TENANT_DEMO = {
 };
 
 export const TENANT_REST = {
-  slug:     env.E2E_TENANT_REST_SLUG     ?? 'rest-demo',
+  slug:     env.E2E_TENANT_REST_SLUG     ?? 'restaurante-demo',
   email:    env.E2E_TENANT_REST_EMAIL    ?? 'admin@rest-demo.com',
   password: env.E2E_TENANT_REST_PASSWORD ?? 'Atlas@2025!',
 };
 
 export const TENANT_PHARMACY = {
-  slug:     env.E2E_TENANT_PHARMACY_SLUG     ?? 'drug-demo',
+  slug:     env.E2E_TENANT_PHARMACY_SLUG     ?? 'drogueria-demo',
   email:    env.E2E_TENANT_PHARMACY_EMAIL    ?? 'admin@drug-demo.com',
   password: env.E2E_TENANT_PHARMACY_PASSWORD ?? 'Atlas@2025!',
 };
