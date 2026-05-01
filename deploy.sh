@@ -28,8 +28,18 @@ error()   { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 info "Iniciando despliegue de Atlas ERP..."
 
 # ── 1. Actualizar código ───────────────────────────────────────────────────────
-info "Actualizando código desde git..."
-git pull origin master
+# Estrategia: el servidor de producción NO debe tener cambios locales nunca.
+# Lo que está en origin/master es la única fuente de verdad. Si alguien edita
+# archivos en el server (hotfix, debugging, etc.), esos cambios SE DESCARTAN
+# en el próximo deploy. Cualquier cambio real debe pasar por PR + merge a master.
+info "Actualizando código desde git (forzando sincronización con origin/master)..."
+git fetch origin master
+LOCAL_CHANGES=$(git status --porcelain | wc -l)
+if [ "$LOCAL_CHANGES" -gt 0 ]; then
+    warning "Detectados $LOCAL_CHANGES cambios locales en el server — serán descartados:"
+    git status --porcelain | sed 's/^/    /'
+fi
+git reset --hard origin/master
 
 # ── 2. Verificar red de PostgreSQL ────────────────────────────────────────────
 source .env
