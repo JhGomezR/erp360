@@ -89,6 +89,30 @@ docker compose ps
 info "Limpiando imágenes no utilizadas..."
 docker image prune -f --filter "dangling=true" >/dev/null 2>&1 || true
 
+# ── 9. Verificación de seguridad: tests fuera de los containers ───────────────
+info "Verificando que las pruebas NO estén dentro de los containers..."
+LEAK=""
+if docker compose exec -T backend test -d /var/www/html/tests 2>/dev/null; then
+    LEAK="${LEAK}backend:/var/www/html/tests "
+fi
+if docker compose exec -T frontend test -d /app/tests 2>/dev/null; then
+    LEAK="${LEAK}frontend:/app/tests "
+fi
+if [ -n "$LEAK" ]; then
+    warning "⚠ Se detectaron pruebas dentro de containers: $LEAK"
+    warning "  Revisa los .dockerignore — no deberían estar ahí."
+else
+    info "OK: containers limpios (sin tests/, sin .github/)."
+fi
+
+# Visibilidad informativa del costo en disco de tests/docs en el filesystem
+# del server. No se borran (los necesita git para no marcarlos como modificados
+# en el próximo pull), solo se reporta.
+if [ -d tests ] || [ -d .github ] || [ -d docs ]; then
+    SIZE=$(du -sh --total tests .github docs 2>/dev/null | tail -1 | awk '{print $1}')
+    info "Espacio en filesystem usado por carpetas no-runtime (tests/.github/docs): $SIZE"
+fi
+
 echo ""
 info "¡Despliegue completado!"
 echo ""

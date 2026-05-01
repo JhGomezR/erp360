@@ -7,5 +7,20 @@ node_modules
 out
 build
 coverage
+
+# ── Test outputs (defensa preventiva — ninguno debería estar en imagen prod) ──
+tests
+e2e
+playwright-report
+test-results
+playwright.config.ts
+
+# ── Documentación y CI (no aplican a runtime) ─────────────────────────────────
 *.md
+.github
+docs
+
+# ── Sistema/IDE ──────────────────────────────────────────────────────────────
 .DS_Store
+.vscode
+.idea
