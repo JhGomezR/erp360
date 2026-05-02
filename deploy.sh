@@ -42,8 +42,11 @@ fi
 git reset --hard origin/master
 
 # ── 2. Verificar red de PostgreSQL ────────────────────────────────────────────
-source .env
-PG_NET="${POSTGRES_NETWORK:-postgres_default}"
+# Extraemos POSTGRES_NETWORK con grep en lugar de `source .env`. El formato
+# Laravel del .env permite valores con espacios sin comillas (ej: APP_NAME=Atlas ERP),
+# lo que rompe `source` con "command not found" en líneas tipo `ERP`.
+PG_NET=$(grep -E '^POSTGRES_NETWORK=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | xargs)
+PG_NET="${PG_NET:-postgres_default}"
 if ! docker network inspect "$PG_NET" >/dev/null 2>&1; then
     error "Red Docker '$PG_NET' no encontrada. Verifica POSTGRES_NETWORK en .env"
 fi
