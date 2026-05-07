@@ -98,9 +98,26 @@ fi
 info "Servicios activos:"
 docker compose ps
 
-# ── 8. Limpieza de imágenes antiguas ─────────────────────────────────────────
-info "Limpiando imágenes no utilizadas..."
-docker image prune -f --filter "dangling=true" >/dev/null 2>&1 || true
+# ── 8. Limpieza agresiva de Docker y logs ────────────────────────────────────
+# El disco se llenó hasta 99.3% en producción porque la limpieza era muy
+# conservadora (solo dangling). Ahora limpiamos también:
+#  - Imágenes no usadas en >7 días (solo borra las que NINGÚN container usa)
+#  - Build cache de >7 días (nunca se reutiliza pasado un deploy normal)
+#  - Containers detenidos viejos
+#  - Logs Laravel >7 días
+info "Liberando espacio en disco..."
+DISK_BEFORE=$(df -h / | awk 'NR==2 {print $5}')
+
+docker image prune -af --filter "until=168h" >/dev/null 2>&1 || true
+docker builder prune -af --filter "unused-for=168h" >/dev/null 2>&1 || true
+docker container prune -f --filter "until=24h" >/dev/null 2>&1 || true
+
+if [ -d "atlas-backend/storage/logs" ]; then
+    find atlas-backend/storage/logs -name "*.log" -mtime +7 -delete 2>/dev/null || true
+fi
+
+DISK_AFTER=$(df -h / | awk 'NR==2 {print $5}')
+info "Disco usado: $DISK_BEFORE → $DISK_AFTER"
 
 # ── 9. Verificación de seguridad: tests fuera de los containers ───────────────
 info "Verificando que las pruebas NO estén dentro de los containers..."
