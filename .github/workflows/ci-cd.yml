@@ -678,6 +678,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script_stop: true
+          command_timeout: 15m   # default 10m; build PHP+Next.js + migrate + up puede tomar 8-12 min
           script: |
             set -e
             cd "${{ secrets.DEPLOY_PATH }}"

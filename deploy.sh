@@ -85,7 +85,11 @@ if [ "$SKIP_MIGRATE" = false ]; then
         backend php artisan migrate --force --no-interaction
 
     info "Ejecutando seeders de sistema (si aplica)..."
+    # IMPORTANTE: forzar APP_MODE=migrate para que el entrypoint NO arranque
+    # php-fpm en foreground (default APP_MODE=fpm hace que el container se
+    # cuelgue indefinidamente y `docker compose run --rm` nunca retorne).
     docker compose run --rm \
+        -e APP_MODE=migrate \
         backend php artisan db:seed --class=SystemParamSeeder --force --no-interaction 2>/dev/null || true
 fi
 
