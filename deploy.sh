@@ -27,19 +27,13 @@ error()   { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 
 info "Iniciando despliegue de Atlas ERP..."
 
-# ── 1. Actualizar código ───────────────────────────────────────────────────────
-# Estrategia: el servidor de producción NO debe tener cambios locales nunca.
-# Lo que está en origin/master es la única fuente de verdad. Si alguien edita
-# archivos en el server (hotfix, debugging, etc.), esos cambios SE DESCARTAN
-# en el próximo deploy. Cualquier cambio real debe pasar por PR + merge a master.
-info "Actualizando código desde git (forzando sincronización con origin/master)..."
-git fetch origin master
-LOCAL_CHANGES=$(git status --porcelain | wc -l)
-if [ "$LOCAL_CHANGES" -gt 0 ]; then
-    warning "Detectados $LOCAL_CHANGES cambios locales en el server — serán descartados:"
-    git status --porcelain | sed 's/^/    /'
-fi
-git reset --hard origin/master
+# ── 1. Código ya actualizado por el caller ────────────────────────────────────
+# El workflow GitHub Actions hace `git fetch + git reset --hard origin/master`
+# ANTES de invocar este script. Eso evita el problema de "self-modifying script":
+# si el git pull se hiciera AQUÍ, bash seguiría ejecutando la versión vieja en
+# memoria (ya cargada al arrancar el script) y los cambios al propio deploy.sh
+# no surtirían efecto hasta el siguiente deploy.
+info "Código asumido actualizado por el caller — saltando git pull interno."
 
 # ── 2. Verificar red de PostgreSQL ────────────────────────────────────────────
 # Extraemos POSTGRES_NETWORK con grep en lugar de `source .env`. El formato

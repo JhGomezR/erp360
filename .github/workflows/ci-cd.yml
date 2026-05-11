@@ -681,6 +681,21 @@ jobs:
           script: |
             set -e
             cd "${{ secrets.DEPLOY_PATH }}"
+
+            # ── Actualizar código ANTES de invocar deploy.sh ────────────────
+            # Bash carga el script completo a memoria al arrancar; si deploy.sh
+            # se actualiza a sí mismo via `git pull`, las líneas siguientes
+            # siguen ejecutando la versión vieja en memoria. Lo resolvemos
+            # haciendo el git sync acá afuera, antes del exec.
+            echo "==> Sincronizando con origin/master..."
+            git fetch origin master
+            LOCAL_CHANGES=$(git status --porcelain | wc -l)
+            if [ "$LOCAL_CHANGES" -gt 0 ]; then
+              echo "==> Descartando $LOCAL_CHANGES cambio(s) local(es):"
+              git status --porcelain
+            fi
+            git reset --hard origin/master
+
             chmod +x deploy.sh
             ./deploy.sh
             echo "Deploy completado: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
