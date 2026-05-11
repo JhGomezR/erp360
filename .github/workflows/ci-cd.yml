@@ -26,6 +26,7 @@ jobs:
   test-unit:
     name: "Backend — Unit Tests (Caja Blanca)"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     defaults:
       run:
         working-directory: atlas-backend
@@ -76,6 +77,7 @@ jobs:
   test-feature:
     name: "Backend — Feature/Integration Tests (Caja Negra API)"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: atlas-backend
@@ -145,6 +147,7 @@ jobs:
   test-security-phpunit:
     name: "Backend — Security Tests (XSS, SQLi, Auth, IDOR)"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: atlas-backend
@@ -221,6 +224,7 @@ jobs:
   test-performance-phpunit:
     name: "Backend — Performance/SLA Tests (Response Time)"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: atlas-backend
@@ -292,6 +296,7 @@ jobs:
   lint-frontend:
     name: "Frontend — ESLint + TypeScript + Build"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: atlas-frontend
@@ -331,6 +336,7 @@ jobs:
   security-audit:
     name: "Security Audit — CVE en dependencias"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@v4
@@ -655,6 +661,7 @@ jobs:
       - security-audit
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 20    # build PHP+Next.js + migrate + up containers; SSH command_timeout es 15m
     environment: production
     continue-on-error: true  # No bloquear el workflow si los secrets SSH aún no están configurados
     env:
@@ -715,6 +722,7 @@ jobs:
       - security-audit
     if: always() && github.event_name == 'schedule'
     runs-on: ubuntu-latest
+    timeout-minutes: 5    # Solo descarga artifacts y genera markdown
 
     steps:
       - uses: actions/checkout@v4
