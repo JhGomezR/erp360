@@ -35,23 +35,33 @@ info "Iniciando despliegue de Atlas ERP..."
 # no surtirían efecto hasta el siguiente deploy.
 info "Código asumido actualizado por el caller — saltando git pull interno."
 
-# ── 2. Verificar / crear red de PostgreSQL ────────────────────────────────────
-# Extraemos POSTGRES_NETWORK con grep en lugar de `source .env`. El formato
-# Laravel del .env permite valores con espacios sin comillas (ej: APP_NAME=Atlas ERP),
-# lo que rompe `source` con "command not found" en líneas tipo `ERP`.
+# ── 2. Verificar redes externas (Postgres + Traefik) ──────────────────────────
+# Estas redes están declaradas como `external: true` en docker-compose.yml.
+# El docker-compose NO las crea — deben existir previamente (las maneja
+# el stack de Postgres y el panel de Hostinger respectivamente). Si no
+# existen, el deploy aborta porque es problema de infraestructura que debe
+# resolverse manualmente, NO auto-crearse (perderíamos la conexión a la BD real).
+#
+# Usamos grep en lugar de `source .env` porque el formato Laravel permite
+# valores con espacios sin comillas (ej: APP_NAME=Atlas ERP), lo que rompe
+# `source` con "command not found".
 PG_NET=$(grep -E '^POSTGRES_NETWORK=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | xargs)
-PG_NET="${PG_NET:-postgres_default}"
+PG_NET="${PG_NET:-postgresql-ctu2_default}"
+TRAEFIK_NET=$(grep -E '^TRAEFIK_NETWORK=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | xargs)
+TRAEFIK_NET="${TRAEFIK_NET:-root_default}"
 
 if ! docker network inspect "$PG_NET" >/dev/null 2>&1; then
-    warning "Red Docker '$PG_NET' no encontrada. Creándola automáticamente..."
-    if docker network create "$PG_NET" >/dev/null 2>&1; then
-        info "Red Docker '$PG_NET' creada."
-    else
-        error "No se pudo crear la red Docker '$PG_NET'. Revisa permisos/Docker daemon."
-    fi
-else
-    info "Red PostgreSQL '$PG_NET' encontrada."
+    error "Red Docker '$PG_NET' no encontrada. Es external — debe existir previamente.
+       Verifica POSTGRES_NETWORK en .env y que el stack de Postgres esté corriendo.
+       Comando para ver redes disponibles: docker network ls"
 fi
+info "Red PostgreSQL '$PG_NET' encontrada."
+
+if ! docker network inspect "$TRAEFIK_NET" >/dev/null 2>&1; then
+    error "Red Docker '$TRAEFIK_NET' no encontrada. Es external — la gestiona el panel de Hostinger.
+       Verifica TRAEFIK_NETWORK en .env."
+fi
+info "Red Traefik '$TRAEFIK_NET' encontrada."
 
 # ── 3. Build de imágenes ───────────────────────────────────────────────────────
 if [ "$FORCE_BUILD" = true ]; then
