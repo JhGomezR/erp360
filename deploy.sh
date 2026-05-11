@@ -99,19 +99,35 @@ docker compose up -d
 
 # ── 7. Verificación de salud ──────────────────────────────────────────────────
 info "Esperando que los servicios estén listos..."
-sleep 10
-
-HEALTH_STATUS=$(docker compose ps --format json 2>/dev/null | \
-    python3 -c "import sys,json; data=[json.loads(l) for l in sys.stdin if l.strip()]; \
-    unhealthy=[s['Name'] for s in data if s.get('Health','') in ('unhealthy','')  and s['State']!='running']; \
-    print('\n'.join(unhealthy))" 2>/dev/null || echo "")
-
-if [ -n "$HEALTH_STATUS" ]; then
-    warning "Algunos servicios pueden tener problemas. Verifica con: docker compose ps"
-fi
+sleep 15
 
 info "Servicios activos:"
 docker compose ps
+
+# Validación HTTP real contra el dominio PÚBLICO — valida la cadena completa
+# (DNS → Traefik → nginx interno → backend/frontend). Es exactamente lo que
+# ve el usuario final. Detecta casos donde los containers están UP pero la
+# app no acepta conexiones (ej: el 502 que rompió producción 2026-05-11).
+PUBLIC_URL="https://atlaserp.com.co/api/health"
+info "Validando salud pública: $PUBLIC_URL"
+HTTP_CHECK_OK=false
+for attempt in 1 2 3 4 5; do
+    if curl -sf -o /dev/null --max-time 10 "$PUBLIC_URL"; then
+        HTTP_CHECK_OK=true
+        info "✓ Producción responde 200 (intento $attempt)"
+        break
+    fi
+    warning "Intento $attempt/5 fallido — esperando 10s antes de reintentar..."
+    sleep 10
+done
+
+if [ "$HTTP_CHECK_OK" = false ]; then
+    warning "⚠ Producción NO responde 200 después de 5 intentos. Containers arrancaron"
+    warning "   pero la app no acepta tráfico público. Revisa: docker compose logs frontend"
+    warning "   Para rollback rápido: git reset --hard HEAD~1 && docker compose up -d --build"
+    # NO hace exit 1 automáticamente para que se ejecute la limpieza posterior y se
+    # vea el output completo. Pero el deploy queda marcado como degradado.
+fi
 
 # ── 8. Limpieza agresiva de Docker y logs ────────────────────────────────────
 # El disco se llenó hasta 99.3% en producción porque la limpieza era muy
@@ -126,6 +142,15 @@ DISK_BEFORE=$(df -h / | awk 'NR==2 {print $5}')
 docker image prune -af --filter "until=168h" >/dev/null 2>&1 || true
 docker builder prune -af --filter "unused-for=168h" >/dev/null 2>&1 || true
 docker container prune -f --filter "until=24h" >/dev/null 2>&1 || true
+
+# Containers zombi de `docker compose run --rm` que no se limpiaron porque
+# el SSH cortó por timeout. El --rm solo aplica si el container termina
+# ordenadamente; si bash murió a la mitad, queda el container con sufijo -run-XXXX.
+ZOMBIES=$(docker ps -a --filter "name=-run-" --format "{{.Names}}" 2>/dev/null | grep -E "(backend|frontend|queue|scheduler)-run-" | head -20)
+if [ -n "$ZOMBIES" ]; then
+    info "Limpiando containers zombi de 'docker compose run' previos..."
+    echo "$ZOMBIES" | xargs -r docker rm -f >/dev/null 2>&1 || true
+fi
 
 if [ -d "atlas-backend/storage/logs" ]; then
     find atlas-backend/storage/logs -name "*.log" -mtime +7 -delete 2>/dev/null || true
