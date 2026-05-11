@@ -35,16 +35,23 @@ info "Iniciando despliegue de Atlas ERP..."
 # no surtirían efecto hasta el siguiente deploy.
 info "Código asumido actualizado por el caller — saltando git pull interno."
 
-# ── 2. Verificar red de PostgreSQL ────────────────────────────────────────────
+# ── 2. Verificar / crear red de PostgreSQL ────────────────────────────────────
 # Extraemos POSTGRES_NETWORK con grep en lugar de `source .env`. El formato
 # Laravel del .env permite valores con espacios sin comillas (ej: APP_NAME=Atlas ERP),
 # lo que rompe `source` con "command not found" en líneas tipo `ERP`.
 PG_NET=$(grep -E '^POSTGRES_NETWORK=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'" | xargs)
 PG_NET="${PG_NET:-postgres_default}"
+
 if ! docker network inspect "$PG_NET" >/dev/null 2>&1; then
-    error "Red Docker '$PG_NET' no encontrada. Verifica POSTGRES_NETWORK en .env"
+    warning "Red Docker '$PG_NET' no encontrada. Creándola automáticamente..."
+    if docker network create "$PG_NET" >/dev/null 2>&1; then
+        info "Red Docker '$PG_NET' creada."
+    else
+        error "No se pudo crear la red Docker '$PG_NET'. Revisa permisos/Docker daemon."
+    fi
+else
+    info "Red PostgreSQL '$PG_NET' encontrada."
 fi
-info "Red PostgreSQL '$PG_NET' encontrada."
 
 # ── 3. Build de imágenes ───────────────────────────────────────────────────────
 if [ "$FORCE_BUILD" = true ]; then
